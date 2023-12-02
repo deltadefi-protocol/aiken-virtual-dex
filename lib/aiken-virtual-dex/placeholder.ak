@@ -1,8 +1,11 @@
-use aiken/transaction.{NoDatum, Output, OutputReference, TransactionId}
+use aiken/transaction.{
+  InlineDatum, NoDatum, Output, OutputReference, TransactionId,
+}
 use aiken/transaction/credential.{
   Address, Credential, ScriptCredential, VerificationKeyCredential,
 }
-use aiken/transaction/value.{PolicyId, from_lovelace}
+use aiken/transaction/value.{PolicyId, add, from_asset, from_lovelace}
+use aiken_virtual_dex/types.{OracleDatum}
 
 pub fn mock_policy_id() -> PolicyId {
   #"1c1b7afe8affbee1505cf3ec5a58bd2734d4ffdfcc9b9f059625bd76"
@@ -123,4 +126,23 @@ pub fn mock_script_address_3(stake_credential) -> Address {
     stake_credential,
   }
 }
+
 // Smart contract specific placeholders
+pub fn mock_oracle_datum() {
+  OracleDatum {
+    oracle_nft: mock_policy_id(),
+    oracle_address: mock_script_address(None),
+    min_fee: 1_000_000,
+    operation_key: mock_vkey_hex(),
+    stop_key: mock_vkey_hex_2(),
+  }
+}
+
+pub fn mock_oracle_output(oracle_datum: OracleDatum) -> Output {
+  Output {
+    address: mock_script_address(None),
+    value: from_asset(mock_policy_id(), "", 1) |> add(#"", #"", 2_000_000),
+    datum: InlineDatum(oracle_datum),
+    reference_script: None,
+  }
+}

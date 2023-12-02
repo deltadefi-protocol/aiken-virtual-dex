@@ -15,8 +15,7 @@ pub type OracleDatum {
 }
 
 pub type OracleRedeemer {
-  CreateContentRegistry
-  CreateOwnershipRegistry
+  UpdateFee { new_min_fee: Int }
   RotateKey { new_operation_key: ByteArray, new_stop_key: ByteArray }
   StopApp
 }
