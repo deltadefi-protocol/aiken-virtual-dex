@@ -55,5 +55,5 @@ pub type TradeAddressDatum {
 
 pub type TradeAddressRedeemer {
   PlaceOrder
-  TradeWithdrawal
+  TradeWithdrawal { withdraw_output: OutputReference }
 }

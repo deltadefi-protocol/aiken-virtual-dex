@@ -1,9 +1,9 @@
-use aiken/transaction.{ScriptContext, Spend}
+use aiken/transaction.{InlineDatum, ScriptContext, Spend, find_input}
 use aiken/transaction/value.{PolicyId}
-use aiken_virtual_dex/common.{all_key_signed, only_input_datum_with}
+use aiken_virtual_dex/common.{all_key_signed, key_signed, only_input_datum_with}
 use aiken_virtual_dex/types.{
   OracleDatum, PlaceOrder, TradeAddressDatum, TradeAddressRedeemer, TradeUtxo,
-  TradeWithdrawal,
+  TradeWithdrawal, WithdrawUtxo,
 }
 
 pub fn trade_account_logic(
@@ -21,7 +21,16 @@ pub fn trade_account_logic(
       expect TradeUtxo { owner } = datum
       all_key_signed(transaction.extra_signatories, [owner, operation_key])
     }
-    TradeWithdrawal -> False
+    TradeWithdrawal { withdraw_output } -> {
+      expect Some(input) = find_input(transaction.inputs, withdraw_output)
+      expect InlineDatum(raw_datum) = input.output.datum
+      expect casted_datum: TradeAddressDatum = raw_datum
+      when casted_datum is {
+        WithdrawUtxo { owner } ->
+          key_signed(transaction.extra_signatories, owner)
+        _ -> False
+      }
+    }
   }
   // TODO
 }
