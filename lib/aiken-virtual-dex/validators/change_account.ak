@@ -11,7 +11,8 @@ use aiken_virtual_dex/types.{
 
 pub fn change_account_logic(
   oracle_nft: PolicyId,
-  datum: ChangeAddressDatum,
+  owner: ByteArray,
+  _datum: ChangeAddressDatum,
   redeemer: ChangeAddressRedeemer,
   context: ScriptContext,
 ) -> Bool {
@@ -28,7 +29,7 @@ pub fn change_account_logic(
   expect OracleDatum { trade_account_address, change_account_address, .. }: OracleDatum =
     only_input_datum_with(reference_inputs, oracle_nft, "")
   when redeemer is {
-    OwnerWithdraw -> key_signed(extra_signatories, datum.owner)
+    OwnerWithdraw -> key_signed(extra_signatories, owner)
     AppRefill -> {
       let input_value = get_all_value_from(inputs, change_account_address)
       let change_output_value =

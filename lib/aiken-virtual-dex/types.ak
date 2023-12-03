@@ -49,8 +49,8 @@ pub type ChangeAddressRedeemer {
 }
 
 pub type TradeAddressDatum {
-  TradeUtxo { owner: ByteArray }
-  WithdrawUtxo { owner: ByteArray }
+  TradeUtxo
+  WithdrawUtxo
 }
 
 pub type TradeAddressRedeemer {

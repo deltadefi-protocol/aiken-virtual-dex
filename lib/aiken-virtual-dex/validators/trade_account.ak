@@ -2,13 +2,14 @@ use aiken/transaction.{InlineDatum, ScriptContext, Spend, find_input}
 use aiken/transaction/value.{PolicyId}
 use aiken_virtual_dex/common.{all_key_signed, key_signed, only_input_datum_with}
 use aiken_virtual_dex/types.{
-  OracleDatum, PlaceOrder, TradeAddressDatum, TradeAddressRedeemer, TradeUtxo,
+  OracleDatum, PlaceOrder, TradeAddressDatum, TradeAddressRedeemer,
   TradeWithdrawal, WithdrawUtxo,
 }
 
 pub fn trade_account_logic(
   oracle_nft: PolicyId,
-  datum: TradeAddressDatum,
+  owner: ByteArray,
+  _datum: TradeAddressDatum,
   redeemer: TradeAddressRedeemer,
   context: ScriptContext,
 ) -> Bool {
@@ -17,17 +18,14 @@ pub fn trade_account_logic(
   expect OracleDatum { operation_key, .. }: OracleDatum =
     only_input_datum_with(transaction.reference_inputs, oracle_nft, "")
   when redeemer is {
-    PlaceOrder -> {
-      expect TradeUtxo { owner } = datum
+    PlaceOrder ->
       all_key_signed(transaction.extra_signatories, [owner, operation_key])
-    }
     TradeWithdrawal { withdraw_output } -> {
       expect Some(input) = find_input(transaction.inputs, withdraw_output)
       expect InlineDatum(raw_datum) = input.output.datum
       expect casted_datum: TradeAddressDatum = raw_datum
       when casted_datum is {
-        WithdrawUtxo { owner } ->
-          key_signed(transaction.extra_signatories, owner)
+        WithdrawUtxo -> key_signed(transaction.extra_signatories, owner)
         _ -> False
       }
     }
