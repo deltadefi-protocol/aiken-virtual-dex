@@ -1,10 +1,24 @@
 use aiken/bytearray
 use aiken/list
-use aiken/transaction.{Input, Output, Spend}
+use aiken/transaction.{InlineDatum, Input, Output, Spend}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{
   AssetName, MintedValue, PolicyId, Value, flatten, from_minted_value,
   quantity_of,
+}
+
+pub fn only_input_datum_with(
+  inputs: List<Input>,
+  policy: PolicyId,
+  name: AssetName,
+) {
+  expect Some(input) =
+    list.find(
+      inputs,
+      fn(input) { quantity_of(input.output.value, policy, name) == 1 },
+    )
+  expect InlineDatum(raw_datum) = input.output.datum
+  raw_datum
 }
 
 pub fn inputs_at(inputs: List<Input>, address: Address) -> List<Input> {
