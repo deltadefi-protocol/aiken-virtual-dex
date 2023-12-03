@@ -6,7 +6,7 @@ use aiken/transaction.{
 use aiken/transaction/value.{PolicyId}
 use aiken_virtual_dex/common.{inputs_at, inputs_with}
 use aiken_virtual_dex/types.{
-  Bypass, CancelOrder, OracleDatum, TakeOrder, VirtualDexDatum,
+  CancelOrder, MassTakeOrder, OracleDatum, TakeOrder, VirtualDexDatum,
   VirtualDexRedeemer,
 }
 
@@ -29,7 +29,7 @@ pub fn virtual_dex_logic(
     raw_oracle_datum
 
   when redeemer is {
-    Bypass ->
+    MassTakeOrder { .. } ->
       // at least one redeemer is TakeOrder
       True
     // expect Some(raw_redeemer) =
@@ -39,7 +39,9 @@ pub fn virtual_dex_logic(
     //   CreateContent { content_hash: _, owner: _ } -> True
     //   _ -> False
     // }
-    CancelOrder -> True
     TakeOrder -> True
+
+    // for each script inputs, calculate the total should pay amount
+    CancelOrder -> True
   }
 }

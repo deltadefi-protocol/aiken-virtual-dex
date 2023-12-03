@@ -1,3 +1,4 @@
+use aiken/transaction.{OutputReference}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId}
 
@@ -10,7 +11,8 @@ pub type OracleDatum {
   oracle_nft: PolicyId,
   oracle_address: Address,
   virtual_dex_address: Address,
-  change_address: Address,
+  trade_account_address: Address,
+  change_account_address: Address,
   min_fee: Int,
   operation_key: ByteArray,
   stop_key: ByteArray,
@@ -33,7 +35,7 @@ pub type VirtualDexDatum {
 pub type VirtualDexRedeemer {
   TakeOrder
   CancelOrder
-  Bypass
+  MassTakeOrder { take_order_output: OutputReference }
 }
 
 pub type ChangeAddressDatum {
@@ -43,6 +45,7 @@ pub type ChangeAddressDatum {
 pub type ChangeAddressRedeemer {
   OwnerWithdraw
   AppRefill
+  MassRefill { refill_output: OutputReference }
 }
 
 pub type TradeAddressDatum {

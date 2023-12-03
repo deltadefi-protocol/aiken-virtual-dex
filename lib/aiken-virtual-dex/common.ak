@@ -1,10 +1,14 @@
 use aiken/bytearray
+use aiken/dict.{Dict}
 use aiken/list
-use aiken/transaction.{InlineDatum, Input, Output, Spend}
+use aiken/transaction.{
+  InlineDatum, Input, Output, OutputReference, Redeemer, ScriptPurpose, Spend,
+  find_input,
+}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{
-  AssetName, MintedValue, PolicyId, Value, flatten, from_minted_value,
-  quantity_of,
+  AssetName, MintedValue, PolicyId, Value, flatten, from_minted_value, merge,
+  quantity_of, zero,
 }
 
 pub fn only_input_datum_with(
@@ -193,6 +197,56 @@ pub fn inputs_token_quantity(
     fn(input) { quantity_of(input.output.value, token.1st, token.2nd) },
   )
     |> list.foldr(0, fn(n, total) { n + total })
+}
+
+pub fn redeemer_from(
+  redeemers: Dict<ScriptPurpose, Redeemer>,
+  inputs: List<Input>,
+  output_reference: OutputReference,
+  input_address: Address,
+) -> Option<Data> {
+  expect Some(redeemer) = dict.get(redeemers, Spend(output_reference))
+  expect Some(input) = find_input(inputs, output_reference)
+  if input.output.address == input_address {
+    Some(redeemer)
+  } else {
+    None
+  }
+}
+
+pub fn get_all_value_to(outputs: List<Output>, address: Address) -> Value {
+  list.foldr(
+    outputs,
+    zero(),
+    fn(output, acc_value) {
+      if output.address == address {
+        merge(acc_value, output.value)
+      } else {
+        acc_value
+      }
+    },
+  )
+}
+
+pub fn get_all_value_from(inputs: List<Input>, address: Address) -> Value {
+  list.foldr(
+    inputs,
+    zero(),
+    fn(input, acc_value) {
+      if input.output.address == address {
+        merge(acc_value, input.output.value)
+      } else {
+        acc_value
+      }
+    },
+  )
+}
+
+pub fn value_geq(greater: Value, smaller: Value) -> Bool {
+  list.all(
+    flatten(greater),
+    fn(token) { quantity_of(smaller, token.1st, token.2nd) <= token.3rd },
+  )
 }
 
 test byte_conversion() {
