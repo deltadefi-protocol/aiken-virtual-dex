@@ -3,7 +3,7 @@ use aiken/transaction.{Input, Mint, OutputReference, ScriptContext, Transaction}
 use aiken_virtual_dex/common.{check_policy_only_burn}
 use aiken_virtual_dex/types.{MintPolarity, RBurn, RMint}
 
-pub fn one_time_minting_policy_logic(
+pub fn oracle_nft_logic(
   utxo_ref: OutputReference,
   redeemer: MintPolarity,
   context: ScriptContext,

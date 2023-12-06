@@ -30,5 +30,4 @@ pub fn trade_account_logic(
       }
     }
   }
-  // TODO
 }
