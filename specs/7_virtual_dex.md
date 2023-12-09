@@ -29,6 +29,7 @@
 
 3. Cancelling order which is mistakenly listed onchain - Redeemer `CancelOrder`
 
+   - Whole value spent to `TradeAccount` with correct owner in datum
    - signed by both `operating_key` and owner
 
 4. Emergency operation - Redeemer `EmergencyCancel`
