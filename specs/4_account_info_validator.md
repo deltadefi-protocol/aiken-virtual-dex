@@ -22,14 +22,14 @@
    - Datum of re-spend utxo updated
    - `AccountRefToken` re-spend into current address with clean utxo
 
-2. Transfer the account to other address {new_owner_pub_key, new_owner_stake_cred}
+2. Transfer the account to other address - Redeemer `TransferAccount {new_owner_pub_key, new_owner_stake_cred}`
 
    - Signed by original pub key
    - 1 input & 1 output with current address
    - Datum of re-spend utxo updated
    - `AccountRefToken` re-spend into current address with clean utxo
 
-3. Delete the account
+3. Delete the account - Redeemer `DeleteAccount`
 
    - Reference to oracle utxo
    - 1 input & 1 output with current address

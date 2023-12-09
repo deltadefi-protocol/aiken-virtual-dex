@@ -18,7 +18,7 @@ There are in total 7 scripts for the DeltaDeFi virtual dex to work. Below provid
 
    - The validator locking `AccountRefToken`, for serving user account information while protecting information integrity.
 
-5. TradeAccount
+5. TradeAccount - [specification](./5_trade_account.md)
 
    - The script to be compiled into different addresses according to account number, storing the UTxO ready for place order.
 
