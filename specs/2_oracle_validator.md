@@ -6,15 +6,15 @@
 
 ## Datum
 
-- oracle_nft: The policy id of `OracleNFT`
-- oracle_address: The address of the current oracle validator
-- virtual_dex_script_hash: The script hash (payment) information of the virtual dex
-- account_info_token: The policy id of reference token on account
-- account_info_address: The address of hosting account information in inline datum
-- emergency_token: The policy id of the emergency token
-- account_count: The current count of account created
-- operation_key: The key for operation use. E.g. processing orders
-- stop_key: The key for stopping the services
+- `oracle_nft`: The policy id of `OracleNFT`
+- `oracle_address`: The address of the current oracle validator
+- `virtual_dex_script_hash`: The script hash (payment) information of the virtual dex
+- `account_info_token`: The policy id of reference token on account
+- `account_info_address`: The address of hosting account information in inline datum
+- `emergency_token`: The policy id of the emergency token
+- `account_count`: The current count of account created
+- `operation_key`: The key for operation use. E.g. processing orders
+- `stop_key`: The key for stopping the services
 
 ## User Action
 

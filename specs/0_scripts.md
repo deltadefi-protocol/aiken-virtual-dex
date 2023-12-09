@@ -14,7 +14,7 @@ There are in total 7 scripts for the DeltaDeFi virtual dex to work. Below provid
 
    - The reference token sitting in `AccountInfoValidator`, serving user account information.
 
-4. AccountInfoValidator
+4. AccountInfoValidator - [specification](./4_account_info_validator.md)
 
    - The validator locking `AccountRefToken`, for serving user account information while protecting information integrity.
 
