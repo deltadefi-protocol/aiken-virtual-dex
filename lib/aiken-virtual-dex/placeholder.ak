@@ -128,18 +128,18 @@ pub fn mock_script_address_3(stake_credential) -> Address {
 }
 
 // Smart contract specific placeholders
-pub fn mock_oracle_datum() {
-  OracleDatum {
-    oracle_nft: mock_policy_id(),
-    oracle_address: mock_script_address(None),
-    virtual_dex_address: mock_script_address_2(None),
-    trade_account_address: mock_script_address_3(None),
-    change_account_address: mock_script_address_3(None),
-    min_fee: 1_000_000,
-    operation_key: mock_vkey_hex(),
-    stop_key: mock_vkey_hex_2(),
-  }
-}
+// pub fn mock_oracle_datum() {
+//   OracleDatum {
+//     oracle_nft: mock_policy_id(),
+//     oracle_address: mock_script_address(None),
+//     virtual_dex_address: mock_script_address_2(None),
+//     trade_account_address: mock_script_address_3(None),
+//     change_account_address: mock_script_address_3(None),
+//     min_fee: 1_000_000,
+//     operation_key: mock_vkey_hex(),
+//     stop_key: mock_vkey_hex_2(),
+//   }
+// }
 
 pub fn mock_oracle_output(oracle_datum: OracleDatum) -> Output {
   Output {

@@ -2,9 +2,7 @@ use aiken/transaction.{InlineDatum, Output, ScriptContext, Spend, Transaction}
 use aiken_virtual_dex/common.{
   all_key_signed, key_signed, only_minted_token, outputs_at_with,
 }
-use aiken_virtual_dex/types.{
-  OracleDatum, OracleRedeemer, RotateKey, StopApp, UpdateFee,
-}
+use aiken_virtual_dex/types.{OracleDatum, OracleRedeemer, RotateKey, StopApp}
 
 pub fn oracle_validator_logic(
   datum: OracleDatum,
@@ -24,8 +22,6 @@ pub fn oracle_validator_logic(
       } = datum
 
       when redeemer is {
-        UpdateFee { new_min_fee: _todo } -> True
-        // todo
         RotateKey { new_operation_key, new_stop_key } -> {
           // Sign by both ops and stop key
           expect [own_output] =

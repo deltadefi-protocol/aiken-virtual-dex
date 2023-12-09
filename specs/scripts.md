@@ -2,11 +2,11 @@
 
 There are in total 7 scripts for the DeltaDeFi virtual dex to work. Below provide description and pointers to a more detailed specs.
 
-1. OracleNFT [specification](oracle_nft.md)
+1. OracleNFT [specification](./oracle_nft.md)
 
 - The one time minting policy, minting the NFT to be reference token locking in `OracleValidator`. It is used for serving static app information.
 
-2. OracleValidator
+2. OracleValidator [specification](./oracle_validator.md)
 
 - The validator locking `OracleNFT`, for serving app static information while protecting information integrity.
 
@@ -29,3 +29,7 @@ There are in total 7 scripts for the DeltaDeFi virtual dex to work. Below provid
 7. VirtualDEX
 
 - The script governing the transaction logic.
+
+8. EmergencyToken
+
+- The minting policy for taking any withdrawal / cancel actions solely by users.
