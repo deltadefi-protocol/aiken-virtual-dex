@@ -22,7 +22,7 @@ There are in total 7 scripts for the DeltaDeFi virtual dex to work. Below provid
 
    - The script to be compiled into different addresses according to account number, storing the UTxO ready for place order.
 
-6. ChangeAccount
+6. ChangeAccount - [specification](./6_change_account.md)
 
    - The script to be compiled into different addresses according to account number, storing the change UTxO after transaction.
 
