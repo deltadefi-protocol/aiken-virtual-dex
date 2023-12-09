@@ -23,7 +23,7 @@
    - Reference to account info utxo
    - Signed by operation key & owner
 
-2. Emergency operation - Redeemer `TradeEmergencyAction {new_owner_pub_key, new_owner_stake_cred}`
+2. Emergency operation - Redeemer `TradeEmergencyAction {withdraw_output}`
 
    - Reference to account info utxo
    - Signed by owner

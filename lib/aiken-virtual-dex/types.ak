@@ -71,7 +71,6 @@ pub type TradeAddressRedeemer {
 // 6. ChangeAccount
 pub type ChangeAddressDatum {
   ChangeNormalDatum
-  ChangeEmergencyDatum { valid_since: Int }
 }
 
 pub type ChangeAddressRedeemer {
@@ -82,6 +81,7 @@ pub type ChangeAddressRedeemer {
 
 // 7. VirtualDex
 pub type VirtualDexDatum {
+  account_number: Int,
   long_token: (PolicyId, AssetName),
   short_token: (PolicyId, AssetName),
   price: Int,
@@ -90,9 +90,10 @@ pub type VirtualDexDatum {
 }
 
 pub type VirtualDexRedeemer {
-  TakeOrder
-  CancelOrder
+  TakeOrder { order_taker: Address }
   MassTakeOrder { take_order_output: OutputReference }
+  CancelOrder
+  EmergencyCancel
 }
 
 // 8. EmergencyToken
