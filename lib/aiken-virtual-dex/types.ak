@@ -3,7 +3,6 @@ use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId}
 
 // 1. OracleNFT
-// 3. AccountRefToken
 pub type MintPolarity {
   RMint
   RBurn
@@ -17,6 +16,7 @@ pub type OracleDatum {
   account_info_token: PolicyId,
   account_info_address: Address,
   emergency_token: PolicyId,
+  account_count: Int,
   operation_key: ByteArray,
   stop_key: ByteArray,
 }
@@ -25,6 +25,13 @@ pub type OracleRedeemer {
   // MigrateDex { new_virtual_dex_script_hash: ByteArray }  
   RotateKey { new_operation_key: ByteArray, new_stop_key: ByteArray }
   StopApp
+}
+
+// 3. AccountRefToken
+
+pub type AccountRefTokenRedeemer {
+  CreateAccount { address: Address }
+  AccountRefTokenBurn
 }
 
 // 4. AccountInfoValidator
@@ -47,6 +54,7 @@ pub type AccountInfoRedeemer {
     new_owner_pub_key: ByteArray,
     new_owner_stake_cred: Option<ByteArray>,
   }
+  DeleteAccount
 }
 
 // 5. TradeAccount
