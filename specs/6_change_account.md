@@ -2,7 +2,7 @@
 
 ## Parameter
 
-- `utxo_ref`: UTxO to be spent at minting
+- `oracle_nft`: The policy id of `OracleNFT`
 - `count`: The account number
 
 ## Datum
