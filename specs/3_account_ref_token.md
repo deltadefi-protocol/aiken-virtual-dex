@@ -12,6 +12,8 @@
    - The token name minted is calculated through current count
    - 1 output to `AccountInfoValidator`, value length of 2
    - Signed by both operation key and `owner_pub_key`
+   - 1 output to `OracleValidator`, value length of 2
+   - Datum should be equivalent with `account_count + 1`
 
 2. Burn - Redeemer `AccountRefTokenBurn`
 
