@@ -1,8 +1,6 @@
-# Specification - OracleNFT
+# Specification - OracleValidator
 
 ## Parameter
-
-- `utxo_ref`: UTxO to be spent at minting
 
 ## Datum
 
