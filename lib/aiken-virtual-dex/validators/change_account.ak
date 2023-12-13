@@ -5,7 +5,7 @@ use aiken_virtual_dex/common.{
   redeemer_from, value_geq,
 }
 use aiken_virtual_dex/types.{
-  AppRefill, ChangeAddressDatum, ChangeAddressRedeemer, MassRefill, OracleDatum,
+  AppRefill, ChangeAccountDatum, ChangeAccountRedeemer, MassRefill, OracleDatum,
   OwnerWithdraw,
 }
 use aiken_virtual_dex/utils.{get_account_token_name}
@@ -13,8 +13,8 @@ use aiken_virtual_dex/utils.{get_account_token_name}
 pub fn change_account_logic(
   oracle_nft: PolicyId,
   account_number: Int,
-  _datum: ChangeAddressDatum,
-  redeemer: ChangeAddressRedeemer,
+  _datum: ChangeAccountDatum,
+  redeemer: ChangeAccountRedeemer,
   context: ScriptContext,
 ) -> Bool {
   True

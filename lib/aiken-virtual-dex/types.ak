@@ -39,22 +39,24 @@ pub type FeeInfoRedeemer {
 }
 
 // 5. TradeAccount
-pub type TradeAddressDatum {
+pub type TradeAccountDatum {
   TradeNormalDatum
-  TradeEmergencyDatum { valid_since: Int }
+  TradeEmergencyDatum { valid_since: Int, minter: ByteArray }
+  EmergencyIncidentInitiation { owner: Address }
 }
 
-pub type TradeAddressRedeemer {
+pub type TradeAccountRedeemer {
   TradeNormalAction
   TradeEmergencyAction { withdraw_output: OutputReference }
+  InitiateEmergencyIncident
 }
 
 // 6. ChangeAccount
-pub type ChangeAddressDatum {
-  ChangeAddressDatum
+pub type ChangeAccountDatum {
+  ChangeAccountDatum
 }
 
-pub type ChangeAddressRedeemer {
+pub type ChangeAccountRedeemer {
   OwnerWithdraw
   AppRefill
   MassRefill { refill_output: OutputReference }

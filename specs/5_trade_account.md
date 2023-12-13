@@ -15,6 +15,10 @@
 
    - Stating that the UTxO is attached with an emergency token, ready for user withdrawal without passing through application logic
 
+3. InitiateEmergencyIncident {owner}
+
+   - Stating that the UTxO is ready to be the authorization input for minting the emergency token.
+
 ## User Action
 
 1. Normal operation - Redeemer `TradeNormalAction`
@@ -23,6 +27,12 @@
    - Signed by operation key & owner
 
 2. Emergency operation - Redeemer `TradeEmergencyAction {withdraw_output}`
+
+   - Signed by owner
+   - Validity range is after `valid_since`
+   - `EmergencyToken` with correct token name of hash of current address is burnt in current transaction
+
+3. Emergency operation - Redeemer `TradeEmergencyAction {withdraw_output}`
 
    - Signed by owner
    - Validity range is after `valid_since`

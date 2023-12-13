@@ -8,7 +8,7 @@
 
 ## Datum
 
-1. ChangeAddressDatum
+1. ChangeAccountDatum
 
    - Stating that the UTxO is ready for normal app operation, including placing orders, taking orders and authorized withdrawal
 
