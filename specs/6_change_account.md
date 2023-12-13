@@ -8,13 +8,9 @@
 
 ## Datum
 
-1. ChangeNormalDatum
+1. ChangeAddressDatum
 
    - Stating that the UTxO is ready for normal app operation, including placing orders, taking orders and authorized withdrawal
-
-2. ChangeEmergencyDatum {valid_since}
-
-   - Stating that the UTxO is attached with an emergency token, ready for user withdrawal without passing through application logic
 
 ## User Action
 

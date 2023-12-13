@@ -33,3 +33,14 @@ There are in total 7 scripts for the DeltaDeFi virtual dex to work. Below provid
 8. EmergencyToken - [specification](./emergency_token.md)
 
    - The minting policy for taking any withdrawal / cancel actions solely by users.
+
+## Param Dependency Graph
+
+- `EmergencyToken`
+- `utxo_ref` from admin wallet
+  - `OracleNFT`
+    - `FeeRefToken`
+      - `VirtualDEX`
+    - `FeeInfoValidator`
+    - `TradeAccount`
+      - `ChangeAccount`

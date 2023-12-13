@@ -26,4 +26,4 @@
 
    - Signed by owner
    - Validity range is after `valid_since`
-   - `EmergencyToken` is burnt in current transaction
+   - `EmergencyToken` with correct token name of hash of current address is burnt in current transaction

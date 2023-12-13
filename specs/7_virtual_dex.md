@@ -3,6 +3,7 @@
 ## Parameter
 
 - `oracle_nft`: The policy id of `OracleNFT`
+- `fee_ref_token`: The policy id of `FeeRefToken`
 
 ## Datum
 
@@ -33,4 +34,4 @@
 
 4. Emergency operation - Redeemer `EmergencyCancel`
 
-   - `EmergencyToken` coming from the same address as `trade_account_address` burnt in current transaction
+   - `EmergencyToken` with token name hashing `trade_account_address` burnt in current transaction

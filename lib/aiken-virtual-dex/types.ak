@@ -51,7 +51,7 @@ pub type TradeAddressRedeemer {
 
 // 6. ChangeAccount
 pub type ChangeAddressDatum {
-  ChangeNormalDatum
+  ChangeAddressDatum
 }
 
 pub type ChangeAddressRedeemer {
