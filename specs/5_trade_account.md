@@ -3,7 +3,7 @@
 ## Parameter
 
 - `oracle_nft`: The policy id of `OracleNFT`
-- `count`: The account number
+- `owner`: The pub key has of account owner
 
 ## Datum
 
@@ -20,12 +20,10 @@
 1. Normal operation - Redeemer `TradeNormalAction`
 
    - Reference to oracle utxo
-   - Reference to account info utxo
    - Signed by operation key & owner
 
 2. Emergency operation - Redeemer `TradeEmergencyAction {withdraw_output}`
 
-   - Reference to account info utxo
    - Signed by owner
    - Validity range is after `valid_since`
    - `EmergencyToken` is burnt in current transaction

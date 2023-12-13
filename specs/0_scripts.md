@@ -10,13 +10,13 @@ There are in total 7 scripts for the DeltaDeFi virtual dex to work. Below provid
 
    - The validator locking `OracleNFT`, for serving app static information while protecting information integrity.
 
-3. AccountRefToken - [specification](./3_account_ref_token.md)
+3. FeeRefToken - [specification](./3_fee_ref_token.md)
 
-   - The reference token sitting in `AccountInfoValidator`, serving user account information.
+   - The reference token sitting in `FeeInfoValidator`, serving user fee information.
 
-4. AccountInfoValidator - [specification](./4_account_info_validator.md)
+4. FeeInfoValidator - [specification](./4_fee_info_validator.md)
 
-   - The validator locking `AccountRefToken`, for serving user account information while protecting information integrity.
+   - The validator locking `FeeRefToken`, for serving user fee information while protecting information integrity.
 
 5. TradeAccount - [specification](./5_trade_account.md)
 

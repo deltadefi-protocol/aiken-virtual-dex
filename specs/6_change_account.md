@@ -3,7 +3,8 @@
 ## Parameter
 
 - `oracle_nft`: The policy id of `OracleNFT`
-- `count`: The account number
+- `owner`: The pub key has of account owner
+- `trade_account_address`: The address of the owner's trade account
 
 ## Datum
 
@@ -19,12 +20,10 @@
 
 1. Owner withdraws the amount from change address - Redeemer `OwnerWithdraw`
 
-   - Reference to account info utxo
    - Signed by operation owner
 
 2. Core logic of auto refill without user action - Redeemer `AppRefill`
 
-   - Reference to account info utxo
    - Value send to both change account and trade account is greater than input value from change account
 
 3. Bypassing check if any other redeemer is with the core logic - Redeemer `MassRefill { refill_output }`

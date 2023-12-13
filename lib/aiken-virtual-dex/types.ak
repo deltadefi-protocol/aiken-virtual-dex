@@ -3,6 +3,7 @@ use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId}
 
 // 1. OracleNFT
+// 3. FeeRefToken
 pub type MintPolarity {
   RMint
   RBurn
@@ -12,49 +13,29 @@ pub type MintPolarity {
 pub type OracleDatum {
   oracle_nft: PolicyId,
   oracle_address: Address,
-  virtual_dex_script_hash: ByteArray,
-  account_info_token: PolicyId,
-  account_info_address: Address,
+  fee_ref_token: PolicyId,
+  fee_info_address: Address,
   emergency_token: PolicyId,
-  account_count: Int,
   operation_key: ByteArray,
   stop_key: ByteArray,
 }
 
 pub type OracleRedeemer {
-  // MigrateDex { new_virtual_dex_script_hash: ByteArray }  
   RotateKey { new_operation_key: ByteArray, new_stop_key: ByteArray }
   StopApp
 }
 
-// 3. AccountRefToken
-
-pub type AccountRefTokenRedeemer {
-  CreateAccount { address: Address }
-  AccountRefTokenBurn
-}
-
-// 4. AccountInfoValidator
-pub type AccountInfoDatum {
+// 4. FeeInfoValidator
+pub type FeeInfoDatum {
+  long_token: (PolicyId, AssetName),
+  short_token: (PolicyId, AssetName),
   min_fee: Int,
-  owner_pub_key: ByteArray,
-  owner_stake_cred: Option<ByteArray>,
-  change_account_address: Address,
-  trade_account_address: Address,
+  percentage_fee: Int,
 }
 
-// pub type AccountInfoDatum {
-//   TradeInfo { min_fee: Int, change_account_address: Address }
-//   OperationInfo { owner_address: Address, trade_account_address: Address }
-// }
-
-pub type AccountInfoRedeemer {
-  UpdateFee { new_min_fee: Int }
-  TransferAccount {
-    new_owner_pub_key: ByteArray,
-    new_owner_stake_cred: Option<ByteArray>,
-  }
-  DeleteAccount
+pub type FeeInfoRedeemer {
+  UpdateFee { new_min_fee: Int, new_percentage_fee: Int }
+  RemoveFeeInfo
 }
 
 // 5. TradeAccount
@@ -81,17 +62,17 @@ pub type ChangeAddressRedeemer {
 
 // 7. VirtualDex
 pub type VirtualDexDatum {
-  account_number: Int,
-  long_token: (PolicyId, AssetName),
-  short_token: (PolicyId, AssetName),
+  change_account_address: Address,
+  trade_account_address: Address,
+  buy_token: (PolicyId, AssetName),
+  sell_token: (PolicyId, AssetName),
   price: Int,
-  is_lot_long: Bool,
   log_size: Int,
 }
 
 pub type VirtualDexRedeemer {
   TakeOrder { order_taker: Address }
-  MassTakeOrder { take_order_output: OutputReference }
+  MassTakeOrder { take_order_input: OutputReference }
   CancelOrder
   EmergencyCancel
 }
