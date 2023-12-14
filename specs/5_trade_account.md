@@ -17,7 +17,7 @@
 
    - Stating that the UTxO is attached with an emergency token, ready for user withdrawal without passing through application logic
 
-3. InitiateEmergencyIncident {owner}
+3. EmergencyIncidentInitiation {owner}
 
    - Stating that the UTxO is ready to be the authorization input for minting the emergency token.
 
@@ -38,4 +38,4 @@
 
    - Signed by owner
    - Emergency token is minted, with minting redeemer checked
-   - `EmergencyToken` with correct token name of hash of current address is burnt in current transaction
+   - Output UTxO back to current address with `EmergencyIncidentInitiation` Datum attached inline and with `EmergencyToken`

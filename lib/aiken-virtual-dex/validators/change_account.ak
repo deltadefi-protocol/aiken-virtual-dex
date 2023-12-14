@@ -1,5 +1,5 @@
 use aiken/transaction.{ScriptContext, Spend, Transaction, find_input}
-use aiken/transaction/value.{PolicyId, merge}
+use aiken/transaction/value.{PolicyId}
 use aiken_virtual_dex/common.{
   get_all_value_from, get_all_value_to, key_signed, only_input_datum_with,
   redeemer_from, value_geq,
