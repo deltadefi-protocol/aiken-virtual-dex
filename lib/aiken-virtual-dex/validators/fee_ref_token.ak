@@ -1,8 +1,12 @@
-use aiken/list
-use aiken/transaction.{Input, Mint, OutputReference, ScriptContext, Transaction}
+use aiken/transaction.{InlineDatum, Mint, ScriptContext, Transaction}
 use aiken/transaction/value.{PolicyId}
-use aiken_virtual_dex/common.{check_policy_only_burn}
-use aiken_virtual_dex/types.{MintPolarity, RBurn, RMint}
+use aiken_virtual_dex/common.{
+  check_policy_only_burn, key_signed, only_input_datum_with, only_minted_token,
+  outputs_at_with, value_length,
+}
+use aiken_virtual_dex/types.{
+  FeeInfoDatum, MintPolarity, OracleDatum, RBurn, RMint,
+}
 
 pub fn fee_ref_token_logic(
   oracle_nft: PolicyId,
@@ -14,19 +18,36 @@ pub fn fee_ref_token_logic(
     Mint(current_policy) ->
       when redeemer is {
         RMint -> {
-          let Transaction { inputs, .. } = transaction
-          True
+          let Transaction {
+            mint,
+            reference_inputs,
+            extra_signatories,
+            outputs,
+            ..
+          } = transaction
+          expect OracleDatum {
+            fee_ref_token,
+            fee_info_address,
+            operation_key,
+            ..
+          }: OracleDatum =
+            only_input_datum_with(reference_inputs, oracle_nft, "")
+          expect [output] =
+            outputs_at_with(outputs, fee_info_address, fee_ref_token, "")
+          expect InlineDatum(raw_datum) = output.datum
+          expect FeeInfoDatum {
+            long_token: _,
+            short_token: _,
+            min_fee,
+            percentage_fee,
+          }: FeeInfoDatum = raw_datum
+          let fee_token_minted = only_minted_token(mint, fee_ref_token, "", 1)
+          let fee_token_output_clean = value_length(output.value) == 2
+          let fee_datum_format_correct = min_fee >= 0 && percentage_fee >= 0
+          let is_operating_key_signed =
+            key_signed(extra_signatories, operation_key)
+          fee_token_minted && fee_token_output_clean && fee_datum_format_correct && is_operating_key_signed
         }
-
-        //     let hash_equal =
-        //       fn(input: Input) {
-        //         let hash = input.output_reference
-        //         utxo_ref == hash
-        //       }
-        //     let target_input_exist = list.find(inputs, hash_equal)
-        //     when target_input_exist is {
-        //       Some(_) -> True
-        //       None -> False
         RBurn -> check_policy_only_burn(transaction.mint, current_policy)
       }
     _ -> False

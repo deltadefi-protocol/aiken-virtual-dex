@@ -10,8 +10,8 @@
 
    - Only 1 `FeeToken` is minted with empty token name
    - 1 output to `FeeInfoValidator`, value length of 2
-   - The inline datum attached with the output is in format of `FeeInfoDatum`
-   - Signed by both operation key and `owner_pub_key`
+   - The inline datum attached with the output is in format of `FeeInfoDatum` (geq 0 fee)
+   - Signed by both operation key
 
 2. Burn - Redeemer RBurn
 
