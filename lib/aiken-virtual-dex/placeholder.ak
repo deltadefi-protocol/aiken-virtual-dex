@@ -1,11 +1,11 @@
 use aiken/transaction.{
-  InlineDatum, NoDatum, Output, OutputReference, TransactionId,
+  InlineDatum, Input, NoDatum, Output, OutputReference, TransactionId,
 }
 use aiken/transaction/credential.{
   Address, Credential, ScriptCredential, VerificationKeyCredential,
 }
 use aiken/transaction/value.{PolicyId, add, from_asset, from_lovelace}
-use aiken_virtual_dex/types.{OracleDatum}
+use aiken_virtual_dex/types.{FeeInfoDatum, OracleDatum}
 
 pub fn mock_policy_id() -> PolicyId {
   #"1c1b7afe8affbee1505cf3ec5a58bd2734d4ffdfcc9b9f059625bd76"
@@ -180,9 +180,33 @@ pub fn mock_oracle_datum() {
 
 pub fn mock_oracle_output(oracle_datum: OracleDatum) -> Output {
   Output {
-    address: mock_script_address(None),
-    value: from_asset(mock_policy_id(), "", 1) |> add(#"", #"", 2_000_000),
+    address: mock_oracle_address(),
+    value: from_asset(mock_oracle_policy_id(), "", 1)
+      |> add(#"", #"", 2_000_000),
     datum: InlineDatum(oracle_datum),
+    reference_script: None,
+  }
+}
+
+pub fn mock_oracle_ref_input() -> Input {
+  Input {
+    output_reference: mock_utxo_ref(0),
+    output: mock_oracle_output(mock_oracle_datum()),
+  }
+}
+
+pub fn mock_fee_ref_output() -> Output {
+  Output {
+    address: mock_fee_info_address(),
+    value: from_asset(mock_fee_ref_token(), "", 1) |> add("", "", 2_000_000),
+    datum: InlineDatum(
+      FeeInfoDatum {
+        long_token: ("", ""),
+        short_token: (mock_policy_id_5(), "A potentially very long name"),
+        min_fee: 0,
+        percentage_fee: 0,
+      },
+    ),
     reference_script: None,
   }
 }
