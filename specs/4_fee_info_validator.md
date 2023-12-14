@@ -17,6 +17,7 @@
 
    - Reference to oracle utxo
    - 1 input & 1 output with current address
+   - Empty minting info
    - Signed by operation key
    - Datum of re-spend utxo updated
    - `FeeRefToken` re-spend into current address with clean utxo (length of 2)

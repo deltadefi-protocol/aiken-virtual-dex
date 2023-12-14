@@ -5,6 +5,7 @@
 - `oracle_nft`: The policy id of `OracleNFT`
 - `owner`: The pub key has of account owner
 - `fee_ref_token`: The policy id of `FeeRefToken`
+- `emergency_token`: The policy id of the emergency token
 
 ## Datum
 

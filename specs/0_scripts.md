@@ -36,11 +36,20 @@ There are in total 7 scripts for the DeltaDeFi virtual dex to work. Below provid
 
 ## Param Dependency Graph
 
-- `EmergencyToken`
-- `utxo_ref` from admin wallet
-  - `OracleNFT`
-    - `FeeRefToken`
-      - `VirtualDEX`
-    - `FeeInfoValidator`
-    - `TradeAccount`
-      - `ChangeAccount`
+1. First layer
+
+   - 1.1 `EmergencyToken` (no param)
+   - 1.2 `OracleNFT` (param: `utxo_ref`)
+
+2. Second layer
+
+   - 2.1 `FeeRefToken` (param: 1.2)
+   - 2.2 `FeeInfoValidator` (param: 1.2)
+
+3. Third layer
+
+   - 3.1`TradeAccount` (param: `owner`, 1.1, 1.2, 2.1)
+   - 3.2 `VirtualDEX` (param: 1.1, 1.2, 2.1)
+
+4. Fourth layer
+   - 4.1 `ChangeAccount` (param: `owner`, 1.2, 3.1)

@@ -15,7 +15,6 @@ pub type OracleDatum {
   oracle_address: Address,
   fee_ref_token: PolicyId,
   fee_info_address: Address,
-  emergency_token: PolicyId,
   operation_key: ByteArray,
   stop_key: ByteArray,
 }

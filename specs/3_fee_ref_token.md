@@ -12,7 +12,6 @@
    - 1 output to `FeeInfoValidator`, value length of 2
    - The inline datum attached with the output is in format of `FeeInfoDatum`
    - Signed by both operation key and `owner_pub_key`
-   - Datum should be equivalent with `account_count + 1`
 
 2. Burn - Redeemer RBurn
 

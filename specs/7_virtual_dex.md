@@ -4,6 +4,7 @@
 
 - `oracle_nft`: The policy id of `OracleNFT`
 - `fee_ref_token`: The policy id of `FeeRefToken`
+- `emergency_token`: The policy id of the emergency token
 
 ## Datum
 
