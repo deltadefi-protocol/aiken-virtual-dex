@@ -80,6 +80,21 @@ pub fn mock_pub_key_address_2(stake_credential) -> Address {
   }
 }
 
+pub fn mock_vkey_hex_3() -> ByteArray {
+  #"310b3e52ee714c92f723d4e3e4060fc8029f13f672872eefa742a716"
+}
+
+pub fn mock_verfication_key_credential_3() -> Credential {
+  VerificationKeyCredential(mock_vkey_hex_3())
+}
+
+pub fn mock_pub_key_address_3(stake_credential) -> Address {
+  Address {
+    payment_credential: mock_verfication_key_credential_3(),
+    stake_credential,
+  }
+}
+
 // Script Addresses
 
 pub fn mock_script_hex() -> ByteArray {
@@ -128,18 +143,40 @@ pub fn mock_script_address_3(stake_credential) -> Address {
 }
 
 // Smart contract specific placeholders
-// pub fn mock_oracle_datum() {
-//   OracleDatum {
-//     oracle_nft: mock_policy_id(),
-//     oracle_address: mock_script_address(None),
-//     virtual_dex_address: mock_script_address_2(None),
-//     trade_account_address: mock_script_address_3(None),
-//     change_account_address: mock_script_address_3(None),
-//     min_fee: 1_000_000,
-//     operation_key: mock_vkey_hex(),
-//     stop_key: mock_vkey_hex_2(),
-//   }
-// }
+pub fn mock_oracle_policy_id() {
+  mock_policy_id()
+}
+
+pub fn mock_oracle_address() {
+  mock_script_address(None)
+}
+
+pub fn mock_fee_ref_token() {
+  mock_policy_id_2()
+}
+
+pub fn mock_fee_info_address() {
+  mock_script_address_2(None)
+}
+
+pub fn mock_operation_key() {
+  mock_vkey_hex()
+}
+
+pub fn mock_stop_key() {
+  mock_vkey_hex_2()
+}
+
+pub fn mock_oracle_datum() {
+  OracleDatum {
+    oracle_nft: mock_oracle_policy_id(),
+    oracle_address: mock_oracle_address(),
+    fee_ref_token: mock_fee_ref_token(),
+    fee_info_address: mock_fee_info_address(),
+    operation_key: mock_operation_key(),
+    stop_key: mock_stop_key(),
+  }
+}
 
 pub fn mock_oracle_output(oracle_datum: OracleDatum) -> Output {
   Output {
