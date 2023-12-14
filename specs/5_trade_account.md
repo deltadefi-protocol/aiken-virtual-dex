@@ -4,6 +4,7 @@
 
 - `oracle_nft`: The policy id of `OracleNFT`
 - `owner`: The pub key has of account owner
+- `fee_ref_token`: The policy id of `FeeRefToken`
 
 ## Datum
 
@@ -32,8 +33,8 @@
    - Validity range is after `valid_since`
    - `EmergencyToken` with correct token name of hash of current address is burnt in current transaction
 
-3. Emergency operation - Redeemer `TradeEmergencyAction {withdraw_output}`
+3. Emergency operation - Redeemer `InitiateEmergencyIncident`
 
    - Signed by owner
-   - Validity range is after `valid_since`
+   - Emergency token is minted, with minting redeemer checked
    - `EmergencyToken` with correct token name of hash of current address is burnt in current transaction

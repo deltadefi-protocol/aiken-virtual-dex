@@ -16,7 +16,7 @@
 
 1. Owner withdraws the amount from change address - Redeemer `OwnerWithdraw`
 
-   - Signed by operation owner
+   - Signed by address owner
 
 2. Core logic of auto refill without user action - Redeemer `AppRefill`
 
