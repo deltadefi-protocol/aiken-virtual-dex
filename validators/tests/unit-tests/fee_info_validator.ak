@@ -6,7 +6,7 @@ use aiken_virtual_dex/placeholder.{
   mock_fee_ref_output, mock_fee_ref_token, mock_operation_key,
   mock_oracle_policy_id, mock_oracle_ref_input, mock_policy_id_5, mock_utxo_ref,
 }
-use aiken_virtual_dex/types.{FeeInfoDatum, UpdateFee}
+use aiken_virtual_dex/types.{FeeInfoDatum, RemoveFeeInfo, UpdateFee}
 use aiken_virtual_dex/validators/fee_info_validator.{fee_info_validator_logic}
 
 type UpdateFeeTestCase {
@@ -180,6 +180,135 @@ test fail_update_fee_with_unclean_value() {
       UpdateFeeTestCase {
         ..base_update_fee_test_case(),
         is_output_value_clean: False,
+      },
+    )
+  let ctx = ScriptContext { purpose: Spend(output_reference), transaction: tx }
+  !fee_info_validator_logic(
+    mock_oracle_policy_id(),
+    mock_datum(),
+    redeemer,
+    ctx,
+  )
+}
+
+type RemoveFeeInfoTestCase {
+  is_fee_ref_token_burnt: Bool,
+  is_no_own_outputs: Bool,
+  is_operating_key_signed: Bool,
+}
+
+fn base_remove_fee_info_test_case() {
+  RemoveFeeInfoTestCase {
+    is_fee_ref_token_burnt: True,
+    is_no_own_outputs: True,
+    is_operating_key_signed: True,
+  }
+}
+
+fn mock_remove_fee_info_test_case(test_case: RemoveFeeInfoTestCase) {
+  let RemoveFeeInfoTestCase {
+    is_fee_ref_token_burnt,
+    is_no_own_outputs,
+    is_operating_key_signed,
+  } = test_case
+  let policy_id = mock_fee_ref_token()
+  let mint_value =
+    if is_fee_ref_token_burnt {
+      from_asset(policy_id, "", -1)
+    } else {
+      zero()
+    }
+  let mint = to_minted_value(mint_value)
+
+  let inputs =
+    [
+      Input {
+        output_reference: mock_utxo_ref(1),
+        output: mock_fee_ref_output(),
+      },
+    ]
+
+  let outputs =
+    if is_no_own_outputs {
+      []
+    } else {
+      [mock_fee_ref_output()]
+    }
+
+  let extra_signatories =
+    if is_operating_key_signed {
+      [mock_operation_key()]
+    } else {
+      []
+    }
+  Transaction {
+    ..placeholder(),
+    inputs: inputs,
+    outputs: outputs,
+    extra_signatories: extra_signatories,
+    reference_inputs: [mock_oracle_ref_input()],
+    mint: mint,
+  }
+}
+
+test success_remove_fee_info() {
+  let redeemer = RemoveFeeInfo
+  let output_reference = mock_utxo_ref(1)
+
+  let tx = mock_remove_fee_info_test_case(base_remove_fee_info_test_case())
+  let ctx = ScriptContext { purpose: Spend(output_reference), transaction: tx }
+  fee_info_validator_logic(mock_oracle_policy_id(), mock_datum(), redeemer, ctx)
+}
+
+test fail_remove_fee_info_with_other_minting() {
+  let redeemer = RemoveFeeInfo
+  let output_reference = mock_utxo_ref(1)
+
+  let tx =
+    mock_remove_fee_info_test_case(
+      RemoveFeeInfoTestCase {
+        ..base_remove_fee_info_test_case(),
+        is_fee_ref_token_burnt: False,
+      },
+    )
+  let ctx = ScriptContext { purpose: Spend(output_reference), transaction: tx }
+  !fee_info_validator_logic(
+    mock_oracle_policy_id(),
+    mock_datum(),
+    redeemer,
+    ctx,
+  )
+}
+
+test fail_remove_fee_info_with_own_outputs() {
+  let redeemer = RemoveFeeInfo
+  let output_reference = mock_utxo_ref(1)
+
+  let tx =
+    mock_remove_fee_info_test_case(
+      RemoveFeeInfoTestCase {
+        ..base_remove_fee_info_test_case(),
+        is_no_own_outputs: False,
+      },
+    )
+  let ctx = ScriptContext { purpose: Spend(output_reference), transaction: tx }
+  !fee_info_validator_logic(
+    mock_oracle_policy_id(),
+    mock_datum(),
+    redeemer,
+    ctx,
+  )
+}
+
+test fail_remove_fee_info_without_operation_key_signed() {
+  let redeemer = RemoveFeeInfo
+  let output_reference = mock_utxo_ref(1)
+
+  let tx =
+    mock_remove_fee_info_test_case(
+      RemoveFeeInfoTestCase {
+        ..base_remove_fee_info_test_case(),
+        is_operating_key_signed: False,
       },
     )
   let ctx = ScriptContext { purpose: Spend(output_reference), transaction: tx }
