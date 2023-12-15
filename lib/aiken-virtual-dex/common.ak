@@ -11,6 +11,11 @@ use aiken/transaction/value.{
   quantity_of, zero,
 }
 
+pub fn output_inline_datum(output: Output) {
+  expect InlineDatum(raw_datum) = output.datum
+  raw_datum
+}
+
 pub fn only_input_datum_with(
   inputs: List<Input>,
   policy: PolicyId,
