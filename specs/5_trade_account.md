@@ -30,12 +30,15 @@
 2. Emergency operation - Redeemer `TradeEmergencyAction {withdraw_output}`
 
    - Signed by owner
+   - owner == minter in datum (to make sure the emergency token burnt with correct token name)
    - Validity range is after `valid_since`
    - `EmergencyToken` with correct token name of hash of current address is burnt in current transaction
 
-3. Emergency operation - Redeemer `InitiateEmergencyIncident`
+3. Emergency operation - Redeemer `InitiateEmergencyIncident {initiate_before}`
 
    - Signed by owner
    - Emergency token is minted, with minting redeemer checked
    - Input UTxO is with datum of `EmergencyIncidentInitiation {owner}`
+   - Transaction has a validity interval before `initiate_before`
    - Output UTxO back to current address with `TradeEmergencyAction` Datum attached inline and with `EmergencyToken`
+   - `initiate_before` == `valid_since` in output datum

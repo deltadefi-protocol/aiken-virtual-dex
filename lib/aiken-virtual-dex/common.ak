@@ -267,6 +267,18 @@ pub fn valid_after(
   }
 }
 
+pub fn valid_before(
+  validity_range: ValidityRange,
+  required_timestamp: Int,
+) -> Bool {
+  let IntervalBound { bound_type, is_inclusive } = validity_range.upper_bound
+  when (bound_type, is_inclusive) is {
+    (Finite(upper_bound), True) -> upper_bound < required_timestamp
+    (Finite(upper_bound), False) -> upper_bound <= required_timestamp
+    _ -> False
+  }
+}
+
 test byte_conversion() {
   convert_int_to_bytes(1) == "1" && convert_int_to_bytes(123) == "123" && convert_int_to_bytes(
     672912,

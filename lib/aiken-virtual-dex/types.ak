@@ -47,7 +47,7 @@ pub type TradeAccountDatum {
 pub type TradeAccountRedeemer {
   TradeNormalAction
   TradeEmergencyAction { withdraw_output: OutputReference }
-  InitiateEmergencyIncident
+  InitiateEmergencyIncident { initiate_before: Int }
 }
 
 // 6. ChangeAccount

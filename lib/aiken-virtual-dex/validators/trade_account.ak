@@ -2,7 +2,7 @@ use aiken/transaction.{InlineDatum, ScriptContext, Spend, find_input}
 use aiken/transaction/value.{PolicyId}
 use aiken_virtual_dex/common.{
   all_key_signed, key_signed, only_input_datum_with, only_minted_token,
-  outputs_at_with, valid_after,
+  outputs_at_with, valid_after, valid_before,
 }
 use aiken_virtual_dex/types.{
   EmergencyIncidentInitiation, InitiateEmergencyIncident, OracleDatum,
@@ -50,7 +50,7 @@ pub fn trade_account_logic(
         _ -> False
       }
     }
-    InitiateEmergencyIncident -> {
+    InitiateEmergencyIncident { initiate_before } -> {
       expect Spend(own_utxo) = purpose
       expect Some(input) = find_input(transaction.inputs, own_utxo)
       let current_address = input.output.address
@@ -79,8 +79,18 @@ pub fn trade_account_logic(
           }
           _ -> False
         }
-      let is_output_correct = True
-      is_owner_signed && is_emergency_token_minted && is_input_datum_correct && is_output_correct
+      let is_output_correct =
+        when own_output.datum is {
+          InlineDatum(inline_datum) -> {
+            expect TradeEmergencyDatum { valid_since, minter }: TradeAccountDatum =
+              inline_datum
+            minter == owner && valid_since == initiate_before
+          }
+          _ -> False
+        }
+      let is_time_valid =
+        valid_before(transaction.validity_range, initiate_before)
+      is_owner_signed && is_emergency_token_minted && is_input_datum_correct && is_output_correct && is_time_valid
     }
   }
 }
