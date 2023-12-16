@@ -1,9 +1,10 @@
 use aiken/bytearray
 use aiken/dict.{Dict}
+use aiken/interval.{Finite, IntervalBound}
 use aiken/list
 use aiken/transaction.{
   InlineDatum, Input, Output, OutputReference, Redeemer, ScriptPurpose, Spend,
-  find_input,
+  ValidityRange, find_input,
 }
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{
@@ -252,6 +253,18 @@ pub fn value_geq(greater: Value, smaller: Value) -> Bool {
     flatten(greater),
     fn(token) { quantity_of(smaller, token.1st, token.2nd) <= token.3rd },
   )
+}
+
+pub fn valid_after(
+  validity_range: ValidityRange,
+  required_timestamp: Int,
+) -> Bool {
+  let IntervalBound { bound_type, is_inclusive } = validity_range.lower_bound
+  when (bound_type, is_inclusive) is {
+    (Finite(lower_bound), True) -> lower_bound > required_timestamp
+    (Finite(lower_bound), False) -> lower_bound >= required_timestamp
+    _ -> False
+  }
 }
 
 test byte_conversion() {

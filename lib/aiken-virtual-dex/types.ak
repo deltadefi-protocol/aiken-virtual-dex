@@ -41,7 +41,7 @@ pub type FeeInfoRedeemer {
 pub type TradeAccountDatum {
   TradeNormalDatum
   TradeEmergencyDatum { valid_since: Int, minter: ByteArray }
-  EmergencyIncidentInitiation { owner: Address }
+  EmergencyIncidentInitiation { owner: ByteArray }
 }
 
 pub type TradeAccountRedeemer {

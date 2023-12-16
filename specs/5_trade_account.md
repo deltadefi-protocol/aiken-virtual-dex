@@ -4,7 +4,6 @@
 
 - `oracle_nft`: The policy id of `OracleNFT`
 - `owner`: The pub key has of account owner
-- `fee_ref_token`: The policy id of `FeeRefToken`
 - `emergency_token`: The policy id of the emergency token
 
 ## Datum
@@ -13,7 +12,7 @@
 
    - Stating that the UTxO is ready for normal app operation, including placing orders, taking orders and authorized withdrawal
 
-2. TradeEmergencyDatum {valid_since}
+2. TradeEmergencyDatum {valid_since, minter}
 
    - Stating that the UTxO is attached with an emergency token, ready for user withdrawal without passing through application logic
 
@@ -38,4 +37,5 @@
 
    - Signed by owner
    - Emergency token is minted, with minting redeemer checked
-   - Output UTxO back to current address with `EmergencyIncidentInitiation` Datum attached inline and with `EmergencyToken`
+   - Input UTxO is with datum of `EmergencyIncidentInitiation {owner}`
+   - Output UTxO back to current address with `TradeEmergencyAction` Datum attached inline and with `EmergencyToken`
