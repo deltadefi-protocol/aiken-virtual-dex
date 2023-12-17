@@ -20,17 +20,19 @@ pub fn change_account_logic(
   let Transaction { extra_signatories, redeemers, inputs, outputs, .. } =
     transaction
   expect Spend(own_utxo) = purpose
-  expect Some(own_input) = find_input(inputs, own_utxo)
-  let own_address = own_input.output.address
   when redeemer is {
     OwnerWithdraw -> key_signed(extra_signatories, owner)
     AppRefill -> {
+      expect Some(own_input) = find_input(inputs, own_utxo)
+      let own_address = own_input.output.address
       let input_value = get_all_value_from(inputs, own_address)
       let change_output_value = get_all_value_to(outputs, own_address)
       let trade_output_value = get_all_value_to(outputs, trade_account_address)
       merge(change_output_value, trade_output_value) |> value_geq(input_value)
     }
     MassRefill { refill_output } -> {
+      expect Some(own_input) = find_input(inputs, own_utxo)
+      let own_address = own_input.output.address
       expect Some(raw_target_redeemer) =
         redeemer_from(redeemers, inputs, refill_output, own_address)
       expect target_redeemer: ChangeAccountRedeemer = raw_target_redeemer

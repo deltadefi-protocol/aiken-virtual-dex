@@ -11,8 +11,8 @@ use aiken/transaction/credential.{
 }
 use aiken/transaction/value.{PolicyId, Value, add, from_asset, from_lovelace}
 use aiken_virtual_dex/types.{
-  EmergencyIncidentInitiation, FeeInfoDatum, OracleDatum, TradeEmergencyDatum,
-  TradeNormalDatum,
+  ChangeAccountDatum, EmergencyIncidentInitiation, FeeInfoDatum, OracleDatum,
+  TradeEmergencyDatum, TradeNormalDatum,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
 
@@ -248,10 +248,10 @@ pub fn mock_trade_account_address() {
   mock_script_address(3, None)
 }
 
-pub fn mock_trade_output() -> Output {
+pub fn mock_trade_output(lovelace: Int) -> Output {
   Output {
     address: mock_trade_account_address(),
-    value: from_asset("", "", 500_000_000),
+    value: from_asset("", "", lovelace),
     datum: InlineDatum(TradeNormalDatum),
     reference_script: None,
   }
@@ -260,7 +260,7 @@ pub fn mock_trade_output() -> Output {
 pub fn mock_trade_input(variation: Int) -> Input {
   Input {
     output_reference: mock_utxo_ref(10 + variation),
-    output: mock_trade_output(),
+    output: mock_trade_output(500_000_000),
   }
 }
 
@@ -311,5 +311,30 @@ pub fn mock_user_output(value: Value) -> Output {
     value,
     datum: NoDatum,
     reference_script: None,
+  }
+}
+
+pub fn mock_change_account_address() {
+  mock_script_address(4, None)
+}
+
+pub fn mock_change_output(lovelace: Int) -> Output {
+  Output {
+    address: mock_change_account_address(),
+    value: from_asset("", "", lovelace),
+    datum: InlineDatum(ChangeAccountDatum),
+    reference_script: None,
+  }
+}
+
+pub fn mock_change_input(variation: Int, lovelace: Int) -> Input {
+  Input {
+    output_reference: mock_utxo_ref(40 + variation),
+    output: Output {
+      address: mock_change_account_address(),
+      value: from_asset("", "", lovelace),
+      datum: InlineDatum(ChangeAccountDatum),
+      reference_script: None,
+    },
   }
 }
