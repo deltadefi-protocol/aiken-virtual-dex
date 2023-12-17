@@ -80,6 +80,6 @@ pub type VirtualDexRedeemer {
 
 // 8. EmergencyToken
 pub type EmergencyTokenMintingPolarity {
-  EMint { current_timestamp: Int }
+  EMint { current_timestamp: Int, trade_account_address: Address }
   EBurn
 }
