@@ -1,13 +1,15 @@
-use aiken/transaction.{ScriptContext, Spend, Transaction, placeholder}
+use aiken/transaction.{Input, ScriptContext, Spend, Transaction, placeholder}
 use aiken/transaction/value.{from_asset, to_minted_value, zero}
 use aiken_virtual_dex/placeholder.{
-  mock_emergency_action_input, mock_emergency_token, mock_interval,
-  mock_operation_key, mock_oracle_policy_id, mock_oracle_ref_input,
-  mock_trade_account_address, mock_trade_input, mock_user_vkey_hex,
-  mock_utxo_ref,
+  mock_emergency_action_input, mock_emergency_action_output,
+  mock_emergency_initiation_input, mock_emergency_initiation_output,
+  mock_emergency_token, mock_interval, mock_operation_key, mock_oracle_policy_id,
+  mock_oracle_ref_input, mock_trade_account_address, mock_trade_input,
+  mock_user_vkey_hex, mock_utxo_ref,
 }
 use aiken_virtual_dex/types.{
-  TradeEmergencyAction, TradeEmergencyDatum, TradeNormalAction, TradeNormalDatum,
+  EmergencyIncidentInitiation, InitiateEmergencyIncident, TradeEmergencyAction,
+  TradeEmergencyDatum, TradeNormalAction, TradeNormalDatum,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
 use aiken_virtual_dex/validators/trade_account.{trade_account_logic}
@@ -272,4 +274,205 @@ fn base_initiate_emergency_test_case() {
     is_output_correct: True,
     is_time_valid: True,
   }
+}
+
+fn mock_initiate_emergency_test_case(test_case: InitiateEmergencyTestCase) {
+  let InitiateEmergencyTestCase {
+    is_owner_signed,
+    is_emergency_token_minted,
+    is_input_datum_correct,
+    is_output_correct,
+    is_time_valid,
+  } = test_case
+
+  let extra_signatories =
+    when is_owner_signed is {
+      True ->
+        [mock_user_vkey_hex()]
+      False ->
+        []
+    }
+
+  let inputs =
+    [
+      if is_input_datum_correct {
+        mock_emergency_initiation_input(1)
+      } else {
+        Input {
+          output_reference: mock_utxo_ref(21),
+          output: mock_emergency_initiation_output(mock_operation_key()),
+        }
+      },
+    ]
+  let outputs =
+    if is_output_correct {
+      [mock_emergency_action_output(100, mock_user_vkey_hex())]
+    } else {
+      [mock_emergency_action_output(101, mock_user_vkey_hex())]
+    }
+
+  let mint =
+    to_minted_value(
+      if is_emergency_token_minted {
+        from_asset(
+          mock_emergency_token(),
+          get_emergency_token_name(mock_trade_account_address()),
+          1,
+        )
+      } else {
+        zero()
+      },
+    )
+  let validity_range =
+    mock_interval(
+      None,
+      Some(
+        if is_time_valid {
+          99
+        } else {
+          101
+        },
+      ),
+    )
+  Transaction {
+    ..placeholder(),
+    extra_signatories: extra_signatories,
+    mint: mint,
+    validity_range: validity_range,
+    inputs: inputs,
+    outputs: outputs,
+  }
+}
+
+test success_initiate_emergency() {
+  let output_reference = mock_utxo_ref(21)
+  let datum = EmergencyIncidentInitiation { owner: mock_user_vkey_hex() }
+
+  let redeemer = InitiateEmergencyIncident { initiate_before: 100 }
+  let tx =
+    mock_initiate_emergency_test_case(base_initiate_emergency_test_case())
+  let ctx = ScriptContext { purpose: Spend(output_reference), transaction: tx }
+  trade_account_logic(
+    mock_oracle_policy_id(),
+    mock_user_vkey_hex(),
+    mock_emergency_token(),
+    datum,
+    redeemer,
+    ctx,
+  )
+}
+
+test fail_initiate_emergency_without_owner_signature() {
+  let output_reference = mock_utxo_ref(21)
+  let datum = EmergencyIncidentInitiation { owner: mock_user_vkey_hex() }
+
+  let redeemer = InitiateEmergencyIncident { initiate_before: 100 }
+  let tx =
+    mock_initiate_emergency_test_case(
+      InitiateEmergencyTestCase {
+        ..base_initiate_emergency_test_case(),
+        is_owner_signed: False,
+      },
+    )
+  let ctx = ScriptContext { purpose: Spend(output_reference), transaction: tx }
+  !trade_account_logic(
+    mock_oracle_policy_id(),
+    mock_user_vkey_hex(),
+    mock_emergency_token(),
+    datum,
+    redeemer,
+    ctx,
+  )
+}
+
+test fail_initiate_emergency_without_emergency_token_minted() {
+  let output_reference = mock_utxo_ref(21)
+  let datum = EmergencyIncidentInitiation { owner: mock_user_vkey_hex() }
+
+  let redeemer = InitiateEmergencyIncident { initiate_before: 100 }
+  let tx =
+    mock_initiate_emergency_test_case(
+      InitiateEmergencyTestCase {
+        ..base_initiate_emergency_test_case(),
+        is_emergency_token_minted: False,
+      },
+    )
+  let ctx = ScriptContext { purpose: Spend(output_reference), transaction: tx }
+  !trade_account_logic(
+    mock_oracle_policy_id(),
+    mock_user_vkey_hex(),
+    mock_emergency_token(),
+    datum,
+    redeemer,
+    ctx,
+  )
+}
+
+test fail_initiate_emergency_without_correct_input_datum() {
+  let output_reference = mock_utxo_ref(21)
+  let datum = EmergencyIncidentInitiation { owner: mock_user_vkey_hex() }
+
+  let redeemer = InitiateEmergencyIncident { initiate_before: 100 }
+  let tx =
+    mock_initiate_emergency_test_case(
+      InitiateEmergencyTestCase {
+        ..base_initiate_emergency_test_case(),
+        is_input_datum_correct: False,
+      },
+    )
+  let ctx = ScriptContext { purpose: Spend(output_reference), transaction: tx }
+  !trade_account_logic(
+    mock_oracle_policy_id(),
+    mock_user_vkey_hex(),
+    mock_emergency_token(),
+    datum,
+    redeemer,
+    ctx,
+  )
+}
+
+test fail_initiate_emergency_without_correct_output() {
+  let output_reference = mock_utxo_ref(21)
+  let datum = EmergencyIncidentInitiation { owner: mock_user_vkey_hex() }
+
+  let redeemer = InitiateEmergencyIncident { initiate_before: 100 }
+  let tx =
+    mock_initiate_emergency_test_case(
+      InitiateEmergencyTestCase {
+        ..base_initiate_emergency_test_case(),
+        is_output_correct: False,
+      },
+    )
+  let ctx = ScriptContext { purpose: Spend(output_reference), transaction: tx }
+  !trade_account_logic(
+    mock_oracle_policy_id(),
+    mock_user_vkey_hex(),
+    mock_emergency_token(),
+    datum,
+    redeemer,
+    ctx,
+  )
+}
+
+test fail_initiate_emergency_with_invalid_time() {
+  let output_reference = mock_utxo_ref(21)
+  let datum = EmergencyIncidentInitiation { owner: mock_user_vkey_hex() }
+
+  let redeemer = InitiateEmergencyIncident { initiate_before: 100 }
+  let tx =
+    mock_initiate_emergency_test_case(
+      InitiateEmergencyTestCase {
+        ..base_initiate_emergency_test_case(),
+        is_time_valid: False,
+      },
+    )
+  let ctx = ScriptContext { purpose: Spend(output_reference), transaction: tx }
+  !trade_account_logic(
+    mock_oracle_policy_id(),
+    mock_user_vkey_hex(),
+    mock_emergency_token(),
+    datum,
+    redeemer,
+    ctx,
+  )
 }

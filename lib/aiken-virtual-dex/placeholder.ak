@@ -264,13 +264,11 @@ pub fn mock_trade_input(variation: Int) -> Input {
   }
 }
 
-pub fn mock_emergency_initiation_output() -> Output {
+pub fn mock_emergency_initiation_output(owner: ByteArray) -> Output {
   Output {
     address: mock_trade_account_address(),
     value: from_asset("", "", 2_000_000),
-    datum: InlineDatum(
-      EmergencyIncidentInitiation { owner: mock_user_vkey_hex() },
-    ),
+    datum: InlineDatum(EmergencyIncidentInitiation { owner }),
     reference_script: None,
   }
 }
@@ -278,7 +276,7 @@ pub fn mock_emergency_initiation_output() -> Output {
 pub fn mock_emergency_initiation_input(variation: Int) -> Input {
   Input {
     output_reference: mock_utxo_ref(20 + variation),
-    output: mock_emergency_initiation_output(),
+    output: mock_emergency_initiation_output(mock_user_vkey_hex()),
   }
 }
 
