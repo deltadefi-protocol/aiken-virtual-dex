@@ -58,7 +58,7 @@ pub type ChangeAccountDatum {
 pub type ChangeAccountRedeemer {
   OwnerWithdraw
   AppRefill
-  MassRefill { refill_output: OutputReference }
+  MassRefill { refill_input: OutputReference }
 }
 
 // 7. VirtualDex
@@ -72,7 +72,7 @@ pub type VirtualDexDatum {
 }
 
 pub type VirtualDexRedeemer {
-  TakeOrder { order_taker: Address }
+  TakeOrder
   MassTakeOrder { take_order_input: OutputReference }
   CancelOrder
   EmergencyCancel

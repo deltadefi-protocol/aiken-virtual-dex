@@ -120,19 +120,19 @@ fn mock_mass_refill_test_case(is_app_refill_redeemer_provided: Bool) {
     if is_app_refill_redeemer_provided {
       AppRefill
     } else {
-      MassRefill { refill_output: mock_utxo_ref(42) }
+      MassRefill { refill_input: mock_utxo_ref(42) }
     }
   let redeemers =
     dict.new()
       |> dict.insert(Spend(mock_utxo_ref(41)), red1, compare_output_reference)
       |> dict.insert(
            Spend(mock_utxo_ref(42)),
-           MassRefill { refill_output: mock_utxo_ref(41) },
+           MassRefill { refill_input: mock_utxo_ref(41) },
            compare_output_reference,
          )
       |> dict.insert(
            Spend(mock_utxo_ref(43)),
-           MassRefill { refill_output: mock_utxo_ref(41) },
+           MassRefill { refill_input: mock_utxo_ref(41) },
            compare_output_reference,
          )
   Transaction {
@@ -147,7 +147,7 @@ test success_mass_refill() {
   let output_reference = mock_utxo_ref(41)
   let datum = ChangeAccountDatum
 
-  let redeemer = MassRefill { refill_output: output_reference }
+  let redeemer = MassRefill { refill_input: output_reference }
   let tx = mock_mass_refill_test_case(True)
   let ctx = ScriptContext { purpose: Spend(output_reference), transaction: tx }
   change_account_logic(
@@ -163,7 +163,7 @@ test fail_mass_refill_without_app_refill_redeemer() {
   let output_reference = mock_utxo_ref(41)
   let datum = ChangeAccountDatum
 
-  let redeemer = MassRefill { refill_output: output_reference }
+  let redeemer = MassRefill { refill_input: output_reference }
   let tx = mock_mass_refill_test_case(True)
   let ctx = ScriptContext { purpose: Spend(output_reference), transaction: tx }
   change_account_logic(

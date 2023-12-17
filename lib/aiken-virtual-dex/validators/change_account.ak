@@ -30,11 +30,11 @@ pub fn change_account_logic(
       let trade_output_value = get_all_value_to(outputs, trade_account_address)
       merge(change_output_value, trade_output_value) |> value_geq(input_value)
     }
-    MassRefill { refill_output } -> {
+    MassRefill { refill_input } -> {
       expect Some(own_input) = find_input(inputs, own_utxo)
       let own_address = own_input.output.address
       expect Some(raw_target_redeemer) =
-        redeemer_from(redeemers, inputs, refill_output, own_address)
+        redeemer_from(redeemers, inputs, refill_input, own_address)
       expect target_redeemer: ChangeAccountRedeemer = raw_target_redeemer
       when target_redeemer is {
         AppRefill -> True

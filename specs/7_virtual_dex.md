@@ -21,7 +21,6 @@
 
    - Reference to oracle utxo
    - Accumulate proceeds supposed send to order creators, check output value to them
-   - Cumulated amount send to `order_taker`
 
 2. Bypassing check if any other redeemer is with the core logic - Redeemer `MassTakeOrder { take_order_input }`
 
