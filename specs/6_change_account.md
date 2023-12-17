@@ -2,7 +2,6 @@
 
 ## Parameter
 
-- `oracle_nft`: The policy id of `OracleNFT`
 - `owner`: The pub key has of account owner
 - `trade_account_address`: The address of the owner's trade account
 

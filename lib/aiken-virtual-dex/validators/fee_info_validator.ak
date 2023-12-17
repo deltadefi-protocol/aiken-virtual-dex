@@ -1,5 +1,5 @@
 use aiken/transaction.{ScriptContext, Spend, Transaction}
-use aiken/transaction/value.{from_asset, from_minted_value}
+use aiken/transaction/value.{PolicyId, from_asset, from_minted_value}
 use aiken_virtual_dex/common.{
   inputs_at_with, key_signed, only_input_datum_with, output_inline_datum,
   outputs_at_with, value_length,
@@ -9,7 +9,7 @@ use aiken_virtual_dex/types.{
 }
 
 pub fn fee_info_validator_logic(
-  oracle_nft: ByteArray,
+  oracle_nft: PolicyId,
   _datum: FeeInfoDatum,
   redeemer: FeeInfoRedeemer,
   context: ScriptContext,
