@@ -12,13 +12,17 @@ pub fn get_account_token_name(count: Int) -> ByteArray {
 pub fn get_emergency_token_name(trade_account_address: Address) -> ByteArray {
   expect ScriptCredential(script_hash) =
     trade_account_address.payment_credential
-  expect Some(stake_cred) = trade_account_address.stake_credential
-  expect Inline(credential) = stake_cred
-  when credential is {
-    //TODO: See if we would fix the staking part, using script or vkey
-    VerificationKeyCredential(stake_hash) ->
-      bytearray.concat(script_hash, stake_hash) |> blake2b_256()
-    ScriptCredential(stake_hash) ->
-      bytearray.concat(script_hash, stake_hash) |> blake2b_256()
+  when trade_account_address.stake_credential is {
+    None -> script_hash |> blake2b_256()
+    Some(stake_cred) -> {
+      expect Inline(credential) = stake_cred
+      when credential is {
+        //TODO: See if we would fix the staking part, using script or vkey
+        VerificationKeyCredential(stake_hash) ->
+          bytearray.concat(script_hash, stake_hash) |> blake2b_256()
+        ScriptCredential(stake_hash) ->
+          bytearray.concat(script_hash, stake_hash) |> blake2b_256()
+      }
+    }
   }
 }

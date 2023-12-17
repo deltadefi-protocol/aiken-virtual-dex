@@ -14,7 +14,7 @@ use aiken_virtual_dex/utils.{get_emergency_token_name}
 pub fn trade_account_logic(
   oracle_nft: PolicyId,
   owner: ByteArray,
-  emergency_token: ByteArray,
+  emergency_token: PolicyId,
   _datum: TradeAccountDatum,
   redeemer: TradeAccountRedeemer,
   context: ScriptContext,

@@ -141,9 +141,11 @@ pub fn only_minted_token(
   name: AssetName,
   quantity: Int,
 ) {
-  expect [(mPolicy, mAssetName, mQuantity)] =
-    from_minted_value(mint) |> flatten()
-  mPolicy == policy && mAssetName == name && mQuantity == quantity
+  when from_minted_value(mint) |> flatten() is {
+    [(mPolicy, mAssetName, mQuantity)] ->
+      mPolicy == policy && mAssetName == name && mQuantity == quantity
+    _ -> False
+  }
 }
 
 pub fn convert_int_to_bytes(i: Int) -> ByteArray {

@@ -1,11 +1,20 @@
+use aiken/interval.{
+  Finite, Interval, IntervalBound, NegativeInfinity, PositiveInfinity,
+}
 use aiken/transaction.{
   InlineDatum, Input, NoDatum, Output, OutputReference, TransactionId,
+  ValidityRange,
 }
 use aiken/transaction/credential.{
-  Address, Credential, ScriptCredential, VerificationKeyCredential,
+  Address, Credential, ScriptCredential, StakeCredential,
+  VerificationKeyCredential,
 }
-use aiken/transaction/value.{PolicyId, add, from_asset, from_lovelace}
-use aiken_virtual_dex/types.{FeeInfoDatum, OracleDatum}
+use aiken/transaction/value.{PolicyId, Value, add, from_asset, from_lovelace}
+use aiken_virtual_dex/types.{
+  EmergencyIncidentInitiation, FeeInfoDatum, OracleDatum, TradeEmergencyDatum,
+  TradeNormalDatum,
+}
+use aiken_virtual_dex/utils.{get_emergency_token_name}
 
 pub fn mock_policy_id() -> PolicyId {
   #"1c1b7afe8affbee1505cf3ec5a58bd2734d4ffdfcc9b9f059625bd76"
@@ -95,60 +104,64 @@ pub fn mock_pub_key_address_3(stake_credential) -> Address {
   }
 }
 
+pub fn mock_interval(lower: Option<Int>, upper: Option<Int>) -> ValidityRange {
+  let lower_bound =
+    when lower is {
+      Some(lower_bound_number) ->
+        IntervalBound {
+          bound_type: Finite(lower_bound_number),
+          is_inclusive: True,
+        }
+      None -> IntervalBound { bound_type: NegativeInfinity, is_inclusive: True }
+    }
+  let upper_bound =
+    when upper is {
+      Some(upper_bound_number) ->
+        IntervalBound {
+          bound_type: Finite(upper_bound_number),
+          is_inclusive: True,
+        }
+      None -> IntervalBound { bound_type: PositiveInfinity, is_inclusive: True }
+    }
+
+  Interval { lower_bound, upper_bound }
+}
+
 // Script Addresses
 
-pub fn mock_script_hex() -> ByteArray {
-  #"70ce90786897b6f7b6430a57ae005ecaf7c8cab817dd7510598403a9"
-}
-
-pub fn mock_script_credential() -> Credential {
-  ScriptCredential(mock_script_hex())
-}
-
-pub fn mock_script_address(stake_credential) -> Address {
-  Address {
-    payment_credential: ScriptCredential(mock_script_hex()),
-    stake_credential,
+pub fn mock_script_hash_hex(variation: Int) -> ByteArray {
+  when variation is {
+    1 -> #"70ce90786897b6f7b6430a57ae005ecaf7c8cab817dd7510598403a9"
+    2 -> #"efa5288b2b13cff1db555eed5debc54f3b25a62b7321db37f8af9213"
+    3 -> #"a8ba4d8ab8d7f1f864a27a63dab1185cc47929dc3c3a34956d946286"
+    4 -> #"ee557be73b5084e8907e2118a2b1cddf3a1e14dcb2e1ee5d586a3f90"
+    5 -> #"84944ba25d1708d71058ee2ef715375873784adc588f6a0706fa2589"
+    6 -> #"8be60057c65fbae6d5c0673f899fea68868b16aeba6ff06f2d7f3161"
+    _ -> #"e9fbf88caff6bf3742fd30047abf3883d50ed7059ae832fddfda4b71"
   }
 }
 
-pub fn mock_script_hex_2() -> ByteArray {
-  #"efa5288b2b13cff1db555eed5debc54f3b25a62b7321db37f8af9213"
+pub fn mock_script_credential(variation: Int) -> Credential {
+  ScriptCredential(mock_script_hash_hex(variation))
 }
 
-pub fn mock_script_credential_2() -> Credential {
-  ScriptCredential(mock_script_hex_2())
-}
-
-pub fn mock_script_address_2(stake_credential) -> Address {
+pub fn mock_script_address(
+  variation: Int,
+  stake_credential: Option<StakeCredential>,
+) -> Address {
   Address {
-    payment_credential: ScriptCredential(mock_script_hex_2()),
-    stake_credential,
-  }
-}
-
-pub fn mock_script_hex_3() -> ByteArray {
-  #"a8ba4d8ab8d7f1f864a27a63dab1185cc47929dc3c3a34956d946286"
-}
-
-pub fn mock_script_credential_3() -> Credential {
-  ScriptCredential(mock_script_hex_3())
-}
-
-pub fn mock_script_address_3(stake_credential) -> Address {
-  Address {
-    payment_credential: ScriptCredential(mock_script_hex_3()),
+    payment_credential: mock_script_credential(variation),
     stake_credential,
   }
 }
 
 // Smart contract specific placeholders
-pub fn mock_oracle_policy_id() {
+pub fn mock_oracle_policy_id() -> PolicyId {
   mock_policy_id()
 }
 
 pub fn mock_oracle_address() {
-  mock_script_address(None)
+  mock_script_address(1, None)
 }
 
 pub fn mock_fee_ref_token() {
@@ -156,7 +169,7 @@ pub fn mock_fee_ref_token() {
 }
 
 pub fn mock_fee_info_address() {
-  mock_script_address_2(None)
+  mock_script_address(2, None)
 }
 
 pub fn mock_operation_key() {
@@ -173,6 +186,18 @@ pub fn mock_emergency_token() {
 
 pub fn mock_user_vkey_hex() {
   mock_vkey_hex_3()
+}
+
+pub fn mock_user_address() {
+  mock_pub_key_address_3(None)
+}
+
+pub fn ada_asset_class() {
+  ("", "")
+}
+
+pub fn mock_token_asset_class() {
+  (mock_policy_id_5(), "A potentially very long name")
 }
 
 pub fn mock_oracle_datum() {
@@ -209,12 +234,84 @@ pub fn mock_fee_ref_output() -> Output {
     value: from_asset(mock_fee_ref_token(), "", 1) |> add("", "", 2_000_000),
     datum: InlineDatum(
       FeeInfoDatum {
-        long_token: ("", ""),
-        short_token: (mock_policy_id_5(), "A potentially very long name"),
+        long_token: ada_asset_class(),
+        short_token: mock_token_asset_class(),
         min_fee: 0,
         percentage_fee: 0,
       },
     ),
+    reference_script: None,
+  }
+}
+
+pub fn mock_trade_account_address() {
+  mock_script_address(3, None)
+}
+
+pub fn mock_trade_output() -> Output {
+  Output {
+    address: mock_trade_account_address(),
+    value: from_asset("", "", 500_000_000),
+    datum: InlineDatum(TradeNormalDatum),
+    reference_script: None,
+  }
+}
+
+pub fn mock_trade_input(variation: Int) -> Input {
+  Input {
+    output_reference: mock_utxo_ref(10 + variation),
+    output: mock_trade_output(),
+  }
+}
+
+pub fn mock_emergency_initiation_output() -> Output {
+  Output {
+    address: mock_trade_account_address(),
+    value: from_asset("", "", 2_000_000),
+    datum: InlineDatum(
+      EmergencyIncidentInitiation { owner: mock_user_vkey_hex() },
+    ),
+    reference_script: None,
+  }
+}
+
+pub fn mock_emergency_initiation_input(variation: Int) -> Input {
+  Input {
+    output_reference: mock_utxo_ref(20 + variation),
+    output: mock_emergency_initiation_output(),
+  }
+}
+
+pub fn mock_emergency_action_output(valid_since: Int, minter: ByteArray) {
+  Output {
+    address: mock_trade_account_address(),
+    value: from_asset("", "", 2_000_000)
+      |> add(
+           mock_emergency_token(),
+           get_emergency_token_name(mock_trade_account_address()),
+           1,
+         ),
+    datum: InlineDatum(TradeEmergencyDatum { valid_since, minter }),
+    reference_script: None,
+  }
+}
+
+pub fn mock_emergency_action_input(
+  variation: Int,
+  valid_since: Int,
+  minter: ByteArray,
+) -> Input {
+  Input {
+    output_reference: mock_utxo_ref(30 + variation),
+    output: mock_emergency_action_output(valid_since, minter),
+  }
+}
+
+pub fn mock_user_output(value: Value) -> Output {
+  Output {
+    address: mock_user_address(),
+    value,
+    datum: NoDatum,
     reference_script: None,
   }
 }
