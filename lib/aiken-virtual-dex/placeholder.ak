@@ -167,6 +167,14 @@ pub fn mock_stop_key() {
   mock_vkey_hex_2()
 }
 
+pub fn mock_emergency_token() {
+  mock_policy_id_3()
+}
+
+pub fn mock_user_vkey_hex() {
+  mock_vkey_hex_3()
+}
+
 pub fn mock_oracle_datum() {
   OracleDatum {
     oracle_nft: mock_oracle_policy_id(),
