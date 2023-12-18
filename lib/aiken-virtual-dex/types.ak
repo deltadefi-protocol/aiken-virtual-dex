@@ -68,7 +68,7 @@ pub type VirtualDexDatum {
   buy_token: (PolicyId, AssetName),
   sell_token: (PolicyId, AssetName),
   price: Int,
-  log_size: Int,
+  lot_size: Int,
 }
 
 pub type VirtualDexRedeemer {

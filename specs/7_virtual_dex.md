@@ -12,8 +12,8 @@
 - `trade_account_address`: The address of the trade account number of the owner
 - `buy_token`: The `AssetClass` of token the order creator is looking for
 - `sell_token`: The `AssetClass` of token the order creator is selling
-- `price`: Order exchange in a rate of `price` \* `buy_token` = `sell_token`
-- `log_size`: Quantity of `sell token` in this order
+- `price`: Order exchange in a rate of `price` \* `buy_token` = `lot_size`
+- `lot_size`: Quantity of `sell token` in this order
 
 ## User Action
 
