@@ -16,22 +16,6 @@ use aiken_virtual_dex/types.{
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
 
-// const accumulateValuesByAddress = (objects) => {
-//   const groupedObjects = objects.reduce((acc, obj) => {
-//     const { address, value } = obj;
-//     acc[address] = acc[address] || [];
-//     acc[address].push(value);
-//     return acc;
-//   }, {});
-
-//   const accumulatedValues = Object.entries(groupedObjects).map(([address, values]) => {
-//     const accumulatedValue = values.reduce((sum, value) => sum + value, 0);
-//     return { address, value: accumulatedValue };
-//   });
-
-//   return accumulatedValues;
-// };
-
 pub fn compare_script_address(x: Address, y: Address) -> Ordering {
   expect ScriptCredential(x_hash) = x.payment_credential
   expect ScriptCredential(y_hash) = y.payment_credential
@@ -40,36 +24,43 @@ pub fn compare_script_address(x: Address, y: Address) -> Ordering {
 
 pub fn accumulate_all_to_return_value(
   inputs: List<Input>,
+  own_address: Address,
 ) -> Dict<Address, (Address, Value)> {
   list.foldr(
     inputs,
     dict.new(),
     fn(x: Input, acc: Dict<Address, (Address, Value)>) {
-      expect VirtualDexDatum {
-        trade_account_address,
-        change_account_address,
-        buy_token: (policy, name),
-        price,
-        lot_size,
-        ..
-      }: VirtualDexDatum = output_inline_datum(x.output)
-      let current_item = dict.get(acc, trade_account_address)
-      let to_return_value = from_asset(policy, name, price * lot_size)
-      when current_item is {
-        None ->
-          dict.insert(
-            acc,
+      let is_from_same_address = own_address == x.output.address
+      when is_from_same_address is {
+        True -> {
+          expect VirtualDexDatum {
             trade_account_address,
-            (change_account_address, to_return_value),
-            compare_script_address,
-          )
-        Some((change_account_address, value)) ->
-          dict.insert(
-            acc,
-            trade_account_address,
-            (change_account_address, merge(value, to_return_value)),
-            compare_script_address,
-          )
+            change_account_address,
+            buy_token: (policy, name),
+            price,
+            lot_size,
+            ..
+          }: VirtualDexDatum = output_inline_datum(x.output)
+          let current_item = dict.get(acc, trade_account_address)
+          let to_return_value = from_asset(policy, name, price * lot_size)
+          when current_item is {
+            None ->
+              dict.insert(
+                acc,
+                trade_account_address,
+                (change_account_address, to_return_value),
+                compare_script_address,
+              )
+            Some((change_account_address, value)) ->
+              dict.insert(
+                acc,
+                trade_account_address,
+                (change_account_address, merge(value, to_return_value)),
+                compare_script_address,
+              )
+          }
+        }
+        False -> acc
       }
     },
   )
@@ -120,16 +111,15 @@ pub fn virtual_dex_logic(
       expect OracleDatum { .. }: OracleDatum =
         only_input_datum_with(reference_inputs, oracle_nft, "")
       expect Spend(own_utxo) = purpose
-      expect Some(_own_input) = find_input(transaction.inputs, own_utxo)
-      // let own_address = own_input.output.address
-      // TODO
+      expect Some(own_input) = find_input(transaction.inputs, own_utxo)
+      let own_address = own_input.output.address
       // - Accumulate proceeds supposed send to order creators, check output value to them
       // 1. Look throught all inputs ->
       //       if from same address -> get (trade_account_address, change_account_address, receive_value)
       // 2. Merge all results above with same trade_account_address
       // 3. Check each unique trade_account_address, if outputs to trade_account + change_account >= to_receive
       let payment_values = accumuate_all_payment_value(outputs)
-      accumulate_all_to_return_value(inputs)
+      accumulate_all_to_return_value(inputs, own_address)
         |> dict.to_list()
         |> list.all(
              fn(payment_item) {
