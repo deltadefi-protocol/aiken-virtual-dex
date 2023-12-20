@@ -99,6 +99,7 @@ pub fn virtual_dex_logic(
   oracle_nft: PolicyId,
   _fee_ref_token: PolicyId,
   emergency_token: PolicyId,
+  fee_address: Address,
   datum: VirtualDexDatum,
   redeemer: VirtualDexRedeemer,
   context: ScriptContext,
@@ -113,22 +114,28 @@ pub fn virtual_dex_logic(
       expect Spend(own_utxo) = purpose
       expect Some(own_input) = find_input(transaction.inputs, own_utxo)
       let own_address = own_input.output.address
+      // 0. TODO: Fee payment
+      let payment_values = accumuate_all_payment_value(outputs)
+      expect Some((_, fee_value)) = dict.get(payment_values, fee_address)
+      let is_fee_paid = value_geq(fee_value, from_asset("", "", 2_000_000))
       // - Accumulate proceeds supposed send to order creators, check output value to them
       // 1. Look throught all inputs ->
       //       if from same address -> get (trade_account_address, change_account_address, receive_value)
       // 2. Merge all results above with same trade_account_address
       // 3. Check each unique trade_account_address, if outputs to trade_account + change_account >= to_receive
-      let payment_values = accumuate_all_payment_value(outputs)
-      accumulate_all_to_return_value(inputs, own_address)
-        |> dict.to_list()
-        |> list.all(
-             fn(payment_item) {
-               let (trade_account_address, (_, to_receive_value)) = payment_item
-               expect Some((_, received_value)) =
-                 dict.get(payment_values, trade_account_address)
-               value_geq(received_value, to_receive_value)
-             },
-           )
+      let is_token_paid_to_maker =
+        accumulate_all_to_return_value(inputs, own_address)
+          |> dict.to_list()
+          |> list.all(
+               fn(payment_item) {
+                 let (trade_account_address, (_, to_receive_value)) =
+                   payment_item
+                 expect Some((_, received_value)) =
+                   dict.get(payment_values, trade_account_address)
+                 value_geq(received_value, to_receive_value)
+               },
+             )
+      is_token_paid_to_maker && is_fee_paid
     }
 
     MassTakeOrder { take_order_input } -> {
