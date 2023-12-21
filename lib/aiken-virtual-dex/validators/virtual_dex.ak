@@ -5,14 +5,14 @@ use aiken/transaction.{
   Input, Output, ScriptContext, Spend, Transaction, find_input,
 }
 use aiken/transaction/credential.{Address, ScriptCredential}
-use aiken/transaction/value.{PolicyId, Value, from_asset, merge}
+use aiken/transaction/value.{AssetName, PolicyId, Value, from_asset, merge}
 use aiken_virtual_dex/common.{
   inputs_at, key_signed, only_input_datum_with, only_minted_token,
   output_inline_datum, outputs_at, redeemer_from, value_geq,
 }
 use aiken_virtual_dex/types.{
-  CancelOrder, EmergencyCancel, MassTakeOrder, OracleDatum, TakeOrder,
-  VirtualDexDatum, VirtualDexRedeemer,
+  CancelOrder, EmergencyCancel, FeeInfoDatum, MassTakeOrder, OracleDatum,
+  TakeOrder, VirtualDexDatum, VirtualDexRedeemer,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
 
@@ -23,40 +23,66 @@ pub fn compare_script_address(x: Address, y: Address) -> Ordering {
 }
 
 pub fn accumulate_all_to_return_value(
+  long_token: (PolicyId, AssetName),
+  short_token: (PolicyId, AssetName),
   inputs: List<Input>,
   own_address: Address,
-) -> Dict<Address, (Address, Value)> {
+) -> (Dict<Address, (Address, Value)>, Int) {
   list.foldr(
     inputs,
-    dict.new(),
-    fn(x: Input, acc: Dict<Address, (Address, Value)>) {
+    (dict.new(), 0),
+    fn(x: Input, acc: (Dict<Address, (Address, Value)>, Int)) {
       let is_from_same_address = own_address == x.output.address
       when is_from_same_address is {
         True -> {
           expect VirtualDexDatum {
             trade_account_address,
             change_account_address,
-            buy_token: (policy, name),
-            price,
-            lot_size,
-            ..
+            is_long,
+            list_price_times_10k,
+            sell_lot_size,
           }: VirtualDexDatum = output_inline_datum(x.output)
-          let current_item = dict.get(acc, trade_account_address)
-          let to_return_value = from_asset(policy, name, price * lot_size)
+          let current_item = dict.get(acc.1st, trade_account_address)
+          let (to_return_value, long_quantity) =
+            if is_long {
+              (
+                from_asset(
+                  long_token.1st,
+                  long_token.2nd,
+                  list_price_times_10k * sell_lot_size / 10000,
+                ),
+                list_price_times_10k * sell_lot_size / 10000,
+              )
+            } else {
+              (
+                from_asset(
+                  short_token.1st,
+                  short_token.2nd,
+                  list_price_times_10k * sell_lot_size / 10000,
+                ),
+                sell_lot_size,
+              )
+            }
           when current_item is {
             None ->
-              dict.insert(
-                acc,
-                trade_account_address,
-                (change_account_address, to_return_value),
-                compare_script_address,
+              (
+                dict.insert(
+                  acc.1st,
+                  trade_account_address,
+                  (change_account_address, to_return_value),
+                  compare_script_address,
+                ),
+                acc.2nd + long_quantity,
               )
             Some((change_account_address, value)) ->
-              dict.insert(
-                acc,
-                trade_account_address,
-                (change_account_address, merge(value, to_return_value)),
-                compare_script_address,
+              (
+                dict.insert(
+                  acc.1st,
+                  trade_account_address,
+                  (change_account_address, merge(value, to_return_value)),
+                  compare_script_address,
+                ),
+                acc.2nd + long_quantity,
               )
           }
         }
@@ -97,9 +123,11 @@ pub fn accumuate_all_payment_value(
 
 pub fn virtual_dex_logic(
   oracle_nft: PolicyId,
-  _fee_ref_token: PolicyId,
+  fee_ref_token: PolicyId,
   emergency_token: PolicyId,
   fee_address: Address,
+  param_long_token: (PolicyId, AssetName),
+  param_short_token: (PolicyId, AssetName),
   datum: VirtualDexDatum,
   redeemer: VirtualDexRedeemer,
   context: ScriptContext,
@@ -114,17 +142,43 @@ pub fn virtual_dex_logic(
       expect Spend(own_utxo) = purpose
       expect Some(own_input) = find_input(transaction.inputs, own_utxo)
       let own_address = own_input.output.address
-      // 0. TODO: Fee payment
+      expect FeeInfoDatum {
+        long_token,
+        short_token,
+        min_fee,
+        percentage_fee_times_10k,
+      }: FeeInfoDatum =
+        only_input_datum_with(reference_inputs, fee_ref_token, "")
+      let is_fee_ref_correct =
+        long_token == param_long_token && short_token == param_short_token
       let payment_values = accumuate_all_payment_value(outputs)
       expect Some((_, fee_value)) = dict.get(payment_values, fee_address)
-      let is_fee_paid = value_geq(fee_value, from_asset("", "", 2_000_000))
+      // 0. TODO: Fee payment
+      let evaluated_inputs =
+        accumulate_all_to_return_value(
+          param_long_token,
+          param_short_token,
+          inputs,
+          own_address,
+        )
+      let is_percentage_fee_paid =
+        value_geq(
+          fee_value,
+          from_asset(
+            "",
+            "",
+            evaluated_inputs.2nd * percentage_fee_times_10k / 10000,
+          ),
+        )
+      let is_min_fee_paid = value_geq(fee_value, from_asset("", "", min_fee))
+
       // - Accumulate proceeds supposed send to order creators, check output value to them
       // 1. Look throught all inputs ->
       //       if from same address -> get (trade_account_address, change_account_address, receive_value)
       // 2. Merge all results above with same trade_account_address
       // 3. Check each unique trade_account_address, if outputs to trade_account + change_account >= to_receive
       let is_token_paid_to_maker =
-        accumulate_all_to_return_value(inputs, own_address)
+        evaluated_inputs.1st
           |> dict.to_list()
           |> list.all(
                fn(payment_item) {
@@ -135,7 +189,7 @@ pub fn virtual_dex_logic(
                  value_geq(received_value, to_receive_value)
                },
              )
-      is_token_paid_to_maker && is_fee_paid
+      is_fee_ref_correct && is_token_paid_to_maker && is_min_fee_paid && is_percentage_fee_paid
     }
 
     MassTakeOrder { take_order_input } -> {

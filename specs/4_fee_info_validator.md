@@ -9,7 +9,7 @@
 - `token_1`: (PolicyId, AssetName),
 - `token_2`: (PolicyId, AssetName),
 - `min_fee`: Int,
-- `percentage_fee`: Int,
+- `percentage_fee_times_10k`: Int,
 
 ## User Action
 

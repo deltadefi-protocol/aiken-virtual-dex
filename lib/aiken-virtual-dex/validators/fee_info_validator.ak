@@ -43,7 +43,7 @@ pub fn fee_info_validator_logic(
             output_datum == FeeInfoDatum {
               ..input_datum,
               min_fee: new_min_fee,
-              percentage_fee: new_percentage_fee,
+              percentage_fee_times_10k: new_percentage_fee,
             }
           let is_output_value_clean = value_length(own_output.value) == 2
           is_mint_info_empty && is_operation_key_signed && is_datum_correct && is_output_value_clean

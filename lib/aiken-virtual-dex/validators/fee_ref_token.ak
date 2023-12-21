@@ -39,12 +39,13 @@ pub fn fee_ref_token_logic(
             long_token: _,
             short_token: _,
             min_fee,
-            percentage_fee,
+            percentage_fee_times_10k,
           }: FeeInfoDatum = raw_datum
           let is_fee_token_minted =
             only_minted_token(mint, fee_ref_token, "", 1)
           let is_fee_token_output_clean = value_length(output.value) == 2
-          let is_fee_datum_format_correct = min_fee >= 0 && percentage_fee >= 0
+          let is_fee_datum_format_correct =
+            min_fee >= 0 && percentage_fee_times_10k >= 0
           let is_operating_key_signed =
             key_signed(extra_signatories, operation_key)
           is_fee_token_minted && is_fee_token_output_clean && is_fee_datum_format_correct && is_operating_key_signed

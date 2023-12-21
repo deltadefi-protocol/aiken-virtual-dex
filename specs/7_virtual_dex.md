@@ -6,15 +6,16 @@
 - `fee_ref_token`: The policy id of `FeeRefToken`
 - `emergency_token`: The policy id of the emergency token
 - `fee_address`: The address of receiving fees
+- `param_long_token`: The long side of token in trading pairs, which its quantity would be used for fee calculation
+- `param_short_token`: The long side of token in trading pairs
 
 ## Datum
 
 - `change_account_address`: The address of the change account number of the owner
 - `trade_account_address`: The address of the trade account number of the owner
-- `buy_token`: The `AssetClass` of token the order creator is looking for
-- `sell_token`: The `AssetClass` of token the order creator is selling
-- `price`: Order exchange in a rate of `price` \* `buy_token` = `lot_size`
-- `lot_size`: Quantity of `sell token` in this order
+- `is_long`: If the current order is for buying long token (`buy_token`)
+- `list_price_times_10k`: Order exchange in a rate of `list_price` \* `sell_lot_size` = quantity of `buy_token` looking for
+- `sell_lot_size`: Quantity of `sell token` in this order
 
 ## User Action
 

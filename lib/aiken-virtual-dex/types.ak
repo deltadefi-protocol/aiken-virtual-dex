@@ -29,7 +29,7 @@ pub type FeeInfoDatum {
   long_token: (PolicyId, AssetName),
   short_token: (PolicyId, AssetName),
   min_fee: Int,
-  percentage_fee: Int,
+  percentage_fee_times_10k: Int,
 }
 
 pub type FeeInfoRedeemer {
@@ -65,10 +65,9 @@ pub type ChangeAccountRedeemer {
 pub type VirtualDexDatum {
   change_account_address: Address,
   trade_account_address: Address,
-  buy_token: (PolicyId, AssetName),
-  sell_token: (PolicyId, AssetName),
-  price: Int,
-  lot_size: Int,
+  is_long: Bool,
+  list_price_times_10k: Int,
+  sell_lot_size: Int,
 }
 
 pub type VirtualDexRedeemer {

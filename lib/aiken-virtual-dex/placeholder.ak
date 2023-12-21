@@ -237,7 +237,7 @@ pub fn mock_fee_ref_output() -> Output {
         long_token: ada_asset_class(),
         short_token: mock_token_asset_class(),
         min_fee: 0,
-        percentage_fee: 0,
+        percentage_fee_times_10k: 0,
       },
     ),
     reference_script: None,
