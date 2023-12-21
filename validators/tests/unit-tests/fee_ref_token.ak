@@ -60,8 +60,8 @@ fn mock_test_case(test_case: TestCase) {
           ..output_with_value,
           datum: InlineDatum(
             FeeInfoDatum {
-              token_1: ("", ""),
-              token_2: (mock_policy_id_5(), "A potentially very long name"),
+              long_token: ("", ""),
+              short_token: (mock_policy_id_5(), "A potentially very long name"),
               min_fee: -1,
               percentage_fee: -1,
             },
