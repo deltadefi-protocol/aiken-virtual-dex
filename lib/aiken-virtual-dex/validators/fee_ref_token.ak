@@ -36,8 +36,8 @@ pub fn fee_ref_token_logic(
             outputs_at_with(outputs, fee_info_address, fee_ref_token, "")
           expect InlineDatum(raw_datum) = output.datum
           expect FeeInfoDatum {
-            long_token: _,
-            short_token: _,
+            token_1: _,
+            token_2: _,
             min_fee,
             percentage_fee,
           }: FeeInfoDatum = raw_datum

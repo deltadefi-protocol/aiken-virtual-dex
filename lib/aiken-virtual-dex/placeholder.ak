@@ -234,8 +234,8 @@ pub fn mock_fee_ref_output() -> Output {
     value: from_asset(mock_fee_ref_token(), "", 1) |> add("", "", 2_000_000),
     datum: InlineDatum(
       FeeInfoDatum {
-        long_token: ada_asset_class(),
-        short_token: mock_token_asset_class(),
+        token_1: ada_asset_class(),
+        token_2: mock_token_asset_class(),
         min_fee: 0,
         percentage_fee: 0,
       },

@@ -65,8 +65,8 @@ fn mock_update_fee_test_case(test_case: UpdateFeeTestCase) {
           ..output_with_value,
           datum: InlineDatum(
             FeeInfoDatum {
-              long_token: ("", ""),
-              short_token: (mock_policy_id_5(), "A potentially very long name"),
+              token_1: ("", ""),
+              token_2: (mock_policy_id_5(), "A potentially very long name"),
               min_fee: 1_000_000,
               percentage_fee: 1,
             },
@@ -95,8 +95,8 @@ fn mock_update_fee_test_case(test_case: UpdateFeeTestCase) {
 
 fn mock_datum() {
   FeeInfoDatum {
-    long_token: ("", ""),
-    short_token: (mock_policy_id_5(), "A potentially very long name"),
+    token_1: ("", ""),
+    token_2: (mock_policy_id_5(), "A potentially very long name"),
     min_fee: 0,
     percentage_fee: 0,
   }

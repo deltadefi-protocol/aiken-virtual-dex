@@ -26,8 +26,8 @@ pub type OracleRedeemer {
 
 // 4. FeeInfoValidator
 pub type FeeInfoDatum {
-  long_token: (PolicyId, AssetName),
-  short_token: (PolicyId, AssetName),
+  token_1: (PolicyId, AssetName),
+  token_2: (PolicyId, AssetName),
   min_fee: Int,
   percentage_fee: Int,
 }
