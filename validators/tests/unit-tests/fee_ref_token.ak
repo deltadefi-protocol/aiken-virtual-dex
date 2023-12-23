@@ -43,11 +43,11 @@ fn mock_test_case(test_case: TestCase) {
   let mint = to_minted_value(mint_value)
   let output_with_value =
     if is_fee_token_output_clean {
-      mock_fee_ref_output()
+      mock_fee_ref_output(0, 0)
     } else {
       Output {
-        ..mock_fee_ref_output(),
-        value: mock_fee_ref_output().value |> add(policy_id, "123", 1),
+        ..mock_fee_ref_output(0, 0),
+        value: mock_fee_ref_output(0, 0).value |> add(policy_id, "123", 1),
       }
     }
 

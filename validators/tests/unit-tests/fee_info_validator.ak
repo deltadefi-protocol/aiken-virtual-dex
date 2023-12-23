@@ -42,11 +42,11 @@ fn mock_update_fee_test_case(test_case: UpdateFeeTestCase) {
   let mint = to_minted_value(mint_value)
   let output_with_value =
     if is_output_value_clean {
-      mock_fee_ref_output()
+      mock_fee_ref_output(0, 0)
     } else {
       Output {
-        ..mock_fee_ref_output(),
-        value: mock_fee_ref_output().value |> add(policy_id, "123", 1),
+        ..mock_fee_ref_output(0, 0),
+        value: mock_fee_ref_output(0, 0).value |> add(policy_id, "123", 1),
       }
     }
 
@@ -54,7 +54,7 @@ fn mock_update_fee_test_case(test_case: UpdateFeeTestCase) {
     [
       Input {
         output_reference: mock_utxo_ref(1),
-        output: mock_fee_ref_output(),
+        output: mock_fee_ref_output(0, 0),
       },
     ]
 
@@ -224,7 +224,7 @@ fn mock_remove_fee_info_test_case(test_case: RemoveFeeInfoTestCase) {
     [
       Input {
         output_reference: mock_utxo_ref(1),
-        output: mock_fee_ref_output(),
+        output: mock_fee_ref_output(0, 0),
       },
     ]
 
@@ -232,7 +232,7 @@ fn mock_remove_fee_info_test_case(test_case: RemoveFeeInfoTestCase) {
     if is_no_own_outputs {
       []
     } else {
-      [mock_fee_ref_output()]
+      [mock_fee_ref_output(0, 0)]
     }
 
   let extra_signatories =

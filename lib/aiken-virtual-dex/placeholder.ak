@@ -12,7 +12,7 @@ use aiken/transaction/credential.{
 use aiken/transaction/value.{PolicyId, Value, add, from_asset, from_lovelace}
 use aiken_virtual_dex/types.{
   ChangeAccountDatum, EmergencyIncidentInitiation, FeeInfoDatum, OracleDatum,
-  TradeEmergencyDatum, TradeNormalDatum,
+  TradeEmergencyDatum, TradeNormalDatum, VirtualDexDatum,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
 
@@ -59,47 +59,21 @@ pub fn mock_output() -> Output {
 
 // Pub Key Addresses
 
-pub fn mock_vkey_hex() -> ByteArray {
-  #"a2c20c77887ace1cd986193e4e75babd8993cfd56995cd5cfce609c2"
-}
-
-pub fn mock_verfication_key_credential() -> Credential {
-  VerificationKeyCredential(mock_vkey_hex())
-}
-
-pub fn mock_pub_key_address(stake_credential) -> Address {
-  Address {
-    payment_credential: mock_verfication_key_credential(),
-    stake_credential,
+pub fn mock_pub_key_hex(variation: Int) -> ByteArray {
+  when variation is {
+    1 -> #"a2c20c77887ace1cd986193e4e75babd8993cfd56995cd5cfce609c2"
+    2 -> #"e2cfca46ecdf7feb8a3a7f957ead86b88c156f3fdd9607bcb44eb8f5"
+    _ -> #"310b3e52ee714c92f723d4e3e4060fc8029f13f672872eefa742a716"
   }
 }
 
-pub fn mock_vkey_hex_2() -> ByteArray {
-  #"e2cfca46ecdf7feb8a3a7f957ead86b88c156f3fdd9607bcb44eb8f5"
+pub fn mock_verfication_key_credential(variation: Int) -> Credential {
+  VerificationKeyCredential(mock_pub_key_hex(variation))
 }
 
-pub fn mock_verfication_key_credential_2() -> Credential {
-  VerificationKeyCredential(mock_vkey_hex_2())
-}
-
-pub fn mock_pub_key_address_2(stake_credential) -> Address {
+pub fn mock_pub_key_address(variation: Int, stake_credential) -> Address {
   Address {
-    payment_credential: mock_verfication_key_credential_2(),
-    stake_credential,
-  }
-}
-
-pub fn mock_vkey_hex_3() -> ByteArray {
-  #"310b3e52ee714c92f723d4e3e4060fc8029f13f672872eefa742a716"
-}
-
-pub fn mock_verfication_key_credential_3() -> Credential {
-  VerificationKeyCredential(mock_vkey_hex_3())
-}
-
-pub fn mock_pub_key_address_3(stake_credential) -> Address {
-  Address {
-    payment_credential: mock_verfication_key_credential_3(),
+    payment_credential: mock_verfication_key_credential(variation),
     stake_credential,
   }
 }
@@ -173,11 +147,11 @@ pub fn mock_fee_info_address() {
 }
 
 pub fn mock_operation_key() {
-  mock_vkey_hex()
+  mock_pub_key_hex(1)
 }
 
 pub fn mock_stop_key() {
-  mock_vkey_hex_2()
+  mock_pub_key_hex(2)
 }
 
 pub fn mock_emergency_token() {
@@ -185,11 +159,11 @@ pub fn mock_emergency_token() {
 }
 
 pub fn mock_user_vkey_hex() {
-  mock_vkey_hex_3()
+  mock_pub_key_hex(3)
 }
 
 pub fn mock_user_address() {
-  mock_pub_key_address_3(None)
+  mock_pub_key_address(3, None)
 }
 
 pub fn ada_asset_class() {
@@ -228,7 +202,10 @@ pub fn mock_oracle_ref_input() -> Input {
   }
 }
 
-pub fn mock_fee_ref_output() -> Output {
+pub fn mock_fee_ref_output(
+  min_fee: Int,
+  percentage_fee_times_10k: Int,
+) -> Output {
   Output {
     address: mock_fee_info_address(),
     value: from_asset(mock_fee_ref_token(), "", 1) |> add("", "", 2_000_000),
@@ -236,8 +213,8 @@ pub fn mock_fee_ref_output() -> Output {
       FeeInfoDatum {
         long_token: ada_asset_class(),
         short_token: mock_token_asset_class(),
-        min_fee: 0,
-        percentage_fee_times_10k: 0,
+        min_fee,
+        percentage_fee_times_10k,
       },
     ),
     reference_script: None,
@@ -334,6 +311,86 @@ pub fn mock_change_input(variation: Int, lovelace: Int) -> Input {
       address: mock_change_account_address(),
       value: from_asset("", "", lovelace),
       datum: InlineDatum(ChangeAccountDatum),
+      reference_script: None,
+    },
+  }
+}
+
+pub fn mock_fee_address() {
+  mock_pub_key_address(1, None)
+}
+
+pub fn mock_fee_output(
+  long_token_quantity: Int,
+  min_fee: Int,
+  percentage_fee_times_10k: Int,
+) -> Output {
+  let percentage_fee = long_token_quantity * percentage_fee_times_10k / 10000
+  let fee_in_lovelace =
+    if percentage_fee > min_fee {
+      percentage_fee
+    } else {
+      min_fee
+    }
+  Output {
+    address: mock_change_account_address(),
+    value: from_asset("", "", fee_in_lovelace),
+    datum: NoDatum,
+    reference_script: None,
+  }
+}
+
+pub fn mock_virtual_dex_address() {
+  mock_script_address(5, None)
+}
+
+pub fn mock_sell_ada_order_input(
+  variation: Int,
+  list_price_times_10k: Int,
+  sell_lot_size: Int,
+) {
+  Input {
+    output_reference: mock_utxo_ref(50 + variation),
+    output: Output {
+      address: mock_virtual_dex_address(),
+      value: from_asset("", "", sell_lot_size),
+      datum: InlineDatum(
+        VirtualDexDatum {
+          change_account_address: mock_change_account_address(),
+          trade_account_address: mock_trade_account_address(),
+          is_long: True,
+          list_price_times_10k,
+          sell_lot_size,
+        },
+      ),
+      reference_script: None,
+    },
+  }
+}
+
+pub fn mock_buy_ada_order_input(
+  variation: Int,
+  list_price_times_10k: Int,
+  sell_lot_size: Int,
+) {
+  Input {
+    output_reference: mock_utxo_ref(50 + variation),
+    output: Output {
+      address: mock_virtual_dex_address(),
+      value: from_asset(
+        mock_token_asset_class().1st,
+        mock_token_asset_class().2nd,
+        sell_lot_size,
+      ),
+      datum: InlineDatum(
+        VirtualDexDatum {
+          change_account_address: mock_change_account_address(),
+          trade_account_address: mock_trade_account_address(),
+          is_long: True,
+          list_price_times_10k,
+          sell_lot_size,
+        },
+      ),
       reference_script: None,
     },
   }

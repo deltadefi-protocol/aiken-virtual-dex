@@ -123,7 +123,6 @@ pub fn accumuate_all_payment_value(
 
 pub fn virtual_dex_logic(
   oracle_nft: PolicyId,
-  fee_ref_token: PolicyId,
   emergency_token: PolicyId,
   fee_address: Address,
   param_long_token: (PolicyId, AssetName),
@@ -135,9 +134,9 @@ pub fn virtual_dex_logic(
   let ScriptContext { purpose, transaction } = context
 
   when redeemer is {
-    TakeOrder { .. } -> {
+    TakeOrder -> {
       let Transaction { reference_inputs, inputs, outputs, .. } = transaction
-      expect OracleDatum { .. }: OracleDatum =
+      expect OracleDatum { operation_key, fee_ref_token, .. }: OracleDatum =
         only_input_datum_with(reference_inputs, oracle_nft, "")
       expect Spend(own_utxo) = purpose
       expect Some(own_input) = find_input(transaction.inputs, own_utxo)
@@ -189,7 +188,9 @@ pub fn virtual_dex_logic(
                  value_geq(received_value, to_receive_value)
                },
              )
-      is_fee_ref_correct && is_token_paid_to_maker && is_min_fee_paid && is_percentage_fee_paid
+      let is_operation_key_signed =
+        key_signed(transaction.extra_signatories, operation_key)
+      is_fee_ref_correct && is_token_paid_to_maker && is_min_fee_paid && is_percentage_fee_paid && is_operation_key_signed
     }
 
     MassTakeOrder { take_order_input } -> {
@@ -197,14 +198,20 @@ pub fn virtual_dex_logic(
       expect Spend(own_utxo) = purpose
       expect Some(own_input) = find_input(transaction.inputs, own_utxo)
       let own_address = own_input.output.address
-      expect Some(raw_target_redeemer) =
+      let maybe_redeemer =
         redeemer_from(redeemers, inputs, take_order_input, own_address)
-      expect target_redeemer: VirtualDexRedeemer = raw_target_redeemer
-      when target_redeemer is {
-        TakeOrder -> True
+      when maybe_redeemer is {
+        Some(raw_target_redeemer) -> {
+          expect target_redeemer: VirtualDexRedeemer = raw_target_redeemer
+          when target_redeemer is {
+            TakeOrder -> True
+            _ -> False
+          }
+        }
         _ -> False
       }
     }
+
     CancelOrder -> {
       expect Spend(own_utxo) = purpose
       let Transaction {

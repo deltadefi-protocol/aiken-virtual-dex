@@ -3,7 +3,7 @@ use aiken/transaction.{Input, ScriptContext, Spend, Transaction, placeholder}
 use aiken/transaction/value.{from_asset, to_minted_value}
 use aiken_virtual_dex/placeholder.{
   mock_operation_key, mock_oracle_datum, mock_oracle_output, mock_policy_id,
-  mock_stop_key, mock_utxo_ref, mock_vkey_hex_2, mock_vkey_hex_3,
+  mock_pub_key_hex, mock_stop_key, mock_utxo_ref,
 }
 use aiken_virtual_dex/types.{OracleDatum, RotateKey, StopApp}
 use aiken_virtual_dex/validators/oracle_validator.{oracle_validator_logic}
@@ -29,7 +29,7 @@ fn mock_rotate_test_case(test_case: RotateTestCase) {
     is_datum_updated,
   } = test_case
   let input_utxo = mock_utxo_ref(0)
-  let new_stop_key = mock_vkey_hex_3()
+  let new_stop_key = mock_pub_key_hex(3)
 
   let extra_signatories =
     []
@@ -76,7 +76,7 @@ test success_rotate_key() {
   let redeemer =
     RotateKey {
       new_operation_key: mock_stop_key(),
-      new_stop_key: mock_vkey_hex_3(),
+      new_stop_key: mock_pub_key_hex(3),
     }
   let input_utxo = mock_utxo_ref(0)
 
@@ -90,7 +90,7 @@ test fail_rotate_key_without_old_stop_signature() {
   let redeemer =
     RotateKey {
       new_operation_key: mock_stop_key(),
-      new_stop_key: mock_vkey_hex_3(),
+      new_stop_key: mock_pub_key_hex(3),
     }
   let input_utxo = mock_utxo_ref(0)
 
@@ -110,7 +110,7 @@ test fail_rotate_key_without_new_stop_signature() {
   let redeemer =
     RotateKey {
       new_operation_key: mock_stop_key(),
-      new_stop_key: mock_vkey_hex_3(),
+      new_stop_key: mock_pub_key_hex(3),
     }
   let input_utxo = mock_utxo_ref(0)
 
@@ -134,7 +134,7 @@ test success_stop_app() {
     Transaction {
       ..placeholder(),
       mint: to_minted_value(from_asset(mock_policy_id(), "", -1)),
-      extra_signatories: [mock_vkey_hex_2()],
+      extra_signatories: [mock_pub_key_hex(2)],
     }
   let ctx = ScriptContext { purpose: Spend(mock_utxo_ref(0)), transaction: tx }
 
