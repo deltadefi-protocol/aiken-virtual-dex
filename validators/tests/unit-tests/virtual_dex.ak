@@ -1,15 +1,19 @@
+use aiken/dict
 use aiken/transaction.{
   InlineDatum, Input, Output, ScriptContext, Spend, Transaction, placeholder,
 }
 use aiken/transaction/value.{from_asset}
+use aiken_virtual_dex/common.{compare_output_reference}
 use aiken_virtual_dex/placeholder.{
   ada_asset_class, mock_buy_ada_order_input, mock_change_account_address,
   mock_emergency_token, mock_fee_address, mock_fee_output, mock_fee_ref_input,
-  mock_operation_key, mock_oracle_policy_id, mock_oracle_ref_input,
-  mock_post_trade_trade_account_output, mock_token_asset_class,
-  mock_trade_account_address, mock_utxo_ref,
+  mock_operation_key, mock_oracle_address, mock_oracle_policy_id,
+  mock_oracle_ref_input, mock_post_trade_trade_account_output,
+  mock_token_asset_class, mock_trade_account_address, mock_utxo_ref,
 }
-use aiken_virtual_dex/types.{FeeInfoDatum, TakeOrder, VirtualDexDatum}
+use aiken_virtual_dex/types.{
+  FeeInfoDatum, MassTakeOrder, TakeOrder, VirtualDexDatum,
+}
 use aiken_virtual_dex/validators/virtual_dex.{virtual_dex_logic}
 
 type TakeOrderTestCase {
@@ -302,15 +306,148 @@ test fail_take_order_without_operation_key_signed() {
 }
 
 type MassTakeOrderTestCase {
-  is_output_from_own_address: Bool,
+  is_input_from_own_address: Bool,
   is_redeemer_correct: Bool,
 }
 
 fn mass_take_order_base_case() {
   MassTakeOrderTestCase {
-    is_output_from_own_address: True,
+    is_input_from_own_address: True,
     is_redeemer_correct: True,
   }
+}
+
+fn mass_take_order_test(test_case: MassTakeOrderTestCase) {
+  let MassTakeOrderTestCase { is_input_from_own_address, is_redeemer_correct } =
+    test_case
+  let inputs =
+    [
+      if is_input_from_own_address {
+        mock_buy_ada_order_input(1, 1612000, 310_000_000)
+      } else {
+        Input {
+          output_reference: mock_utxo_ref(51),
+          output: Output {
+            ..mock_buy_ada_order_input(1, 1612000, 310_000_000).output,
+            address: mock_oracle_address(),
+          },
+        }
+      },
+      mock_buy_ada_order_input(2, 1612000, 310_000_000),
+      mock_buy_ada_order_input(3, 1612000, 310_000_000),
+    ]
+  let mass_take_order_red: Data =
+    MassTakeOrder { take_order_input: mock_utxo_ref(51) }
+  let take_order_red: Data = TakeOrder
+  let redeemers =
+    dict.new()
+      |> dict.insert(
+           Spend(mock_utxo_ref(51)),
+           if is_redeemer_correct {
+             take_order_red
+           } else {
+             mass_take_order_red
+           },
+           compare_output_reference,
+         )
+      |> dict.insert(
+           Spend(mock_utxo_ref(52)),
+           mass_take_order_red,
+           compare_output_reference,
+         )
+      |> dict.insert(
+           Spend(mock_utxo_ref(53)),
+           mass_take_order_red,
+           compare_output_reference,
+         )
+  Transaction { ..placeholder(), inputs: inputs, redeemers: redeemers }
+}
+
+test success_mass_take_order() {
+  let input_utxo = mock_utxo_ref(52)
+  let dat =
+    VirtualDexDatum {
+      change_account_address: mock_change_account_address(),
+      trade_account_address: mock_trade_account_address(),
+      is_long: True,
+      list_price_times_1mil: 60000,
+      sell_lot_size: 500,
+    }
+  let red = MassTakeOrder { take_order_input: mock_utxo_ref(51) }
+  let tx = mass_take_order_test(mass_take_order_base_case())
+  let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
+  virtual_dex_logic(
+    mock_oracle_policy_id(),
+    mock_emergency_token(),
+    mock_fee_address(),
+    ada_asset_class(),
+    mock_token_asset_class(),
+    dat,
+    red,
+    ctx,
+  )
+}
+
+test fail_mass_take_order_without_correct_redeemer_at_take_order() {
+  let input_utxo = mock_utxo_ref(52)
+  let dat =
+    VirtualDexDatum {
+      change_account_address: mock_change_account_address(),
+      trade_account_address: mock_trade_account_address(),
+      is_long: True,
+      list_price_times_1mil: 60000,
+      sell_lot_size: 500,
+    }
+  let red = MassTakeOrder { take_order_input: mock_utxo_ref(51) }
+  let tx =
+    mass_take_order_test(
+      MassTakeOrderTestCase {
+        ..mass_take_order_base_case(),
+        is_redeemer_correct: False,
+      },
+    )
+  let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
+  !virtual_dex_logic(
+    mock_oracle_policy_id(),
+    mock_emergency_token(),
+    mock_fee_address(),
+    ada_asset_class(),
+    mock_token_asset_class(),
+    dat,
+    red,
+    ctx,
+  )
+}
+
+test fail_mass_take_order_with_take_order_input_from_different_address() {
+  let input_utxo = mock_utxo_ref(52)
+  let dat =
+    VirtualDexDatum {
+      change_account_address: mock_change_account_address(),
+      trade_account_address: mock_trade_account_address(),
+      is_long: True,
+      list_price_times_1mil: 60000,
+      sell_lot_size: 500,
+    }
+  let red = MassTakeOrder { take_order_input: mock_utxo_ref(51) }
+  let tx =
+    mass_take_order_test(
+      MassTakeOrderTestCase {
+        ..mass_take_order_base_case(),
+        is_input_from_own_address: False,
+      },
+    )
+  let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
+  !virtual_dex_logic(
+    mock_oracle_policy_id(),
+    mock_emergency_token(),
+    mock_fee_address(),
+    ada_asset_class(),
+    mock_token_asset_class(),
+    dat,
+    red,
+    ctx,
+  )
 }
 
 type CancelOrderTestCase {
