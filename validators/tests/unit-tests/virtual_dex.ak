@@ -1,4 +1,6 @@
-use aiken/transaction.{ScriptContext, Spend, Transaction, placeholder}
+use aiken/transaction.{
+  InlineDatum, Input, Output, ScriptContext, Spend, Transaction, placeholder,
+}
 use aiken/transaction/value.{from_asset}
 use aiken_virtual_dex/placeholder.{
   ada_asset_class, mock_buy_ada_order_input, mock_change_account_address,
@@ -7,7 +9,7 @@ use aiken_virtual_dex/placeholder.{
   mock_post_trade_trade_account_output, mock_token_asset_class,
   mock_trade_account_address, mock_utxo_ref,
 }
-use aiken_virtual_dex/types.{TakeOrder, VirtualDexDatum}
+use aiken_virtual_dex/types.{FeeInfoDatum, TakeOrder, VirtualDexDatum}
 use aiken_virtual_dex/validators/virtual_dex.{virtual_dex_logic}
 
 type TakeOrderTestCase {
@@ -31,13 +33,28 @@ fn take_order_base_case() {
 fn take_order_test(test_case: TakeOrderTestCase) {
   let TakeOrderTestCase {
     is_fee_ref_correct,
-    is_token_paid_to_maker: _,
+    is_token_paid_to_maker,
     is_min_fee_paid,
     is_percentage_fee_paid,
     is_operation_key_signed,
   } = test_case
-  let min_fee = 2_000_000
-  let percentage_fee_times_10k = 500
+  let token_lot_size = 310_000_000
+  let ada_lot_size = 499_999_930
+  let min_fee =
+    when (is_min_fee_paid, is_percentage_fee_paid) is {
+      (True, False) -> 200_000
+      _ -> 2_000_000
+    }
+  let percentage_fee_times_10k = 5
+  let fee_output =
+    when (is_min_fee_paid, is_percentage_fee_paid) is {
+      (True, True) ->
+        mock_fee_output(ada_lot_size * 3, min_fee, percentage_fee_times_10k)
+      (True, False) -> mock_fee_output(ada_lot_size * 3, 0, 0)
+      (False, True) -> mock_fee_output(ada_lot_size * 3, 0, 0)
+      (False, False) -> mock_fee_output(ada_lot_size * 3, 0, 0)
+    }
+
   let reference_inputs =
     if is_fee_ref_correct {
       [
@@ -45,7 +62,23 @@ fn take_order_test(test_case: TakeOrderTestCase) {
         mock_fee_ref_input(min_fee, percentage_fee_times_10k),
       ]
     } else {
-      [mock_oracle_ref_input()]
+      [
+        mock_oracle_ref_input(),
+        Input {
+          output_reference: mock_utxo_ref(99),
+          output: Output {
+            ..mock_fee_ref_input(min_fee, percentage_fee_times_10k).output,
+            datum: InlineDatum(
+              FeeInfoDatum {
+                long_token: ("1", ""),
+                short_token: mock_token_asset_class(),
+                min_fee,
+                percentage_fee_times_10k,
+              },
+            ),
+          },
+        },
+      ]
     }
   let extra_signatories =
     if is_operation_key_signed {
@@ -53,24 +86,36 @@ fn take_order_test(test_case: TakeOrderTestCase) {
     } else {
       []
     }
-
-  let token_lot_size = 310_000_000
-  let ada_lot_size = 500_000_000
   let inputs =
     [
-      mock_buy_ada_order_input(1, ada_lot_size / token_lot_size, token_lot_size),
-      mock_buy_ada_order_input(2, ada_lot_size / token_lot_size, token_lot_size),
-      mock_buy_ada_order_input(3, ada_lot_size / token_lot_size, token_lot_size),
+      mock_buy_ada_order_input(
+        1,
+        ada_lot_size * 1000000 / token_lot_size,
+        token_lot_size,
+      ),
+      mock_buy_ada_order_input(
+        2,
+        ada_lot_size * 1000000 / token_lot_size,
+        token_lot_size,
+      ),
+      mock_buy_ada_order_input(
+        3,
+        ada_lot_size * 1000000 / token_lot_size,
+        token_lot_size,
+      ),
     ]
-  let fee_output =
-    when (is_min_fee_paid, is_percentage_fee_paid) is {
-      (True, True) -> mock_fee_output(token_lot_size, min_fee, 0)
-      (True, False) -> mock_fee_output(token_lot_size, 0, 0)
-      (False, True) -> mock_fee_output(token_lot_size, 0, 0)
-      (False, False) -> mock_fee_output(token_lot_size, 0, 0)
-    }
   let to_user_output =
-    mock_post_trade_trade_account_output(from_asset("", "", token_lot_size * 3))
+    mock_post_trade_trade_account_output(
+      from_asset(
+        "",
+        "",
+        if is_token_paid_to_maker {
+          ada_lot_size * 3
+        } else {
+          ada_lot_size * 3 - 1
+        },
+      ),
+    )
   let outputs =
     [fee_output, to_user_output]
   Transaction {
@@ -89,13 +134,162 @@ test success_take_order() {
       change_account_address: mock_change_account_address(),
       trade_account_address: mock_trade_account_address(),
       is_long: True,
-      list_price_times_10k: 60000,
+      list_price_times_1mil: 60000,
       sell_lot_size: 500,
     }
   let red = TakeOrder
   let tx = take_order_test(take_order_base_case())
   let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
   virtual_dex_logic(
+    mock_oracle_policy_id(),
+    mock_emergency_token(),
+    mock_fee_address(),
+    ada_asset_class(),
+    mock_token_asset_class(),
+    dat,
+    red,
+    ctx,
+  )
+}
+
+test fail_take_order_with_incorrect_fee_ref() {
+  let input_utxo = mock_utxo_ref(51)
+  let dat =
+    VirtualDexDatum {
+      change_account_address: mock_change_account_address(),
+      trade_account_address: mock_trade_account_address(),
+      is_long: True,
+      list_price_times_1mil: 60000,
+      sell_lot_size: 500,
+    }
+  let red = TakeOrder
+  let tx =
+    take_order_test(
+      TakeOrderTestCase { ..take_order_base_case(), is_fee_ref_correct: False },
+    )
+  let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
+  !virtual_dex_logic(
+    mock_oracle_policy_id(),
+    mock_emergency_token(),
+    mock_fee_address(),
+    ada_asset_class(),
+    mock_token_asset_class(),
+    dat,
+    red,
+    ctx,
+  )
+}
+
+test fail_take_order_without_token_paid_to_maker() {
+  let input_utxo = mock_utxo_ref(51)
+  let dat =
+    VirtualDexDatum {
+      change_account_address: mock_change_account_address(),
+      trade_account_address: mock_trade_account_address(),
+      is_long: True,
+      list_price_times_1mil: 60000,
+      sell_lot_size: 500,
+    }
+  let red = TakeOrder
+  let tx =
+    take_order_test(
+      TakeOrderTestCase {
+        ..take_order_base_case(),
+        is_token_paid_to_maker: False,
+      },
+    )
+  let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
+  !virtual_dex_logic(
+    mock_oracle_policy_id(),
+    mock_emergency_token(),
+    mock_fee_address(),
+    ada_asset_class(),
+    mock_token_asset_class(),
+    dat,
+    red,
+    ctx,
+  )
+}
+
+test fail_take_order_without_min_fee_paid() {
+  let input_utxo = mock_utxo_ref(51)
+  let dat =
+    VirtualDexDatum {
+      change_account_address: mock_change_account_address(),
+      trade_account_address: mock_trade_account_address(),
+      is_long: True,
+      list_price_times_1mil: 60000,
+      sell_lot_size: 500,
+    }
+  let red = TakeOrder
+  let tx =
+    take_order_test(
+      TakeOrderTestCase { ..take_order_base_case(), is_min_fee_paid: False },
+    )
+  let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
+  !virtual_dex_logic(
+    mock_oracle_policy_id(),
+    mock_emergency_token(),
+    mock_fee_address(),
+    ada_asset_class(),
+    mock_token_asset_class(),
+    dat,
+    red,
+    ctx,
+  )
+}
+
+test fail_take_order_without_percentage_fee_paid() {
+  let input_utxo = mock_utxo_ref(51)
+  let dat =
+    VirtualDexDatum {
+      change_account_address: mock_change_account_address(),
+      trade_account_address: mock_trade_account_address(),
+      is_long: True,
+      list_price_times_1mil: 60000,
+      sell_lot_size: 500,
+    }
+  let red = TakeOrder
+  let tx =
+    take_order_test(
+      TakeOrderTestCase {
+        ..take_order_base_case(),
+        is_percentage_fee_paid: False,
+      },
+    )
+  let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
+  !virtual_dex_logic(
+    mock_oracle_policy_id(),
+    mock_emergency_token(),
+    mock_fee_address(),
+    ada_asset_class(),
+    mock_token_asset_class(),
+    dat,
+    red,
+    ctx,
+  )
+}
+
+test fail_take_order_without_operation_key_signed() {
+  let input_utxo = mock_utxo_ref(51)
+  let dat =
+    VirtualDexDatum {
+      change_account_address: mock_change_account_address(),
+      trade_account_address: mock_trade_account_address(),
+      is_long: True,
+      list_price_times_1mil: 60000,
+      sell_lot_size: 500,
+    }
+  let red = TakeOrder
+  let tx =
+    take_order_test(
+      TakeOrderTestCase {
+        ..take_order_base_case(),
+        is_operation_key_signed: False,
+      },
+    )
+  let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
+  !virtual_dex_logic(
     mock_oracle_policy_id(),
     mock_emergency_token(),
     mock_fee_address(),

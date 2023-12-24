@@ -353,7 +353,7 @@ pub fn mock_virtual_dex_address() {
 
 pub fn mock_buy_ada_order_input(
   variation: Int,
-  list_price_times_10k: Int,
+  list_price_times_1mil: Int,
   sell_lot_size: Int,
 ) {
   Input {
@@ -370,7 +370,7 @@ pub fn mock_buy_ada_order_input(
           change_account_address: mock_change_account_address(),
           trade_account_address: mock_trade_account_address(),
           is_long: True,
-          list_price_times_10k,
+          list_price_times_1mil,
           sell_lot_size,
         },
       ),
@@ -381,7 +381,7 @@ pub fn mock_buy_ada_order_input(
 
 pub fn mock_sell_ada_order_input(
   variation: Int,
-  list_price_times_10k: Int,
+  list_price_times_1mil: Int,
   sell_lot_size: Int,
 ) {
   Input {
@@ -394,7 +394,7 @@ pub fn mock_sell_ada_order_input(
           change_account_address: mock_change_account_address(),
           trade_account_address: mock_trade_account_address(),
           is_long: True,
-          list_price_times_10k,
+          list_price_times_1mil,
           sell_lot_size,
         },
       ),

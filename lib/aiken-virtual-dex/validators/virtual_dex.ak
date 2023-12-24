@@ -33,7 +33,7 @@ pub fn accumulate_all_to_return_value(
             trade_account_address,
             change_account_address,
             is_long,
-            list_price_times_10k,
+            list_price_times_1mil,
             sell_lot_size,
           }: VirtualDexDatum = output_inline_datum(x.output)
           let current_item = dict.get(acc.1st, trade_account_address)
@@ -43,16 +43,16 @@ pub fn accumulate_all_to_return_value(
                 from_asset(
                   long_token.1st,
                   long_token.2nd,
-                  list_price_times_10k * sell_lot_size / 10000,
+                  list_price_times_1mil * sell_lot_size / 1000000,
                 ),
-                list_price_times_10k * sell_lot_size / 10000,
+                list_price_times_1mil * sell_lot_size / 1000000,
               )
             } else {
               (
                 from_asset(
                   short_token.1st,
                   short_token.2nd,
-                  list_price_times_10k * sell_lot_size / 10000,
+                  list_price_times_1mil * sell_lot_size / 1000000,
                 ),
                 sell_lot_size,
               )

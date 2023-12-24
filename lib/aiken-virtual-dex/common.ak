@@ -254,8 +254,8 @@ pub fn get_all_value_from(inputs: List<Input>, address: Address) -> Value {
 
 pub fn value_geq(greater: Value, smaller: Value) -> Bool {
   list.all(
-    flatten(greater),
-    fn(token) { quantity_of(smaller, token.1st, token.2nd) <= token.3rd },
+    flatten(smaller),
+    fn(token) { quantity_of(greater, token.1st, token.2nd) >= token.3rd },
   )
 }
 

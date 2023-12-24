@@ -66,7 +66,7 @@ pub type VirtualDexDatum {
   change_account_address: Address,
   trade_account_address: Address,
   is_long: Bool,
-  list_price_times_10k: Int,
+  list_price_times_1mil: Int,
   sell_lot_size: Int,
 }
 
