@@ -1,26 +1,20 @@
-use aiken/bytearray
 use aiken/dict.{Dict}
 use aiken/list
 use aiken/transaction.{
   Input, Output, ScriptContext, Spend, Transaction, find_input,
 }
-use aiken/transaction/credential.{Address, ScriptCredential}
+use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value, from_asset, merge}
 use aiken_virtual_dex/common.{
-  inputs_at, key_signed, only_input_datum_with, only_minted_token,
-  output_inline_datum, outputs_at, redeemer_from, value_geq,
+  compare_address, compare_script_address, inputs_at, key_signed,
+  only_input_datum_with, only_minted_token, output_inline_datum, outputs_at,
+  redeemer_from, value_geq,
 }
 use aiken_virtual_dex/types.{
   CancelOrder, EmergencyCancel, FeeInfoDatum, MassTakeOrder, OracleDatum,
   TakeOrder, VirtualDexDatum, VirtualDexRedeemer,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
-
-pub fn compare_script_address(x: Address, y: Address) -> Ordering {
-  expect ScriptCredential(x_hash) = x.payment_credential
-  expect ScriptCredential(y_hash) = y.payment_credential
-  bytearray.compare(x_hash, y_hash)
-}
 
 pub fn accumulate_all_to_return_value(
   long_token: (PolicyId, AssetName),
@@ -94,28 +88,17 @@ pub fn accumulate_all_to_return_value(
 
 pub fn accumuate_all_payment_value(
   outputs: List<Output>,
-) -> Dict<Address, (Address, Value)> {
+) -> Dict<Address, Value> {
   list.foldr(
     outputs,
     dict.new(),
-    fn(x: Output, acc: Dict<Address, (Address, Value)>) {
+    fn(x: Output, acc: Dict<Address, Value>) {
       let this_address = x.address
       let current_item = dict.get(acc, this_address)
       when current_item is {
-        None ->
-          dict.insert(
-            acc,
-            this_address,
-            (this_address, x.value),
-            compare_script_address,
-          )
-        Some((change_account_address, value)) ->
-          dict.insert(
-            acc,
-            this_address,
-            (change_account_address, merge(value, x.value)),
-            compare_script_address,
-          )
+        None -> dict.insert(acc, x.address, x.value, compare_address)
+        Some(val) ->
+          dict.insert(acc, x.address, merge(val, x.value), compare_address)
       }
     },
   )
@@ -150,47 +133,62 @@ pub fn virtual_dex_logic(
         only_input_datum_with(reference_inputs, fee_ref_token, "")
       let is_fee_ref_correct =
         long_token == param_long_token && short_token == param_short_token
-      let payment_values = accumuate_all_payment_value(outputs)
-      expect Some((_, fee_value)) = dict.get(payment_values, fee_address)
       // 0. TODO: Fee payment
-      let evaluated_inputs =
+      let (trade_payment_map, long_token_quantity) =
         accumulate_all_to_return_value(
           param_long_token,
           param_short_token,
           inputs,
           own_address,
         )
+      let payment_values = accumuate_all_payment_value(outputs)
+      expect Some(fee_value) = dict.get(payment_values, fee_address)
       let is_percentage_fee_paid =
         value_geq(
           fee_value,
           from_asset(
             "",
             "",
-            evaluated_inputs.2nd * percentage_fee_times_10k / 10000,
+            long_token_quantity * percentage_fee_times_10k / 10000,
           ),
         )
       let is_min_fee_paid = value_geq(fee_value, from_asset("", "", min_fee))
+      let is_operation_key_signed =
+        key_signed(transaction.extra_signatories, operation_key)
 
       // - Accumulate proceeds supposed send to order creators, check output value to them
       // 1. Look throught all inputs ->
       //       if from same address -> get (trade_account_address, change_account_address, receive_value)
       // 2. Merge all results above with same trade_account_address
       // 3. Check each unique trade_account_address, if outputs to trade_account + change_account >= to_receive
-      let is_token_paid_to_maker =
-        evaluated_inputs.1st
+      let is_token_paid_to_inidividual_maker =
+        fn(payment_item) {
+          let (
+            trade_account_address,
+            (change_account_address, to_receive_value),
+          ) = payment_item
+          let maybe_trade_received_value =
+            dict.get(payment_values, trade_account_address)
+          let maybe_change_received_value =
+            dict.get(payment_values, change_account_address)
+          when (maybe_trade_received_value, maybe_change_received_value) is {
+            (Some(trade_received_value), Some(change_received_value)) ->
+              value_geq(
+                merge(trade_received_value, change_received_value),
+                to_receive_value,
+              )
+            (Some(trade_received_value), None) ->
+              value_geq(trade_received_value, to_receive_value)
+            (None, Some(change_received_value)) ->
+              value_geq(change_received_value, to_receive_value)
+            (None, None) -> False
+          }
+        }
+      let is_token_paid_to_makers =
+        trade_payment_map
           |> dict.to_list()
-          |> list.all(
-               fn(payment_item) {
-                 let (trade_account_address, (_, to_receive_value)) =
-                   payment_item
-                 expect Some((_, received_value)) =
-                   dict.get(payment_values, trade_account_address)
-                 value_geq(received_value, to_receive_value)
-               },
-             )
-      let is_operation_key_signed =
-        key_signed(transaction.extra_signatories, operation_key)
-      is_fee_ref_correct && is_token_paid_to_maker && is_min_fee_paid && is_percentage_fee_paid && is_operation_key_signed
+          |> list.all(is_token_paid_to_inidividual_maker)
+      is_fee_ref_correct && is_operation_key_signed && is_percentage_fee_paid && is_min_fee_paid && is_token_paid_to_makers
     }
 
     MassTakeOrder { take_order_input } -> {

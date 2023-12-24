@@ -221,6 +221,13 @@ pub fn mock_fee_ref_output(
   }
 }
 
+pub fn mock_fee_ref_input(min_fee: Int, percentage_fee_times_10k: Int) -> Input {
+  Input {
+    output_reference: mock_utxo_ref(0),
+    output: mock_fee_ref_output(min_fee, percentage_fee_times_10k),
+  }
+}
+
 pub fn mock_trade_account_address() {
   mock_script_address(3, None)
 }
@@ -333,7 +340,7 @@ pub fn mock_fee_output(
       min_fee
     }
   Output {
-    address: mock_change_account_address(),
+    address: mock_fee_address(),
     value: from_asset("", "", fee_in_lovelace),
     datum: NoDatum,
     reference_script: None,
@@ -342,30 +349,6 @@ pub fn mock_fee_output(
 
 pub fn mock_virtual_dex_address() {
   mock_script_address(5, None)
-}
-
-pub fn mock_sell_ada_order_input(
-  variation: Int,
-  list_price_times_10k: Int,
-  sell_lot_size: Int,
-) {
-  Input {
-    output_reference: mock_utxo_ref(50 + variation),
-    output: Output {
-      address: mock_virtual_dex_address(),
-      value: from_asset("", "", sell_lot_size),
-      datum: InlineDatum(
-        VirtualDexDatum {
-          change_account_address: mock_change_account_address(),
-          trade_account_address: mock_trade_account_address(),
-          is_long: True,
-          list_price_times_10k,
-          sell_lot_size,
-        },
-      ),
-      reference_script: None,
-    },
-  }
 }
 
 pub fn mock_buy_ada_order_input(
@@ -393,5 +376,38 @@ pub fn mock_buy_ada_order_input(
       ),
       reference_script: None,
     },
+  }
+}
+
+pub fn mock_sell_ada_order_input(
+  variation: Int,
+  list_price_times_10k: Int,
+  sell_lot_size: Int,
+) {
+  Input {
+    output_reference: mock_utxo_ref(60 + variation),
+    output: Output {
+      address: mock_virtual_dex_address(),
+      value: from_asset("", "", sell_lot_size),
+      datum: InlineDatum(
+        VirtualDexDatum {
+          change_account_address: mock_change_account_address(),
+          trade_account_address: mock_trade_account_address(),
+          is_long: True,
+          list_price_times_10k,
+          sell_lot_size,
+        },
+      ),
+      reference_script: None,
+    },
+  }
+}
+
+pub fn mock_post_trade_trade_account_output(value: Value) -> Output {
+  Output {
+    address: mock_trade_account_address(),
+    value,
+    datum: InlineDatum(TradeNormalDatum),
+    reference_script: None,
   }
 }

@@ -6,7 +6,9 @@ use aiken/transaction.{
   InlineDatum, Input, Output, OutputReference, Redeemer, ScriptPurpose, Spend,
   ValidityRange, find_input,
 }
-use aiken/transaction/credential.{Address}
+use aiken/transaction/credential.{
+  Address, ScriptCredential, VerificationKeyCredential,
+}
 use aiken/transaction/value.{
   AssetName, MintedValue, PolicyId, Value, flatten, from_minted_value, merge,
   quantity_of, zero,
@@ -278,6 +280,26 @@ pub fn valid_before(
     (Finite(upper_bound), True) -> upper_bound < required_timestamp
     (Finite(upper_bound), False) -> upper_bound <= required_timestamp
     _ -> False
+  }
+}
+
+pub fn compare_script_address(x: Address, y: Address) -> Ordering {
+  expect ScriptCredential(x_hash) = x.payment_credential
+  expect ScriptCredential(y_hash) = y.payment_credential
+  bytearray.compare(x_hash, y_hash)
+}
+
+pub fn compare_address(x: Address, y: Address) -> Ordering {
+  let x_hash = x.payment_credential
+  let y_hash = y.payment_credential
+  when (x_hash, y_hash) is {
+    (ScriptCredential(x_script_hash), ScriptCredential(y_script_hash)) ->
+      bytearray.compare(x_script_hash, y_script_hash)
+    (
+      VerificationKeyCredential(x_key_hash),
+      VerificationKeyCredential(y_key_hash),
+    ) -> bytearray.compare(x_key_hash, y_key_hash)
+    _ -> Equal
   }
 }
 
