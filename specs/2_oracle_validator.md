@@ -6,8 +6,6 @@
 
 - `oracle_nft`: The policy id of `OracleNFT`
 - `oracle_address`: The address of the current oracle validator
-- `fee_ref_token`: The policy id of reference token on fee information
-- `fee_info_address`: The address of hosting fee information in inline datum
 - `operation_key`: The key for operation use. E.g. processing orders
 - `stop_key`: The key for stopping the services
 

@@ -11,8 +11,8 @@ use aiken_virtual_dex/common.{
   redeemer_from, value_geq,
 }
 use aiken_virtual_dex/types.{
-  CancelOrder, EmergencyCancel, FeeInfoDatum, MassTakeOrder, OracleDatum,
-  TakeOrder, VirtualDexDatum, VirtualDexRedeemer,
+  CancelOrder, EmergencyCancel, MassTakeOrder, OracleDatum, TakeOrder,
+  VirtualDexDatum, VirtualDexRedeemer,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
 
@@ -107,7 +107,6 @@ pub fn accumuate_all_payment_value(
 pub fn virtual_dex_logic(
   oracle_nft: PolicyId,
   emergency_token: PolicyId,
-  fee_address: Address,
   param_long_token: (PolicyId, AssetName),
   param_short_token: (PolicyId, AssetName),
   datum: VirtualDexDatum,
@@ -119,22 +118,12 @@ pub fn virtual_dex_logic(
   when redeemer is {
     TakeOrder -> {
       let Transaction { reference_inputs, inputs, outputs, .. } = transaction
-      expect OracleDatum { operation_key, fee_ref_token, .. }: OracleDatum =
+      expect OracleDatum { operation_key, .. }: OracleDatum =
         only_input_datum_with(reference_inputs, oracle_nft, "")
       expect Spend(own_utxo) = purpose
       expect Some(own_input) = find_input(transaction.inputs, own_utxo)
       let own_address = own_input.output.address
-      expect FeeInfoDatum {
-        long_token,
-        short_token,
-        min_fee,
-        percentage_fee_times_10k,
-      }: FeeInfoDatum =
-        only_input_datum_with(reference_inputs, fee_ref_token, "")
-      let is_fee_ref_correct =
-        long_token == param_long_token && short_token == param_short_token
-      // 0. TODO: Fee payment
-      let (trade_payment_map, long_token_quantity) =
+      let (trade_payment_map, _long_token_quantity) =
         accumulate_all_to_return_value(
           param_long_token,
           param_short_token,
@@ -142,17 +131,6 @@ pub fn virtual_dex_logic(
           own_address,
         )
       let payment_values = accumuate_all_payment_value(outputs)
-      expect Some(fee_value) = dict.get(payment_values, fee_address)
-      let is_percentage_fee_paid =
-        value_geq(
-          fee_value,
-          from_asset(
-            "",
-            "",
-            long_token_quantity * percentage_fee_times_10k / 10000,
-          ),
-        )
-      let is_min_fee_paid = value_geq(fee_value, from_asset("", "", min_fee))
       let is_operation_key_signed =
         key_signed(transaction.extra_signatories, operation_key)
 
@@ -188,7 +166,7 @@ pub fn virtual_dex_logic(
         trade_payment_map
           |> dict.to_list()
           |> list.all(is_token_paid_to_inidividual_maker)
-      is_fee_ref_correct && is_operation_key_signed && is_percentage_fee_paid && is_min_fee_paid && is_token_paid_to_makers
+      is_operation_key_signed && is_token_paid_to_makers
     }
 
     MassTakeOrder { take_order_input } -> {

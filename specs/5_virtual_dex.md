@@ -4,9 +4,8 @@
 
 - `oracle_nft`: The policy id of `OracleNFT`
 - `emergency_token`: The policy id of the emergency token
-- `fee_address`: The address of receiving fees
-- `param_long_token`: The long side of token in trading pairs, which its quantity would be used for fee calculation
-- `param_short_token`: The long side of token in trading pairs
+- `param_long_token`: The long side of token in trading pairs
+- `param_short_token`: The short side of token in trading pairs
 
 ## Datum
 
@@ -21,9 +20,7 @@
 1. Core logic of taking orders - Redeemer `TakeOrder {order_taker}`
 
    - Reference to oracle utxo
-   - Reference to fee ref utxo
    - Accumulate proceeds supposed send to order creators, check output value to them
-   - Fee (higher of min fee and percentage fee) is paid to fee address
    - Signed by operation key
 
 2. Bypassing check if any other redeemer is with the core logic - Redeemer `MassTakeOrder { take_order_input }`

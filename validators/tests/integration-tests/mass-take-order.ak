@@ -1,28 +1,23 @@
 use aiken/dict.{Dict}
 use aiken/list
 use aiken/transaction.{
-  InlineDatum, Input, Output, Redeemer, ScriptContext, ScriptPurpose, Spend,
-  Transaction, placeholder,
+  Input, Output, Redeemer, ScriptContext, ScriptPurpose, Spend, Transaction,
+  placeholder,
 }
 use aiken/transaction/value.{from_asset}
 use aiken_virtual_dex/common.{compare_output_reference}
 use aiken_virtual_dex/placeholder.{
   ada_asset_class, mock_buy_ada_order_input, mock_change_account_address,
-  mock_emergency_token, mock_fee_address, mock_fee_output, mock_fee_ref_input,
-  mock_operation_key, mock_oracle_address, mock_oracle_policy_id,
-  mock_oracle_ref_input, mock_post_trade_trade_account_output,
-  mock_token_asset_class, mock_trade_account_address, mock_utxo_ref,
+  mock_emergency_token, mock_fee_output, mock_operation_key, mock_oracle_address,
+  mock_oracle_policy_id, mock_oracle_ref_input,
+  mock_post_trade_trade_account_output, mock_token_asset_class,
+  mock_trade_account_address, mock_utxo_ref,
 }
-use aiken_virtual_dex/types.{
-  FeeInfoDatum, MassTakeOrder, TakeOrder, VirtualDexDatum,
-}
+use aiken_virtual_dex/types.{MassTakeOrder, TakeOrder, VirtualDexDatum}
 use aiken_virtual_dex/validators/virtual_dex.{virtual_dex_logic}
 
 type TakeOrderTestCase {
-  is_fee_ref_correct: Bool,
   is_token_paid_to_maker: Bool,
-  is_min_fee_paid: Bool,
-  is_percentage_fee_paid: Bool,
   is_operation_key_signed: Bool,
   is_input_from_own_address: Bool,
   is_redeemer_correct: Bool,
@@ -30,10 +25,7 @@ type TakeOrderTestCase {
 
 fn take_order_base_case() {
   TakeOrderTestCase {
-    is_fee_ref_correct: True,
     is_token_paid_to_maker: True,
-    is_min_fee_paid: True,
-    is_percentage_fee_paid: True,
     is_operation_key_signed: True,
     is_input_from_own_address: True,
     is_redeemer_correct: True,
@@ -115,56 +107,21 @@ fn mock_order_inputs_with_redeemers(
 
 fn take_order_test(test_case: TakeOrderTestCase, count: Int) {
   let TakeOrderTestCase {
-    is_fee_ref_correct,
     is_token_paid_to_maker,
-    is_min_fee_paid,
-    is_percentage_fee_paid,
     is_operation_key_signed,
     is_input_from_own_address,
     is_redeemer_correct,
   } = test_case
   let token_lot_size = 310_000_000
   let ada_lot_size = 499_999_930
-  let min_fee =
-    when (is_min_fee_paid, is_percentage_fee_paid) is {
-      (True, False) -> 200_000
-      _ -> 2_000_000
-    }
+  let min_fee = 2_000_000
+
   let percentage_fee_times_10k = 5
   let fee_output =
-    when (is_min_fee_paid, is_percentage_fee_paid) is {
-      (True, True) ->
-        mock_fee_output(ada_lot_size * count, min_fee, percentage_fee_times_10k)
-      (True, False) -> mock_fee_output(ada_lot_size * count, 0, 0)
-      (False, True) -> mock_fee_output(ada_lot_size * count, 0, 0)
-      (False, False) -> mock_fee_output(ada_lot_size * count, 0, 0)
-    }
+    mock_fee_output(ada_lot_size * count, min_fee, percentage_fee_times_10k)
 
   let reference_inputs =
-    if is_fee_ref_correct {
-      [
-        mock_oracle_ref_input(),
-        mock_fee_ref_input(min_fee, percentage_fee_times_10k),
-      ]
-    } else {
-      [
-        mock_oracle_ref_input(),
-        Input {
-          output_reference: mock_utxo_ref(99),
-          output: Output {
-            ..mock_fee_ref_input(min_fee, percentage_fee_times_10k).output,
-            datum: InlineDatum(
-              FeeInfoDatum {
-                long_token: ("1", ""),
-                short_token: mock_token_asset_class(),
-                min_fee,
-                percentage_fee_times_10k,
-              },
-            ),
-          },
-        },
-      ]
-    }
+    [mock_oracle_ref_input()]
   let extra_signatories =
     if is_operation_key_signed {
       [mock_operation_key()]
@@ -239,7 +196,6 @@ test success_mass_take_order_integration_test() {
     virtual_dex_logic(
       mock_oracle_policy_id(),
       mock_emergency_token(),
-      mock_fee_address(),
       ada_asset_class(),
       mock_token_asset_class(),
       dat,

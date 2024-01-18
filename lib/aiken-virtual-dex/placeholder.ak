@@ -11,7 +11,7 @@ use aiken/transaction/credential.{
 }
 use aiken/transaction/value.{PolicyId, Value, add, from_asset, from_lovelace}
 use aiken_virtual_dex/types.{
-  ChangeAccountDatum, EmergencyIncidentInitiation, FeeInfoDatum, OracleDatum,
+  ChangeAccountDatum, EmergencyIncidentInitiation, OracleDatum,
   TradeEmergencyDatum, TradeNormalDatum, VirtualDexDatum,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
@@ -178,8 +178,6 @@ pub fn mock_oracle_datum() {
   OracleDatum {
     oracle_nft: mock_oracle_policy_id(),
     oracle_address: mock_oracle_address(),
-    fee_ref_token: mock_fee_ref_token(),
-    fee_info_address: mock_fee_info_address(),
     operation_key: mock_operation_key(),
     stop_key: mock_stop_key(),
   }
@@ -199,32 +197,6 @@ pub fn mock_oracle_ref_input() -> Input {
   Input {
     output_reference: mock_utxo_ref(0),
     output: mock_oracle_output(mock_oracle_datum()),
-  }
-}
-
-pub fn mock_fee_ref_output(
-  min_fee: Int,
-  percentage_fee_times_10k: Int,
-) -> Output {
-  Output {
-    address: mock_fee_info_address(),
-    value: from_asset(mock_fee_ref_token(), "", 1) |> add("", "", 2_000_000),
-    datum: InlineDatum(
-      FeeInfoDatum {
-        long_token: ada_asset_class(),
-        short_token: mock_token_asset_class(),
-        min_fee,
-        percentage_fee_times_10k,
-      },
-    ),
-    reference_script: None,
-  }
-}
-
-pub fn mock_fee_ref_input(min_fee: Int, percentage_fee_times_10k: Int) -> Input {
-  Input {
-    output_reference: mock_utxo_ref(0),
-    output: mock_fee_ref_output(min_fee, percentage_fee_times_10k),
   }
 }
 

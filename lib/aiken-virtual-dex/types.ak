@@ -1,9 +1,8 @@
 use aiken/transaction.{OutputReference}
 use aiken/transaction/credential.{Address}
-use aiken/transaction/value.{AssetName, PolicyId}
+use aiken/transaction/value.{PolicyId}
 
 // 1. OracleNFT
-// 3. FeeRefToken
 pub type MintPolarity {
   RMint
   RBurn
@@ -13,8 +12,6 @@ pub type MintPolarity {
 pub type OracleDatum {
   oracle_nft: PolicyId,
   oracle_address: Address,
-  fee_ref_token: PolicyId,
-  fee_info_address: Address,
   operation_key: ByteArray,
   stop_key: ByteArray,
 }
@@ -24,20 +21,7 @@ pub type OracleRedeemer {
   StopApp
 }
 
-// 4. FeeInfoValidator
-pub type FeeInfoDatum {
-  long_token: (PolicyId, AssetName),
-  short_token: (PolicyId, AssetName),
-  min_fee: Int,
-  percentage_fee_times_10k: Int,
-}
-
-pub type FeeInfoRedeemer {
-  UpdateFee { new_min_fee: Int, new_percentage_fee: Int }
-  RemoveFeeInfo
-}
-
-// 5. TradeAccount
+// 3. TradeAccount
 pub type TradeAccountDatum {
   TradeNormalDatum
   TradeEmergencyDatum { valid_since: Int, minter: ByteArray }
@@ -50,7 +34,7 @@ pub type TradeAccountRedeemer {
   InitiateEmergencyIncident { initiate_before: Int }
 }
 
-// 6. ChangeAccount
+// 4. ChangeAccount
 pub type ChangeAccountDatum {
   ChangeAccountDatum
 }
@@ -61,7 +45,7 @@ pub type ChangeAccountRedeemer {
   MassRefill { refill_input: OutputReference }
 }
 
-// 7. VirtualDex
+// 5. VirtualDex
 pub type VirtualDexDatum {
   change_account_address: Address,
   trade_account_address: Address,
@@ -77,7 +61,7 @@ pub type VirtualDexRedeemer {
   EmergencyCancel
 }
 
-// 8. EmergencyToken
+// 6. EmergencyToken
 pub type EmergencyTokenMintingPolarity {
   EMint { current_timestamp: Int, trade_account_address: Address }
   EBurn
