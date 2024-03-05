@@ -33,7 +33,7 @@ fn take_order_test(test_case: TakeOrderTestCase) {
   let TakeOrderTestCase { is_token_paid_to_maker, is_operation_key_signed } =
     test_case
   let token_lot_size = 310_000_000
-  let ada_lot_size = 499_999_930
+  let ada_lot_size = 500_000_000
   let min_fee = 2_000_000
 
   let percentage_fee_times_10k = 5
@@ -53,17 +53,17 @@ fn take_order_test(test_case: TakeOrderTestCase) {
       mock_buy_ada_order_input(
         1,
         ada_lot_size * 1000000 / token_lot_size,
-        token_lot_size,
+        ada_lot_size,
       ),
       mock_buy_ada_order_input(
         2,
         ada_lot_size * 1000000 / token_lot_size,
-        token_lot_size,
+        ada_lot_size,
       ),
       mock_buy_ada_order_input(
         3,
         ada_lot_size * 1000000 / token_lot_size,
-        token_lot_size,
+        ada_lot_size,
       ),
     ]
   let to_user_output =
@@ -97,7 +97,7 @@ test success_take_order() {
       trade_account_address: mock_trade_account_address(),
       is_long: True,
       list_price_times_1mil: 60000,
-      sell_lot_size: 500,
+      lot_size: 500,
     }
   let red = TakeOrder
   let tx = take_order_test(take_order_base_case())
@@ -121,7 +121,7 @@ test fail_take_order_without_token_paid_to_maker() {
       trade_account_address: mock_trade_account_address(),
       is_long: True,
       list_price_times_1mil: 60000,
-      sell_lot_size: 500,
+      lot_size: 500,
     }
   let red = TakeOrder
   let tx =
@@ -151,7 +151,7 @@ test fail_take_order_without_operation_key_signed() {
       trade_account_address: mock_trade_account_address(),
       is_long: True,
       list_price_times_1mil: 60000,
-      sell_lot_size: 500,
+      lot_size: 500,
     }
   let red = TakeOrder
   let tx =
@@ -239,7 +239,7 @@ test success_mass_take_order() {
       trade_account_address: mock_trade_account_address(),
       is_long: True,
       list_price_times_1mil: 60000,
-      sell_lot_size: 500,
+      lot_size: 500,
     }
   let red = MassTakeOrder { take_order_input: mock_utxo_ref(51) }
   let tx = mass_take_order_test(mass_take_order_base_case())
@@ -263,7 +263,7 @@ test fail_mass_take_order_without_correct_redeemer_at_take_order() {
       trade_account_address: mock_trade_account_address(),
       is_long: True,
       list_price_times_1mil: 60000,
-      sell_lot_size: 500,
+      lot_size: 500,
     }
   let red = MassTakeOrder { take_order_input: mock_utxo_ref(51) }
   let tx =
@@ -293,7 +293,7 @@ test fail_mass_take_order_with_take_order_input_from_different_address() {
       trade_account_address: mock_trade_account_address(),
       is_long: True,
       list_price_times_1mil: 60000,
-      sell_lot_size: 500,
+      lot_size: 500,
     }
   let red = MassTakeOrder { take_order_input: mock_utxo_ref(51) }
   let tx =
@@ -368,7 +368,7 @@ test success_cancel_order() {
       trade_account_address: mock_trade_account_address(),
       is_long: True,
       list_price_times_1mil: 60000,
-      sell_lot_size: 310_000_000,
+      lot_size: 310_000_000,
     }
   let red = CancelOrder
   let tx = cancel_order_test(cancel_order_base_case())
@@ -392,7 +392,7 @@ test fail_cancel_order_without_value_returned() {
       trade_account_address: mock_trade_account_address(),
       is_long: True,
       list_price_times_1mil: 60000,
-      sell_lot_size: 310_000_000,
+      lot_size: 310_000_000,
     }
   let red = CancelOrder
   let tx =
@@ -422,7 +422,7 @@ test fail_cancel_order_without_operation_key_signed() {
       trade_account_address: mock_trade_account_address(),
       is_long: True,
       list_price_times_1mil: 60000,
-      sell_lot_size: 310_000_000,
+      lot_size: 310_000_000,
     }
   let red = CancelOrder
   let tx =
@@ -456,7 +456,7 @@ test success_emergency_cancel() {
       trade_account_address: mock_trade_account_address(),
       is_long: True,
       list_price_times_1mil: 60000,
-      sell_lot_size: 310_000_000,
+      lot_size: 310_000_000,
     }
 
   let red = EmergencyCancel
@@ -491,7 +491,7 @@ test fail_emergency_cancel_without_emergency_token_burnt() {
       trade_account_address: mock_trade_account_address(),
       is_long: True,
       list_price_times_1mil: 60000,
-      sell_lot_size: 310_000_000,
+      lot_size: 310_000_000,
     }
 
   let red = EmergencyCancel

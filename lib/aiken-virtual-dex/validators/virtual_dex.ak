@@ -34,27 +34,17 @@ pub fn accumulate_all_to_return_value(
             change_account_address,
             is_long,
             list_price_times_1mil,
-            sell_lot_size,
+            lot_size,
           }: VirtualDexDatum = output_inline_datum(x.output)
           let current_item = dict.get(acc.1st, trade_account_address)
-          let (to_return_value, long_quantity) =
+          let to_return_value =
             if is_long {
-              (
-                from_asset(
-                  long_token.1st,
-                  long_token.2nd,
-                  list_price_times_1mil * sell_lot_size / 1000000,
-                ),
-                list_price_times_1mil * sell_lot_size / 1000000,
-              )
+              from_asset(long_token.1st, long_token.2nd, lot_size)
             } else {
-              (
-                from_asset(
-                  short_token.1st,
-                  short_token.2nd,
-                  list_price_times_1mil * sell_lot_size / 1000000,
-                ),
-                sell_lot_size,
+              from_asset(
+                short_token.1st,
+                short_token.2nd,
+                list_price_times_1mil * lot_size / 1000000,
               )
             }
           when current_item is {
@@ -66,7 +56,7 @@ pub fn accumulate_all_to_return_value(
                   (change_account_address, to_return_value),
                   compare_script_address,
                 ),
-                acc.2nd + long_quantity,
+                acc.2nd + lot_size,
               )
             Some((change_account_address, value)) ->
               (
@@ -76,7 +66,7 @@ pub fn accumulate_all_to_return_value(
                   (change_account_address, merge(value, to_return_value)),
                   compare_script_address,
                 ),
-                acc.2nd + long_quantity,
+                acc.2nd + lot_size,
               )
           }
         }

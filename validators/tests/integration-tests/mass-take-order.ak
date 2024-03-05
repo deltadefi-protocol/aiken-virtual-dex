@@ -187,7 +187,7 @@ test success_mass_take_order_integration_test() {
       trade_account_address: mock_trade_account_address(),
       is_long: True,
       list_price_times_1mil: 60000,
-      sell_lot_size: 500,
+      lot_size: 500,
     }
   let red = TakeOrder
   let tx = take_order_test(take_order_base_case(), count)

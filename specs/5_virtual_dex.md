@@ -12,8 +12,8 @@
 - `change_account_address`: The address of the change account number of the owner
 - `trade_account_address`: The address of the trade account number of the owner
 - `is_long`: If the current order is for buying long token (`buy_token`)
-- `list_price_times_10k`: Order exchange in a rate of `list_price` \* `sell_lot_size` = quantity of `buy_token` looking for
-- `sell_lot_size`: Quantity of `sell token` in this order
+- `list_price_times_10k`: Order exchange in a rate of `list_price` \* `lot_size` = quantity of `param_short_token`
+- `lot_size`: Quantity of `sell token` in this order
 
 ## User Action
 

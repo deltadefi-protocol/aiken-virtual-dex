@@ -580,7 +580,7 @@
               "$ref": "#/definitions/Int"
             },
             {
-              "title": "sell_lot_size",
+              "title": "lot_size",
               "$ref": "#/definitions/Int"
             }
           ]

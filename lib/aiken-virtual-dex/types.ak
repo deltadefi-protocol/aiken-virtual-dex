@@ -51,7 +51,7 @@ pub type VirtualDexDatum {
   trade_account_address: Address,
   is_long: Bool,
   list_price_times_1mil: Int,
-  sell_lot_size: Int,
+  lot_size: Int,
 }
 
 pub type VirtualDexRedeemer {

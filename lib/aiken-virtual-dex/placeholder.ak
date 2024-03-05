@@ -326,7 +326,7 @@ pub fn mock_virtual_dex_address() {
 pub fn mock_buy_ada_order_input(
   variation: Int,
   list_price_times_1mil: Int,
-  sell_lot_size: Int,
+  lot_size: Int,
 ) {
   Input {
     output_reference: mock_utxo_ref(50 + variation),
@@ -335,7 +335,7 @@ pub fn mock_buy_ada_order_input(
       value: from_asset(
         mock_token_asset_class().1st,
         mock_token_asset_class().2nd,
-        sell_lot_size,
+        lot_size,
       ),
       datum: InlineDatum(
         VirtualDexDatum {
@@ -343,7 +343,7 @@ pub fn mock_buy_ada_order_input(
           trade_account_address: mock_trade_account_address(),
           is_long: True,
           list_price_times_1mil,
-          sell_lot_size,
+          lot_size,
         },
       ),
       reference_script: None,
@@ -354,20 +354,20 @@ pub fn mock_buy_ada_order_input(
 pub fn mock_sell_ada_order_input(
   variation: Int,
   list_price_times_1mil: Int,
-  sell_lot_size: Int,
+  lot_size: Int,
 ) {
   Input {
     output_reference: mock_utxo_ref(60 + variation),
     output: Output {
       address: mock_virtual_dex_address(),
-      value: from_asset("", "", sell_lot_size),
+      value: from_asset("", "", lot_size),
       datum: InlineDatum(
         VirtualDexDatum {
           change_account_address: mock_change_account_address(),
           trade_account_address: mock_trade_account_address(),
           is_long: True,
           list_price_times_1mil,
-          sell_lot_size,
+          lot_size,
         },
       ),
       reference_script: None,
