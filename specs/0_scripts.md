@@ -1,6 +1,6 @@
 # List of Smart Contracts
 
-There are in total 7 scripts for the DeltaDeFi virtual dex to work. Below provide description and pointers to a more detailed specs.
+There are in total 6 scripts for the DeltaDeFi virtual dex to work. Below provide description and pointers to a more detailed specs.
 
 1. OracleNFT - [specification](./1_oracle_nft.md)
 

@@ -13,7 +13,7 @@
 
 1. Rotate operation and stop keys - Redeemer `RotateKey {new_operation_key, new_stop_key}`
 
-   - Only 1 out from oracle address
+   - Only 1 input from oracle address
    - The only 1 output datum is updated with new operation key and stop key
    - Required signers include both original and the new stop key
 
