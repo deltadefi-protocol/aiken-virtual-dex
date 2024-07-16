@@ -4,7 +4,7 @@
 
 - `oracle_nft`: The policy id of `OracleNFT`
 - `emergency_token`: The policy id of the emergency token
-- `order_script_hash`: The script hash of the withdrawal script needed for taking order
+- `take_order_script_hash`: The script hash of the withdrawal script needed for taking order
 
 ## Datum
 
@@ -13,6 +13,7 @@
 - `is_long`: If the current order is for buying long token (`buy_token`)
 - `list_price_times_10k`: Order exchange in a rate of `list_price` \* `lot_size` = quantity of `param_short_token`
 - `lot_size`: Quantity of `sell token` in this order
+- `extra_lovelace`: Extra lovelace amount to be returned to the owner
 
 ## User Action
 
