@@ -1,7 +1,7 @@
 use aiken/bytearray
-use aiken/dict.{Dict}
 use aiken/interval.{Finite, IntervalBound}
 use aiken/list
+use aiken/pairs
 use aiken/transaction.{
   InlineDatum, Input, Output, OutputReference, Redeemer, ScriptPurpose, Spend,
   ValidityRange, find_input,
@@ -210,12 +210,12 @@ pub fn inputs_token_quantity(
 }
 
 pub fn redeemer_from(
-  redeemers: Dict<ScriptPurpose, Redeemer>,
+  redeemers: Pairs<ScriptPurpose, Redeemer>,
   inputs: List<Input>,
   output_reference: OutputReference,
   input_address: Address,
 ) -> Option<Data> {
-  expect Some(redeemer) = dict.get(redeemers, Spend(output_reference))
+  expect Some(redeemer) = pairs.get_first(redeemers, Spend(output_reference))
   expect Some(input) = find_input(inputs, output_reference)
   if input.output.address == input_address {
     Some(redeemer)

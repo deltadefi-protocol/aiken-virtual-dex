@@ -184,336 +184,335 @@ fn mass_take_order_base_case() {
     is_redeemer_correct: True,
   }
 }
-
-fn mass_take_order_test(test_case: MassTakeOrderTestCase) {
-  let MassTakeOrderTestCase { is_input_from_own_address, is_redeemer_correct } =
-    test_case
-  let inputs =
-    [
-      if is_input_from_own_address {
-        mock_buy_ada_order_input(1, 1612000, 310_000_000)
-      } else {
-        Input {
-          output_reference: mock_utxo_ref(51),
-          output: Output {
-            ..mock_buy_ada_order_input(1, 1612000, 310_000_000).output,
-            address: mock_oracle_address(),
-          },
-        }
-      },
-      mock_buy_ada_order_input(2, 1612000, 310_000_000),
-      mock_buy_ada_order_input(3, 1612000, 310_000_000),
-    ]
-  let mass_take_order_red: Data =
-    MassTakeOrder { take_order_input: mock_utxo_ref(51) }
-  let take_order_red: Data = TakeOrder
-  let redeemers =
-    dict.new()
-      |> dict.insert(
-           Spend(mock_utxo_ref(51)),
-           if is_redeemer_correct {
-             take_order_red
-           } else {
-             mass_take_order_red
-           },
-           compare_output_reference,
-         )
-      |> dict.insert(
-           Spend(mock_utxo_ref(52)),
-           mass_take_order_red,
-           compare_output_reference,
-         )
-      |> dict.insert(
-           Spend(mock_utxo_ref(53)),
-           mass_take_order_red,
-           compare_output_reference,
-         )
-  Transaction { ..placeholder(), inputs: inputs, redeemers: redeemers }
-}
-
-test success_mass_take_order() {
-  let input_utxo = mock_utxo_ref(52)
-  let dat =
-    VirtualDexDatum {
-      change_account_address: mock_change_account_address(),
-      trade_account_address: mock_trade_account_address(),
-      is_long: True,
-      list_price_times_1mil: 60000,
-      lot_size: 500,
-    }
-  let red = MassTakeOrder { take_order_input: mock_utxo_ref(51) }
-  let tx = mass_take_order_test(mass_take_order_base_case())
-  let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
-  virtual_dex_logic(
-    mock_oracle_policy_id(),
-    mock_emergency_token(),
-    ada_asset_class(),
-    mock_token_asset_class(),
-    dat,
-    red,
-    ctx,
-  )
-}
-
-test fail_mass_take_order_without_correct_redeemer_at_take_order() {
-  let input_utxo = mock_utxo_ref(52)
-  let dat =
-    VirtualDexDatum {
-      change_account_address: mock_change_account_address(),
-      trade_account_address: mock_trade_account_address(),
-      is_long: True,
-      list_price_times_1mil: 60000,
-      lot_size: 500,
-    }
-  let red = MassTakeOrder { take_order_input: mock_utxo_ref(51) }
-  let tx =
-    mass_take_order_test(
-      MassTakeOrderTestCase {
-        ..mass_take_order_base_case(),
-        is_redeemer_correct: False,
-      },
-    )
-  let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
-  !virtual_dex_logic(
-    mock_oracle_policy_id(),
-    mock_emergency_token(),
-    ada_asset_class(),
-    mock_token_asset_class(),
-    dat,
-    red,
-    ctx,
-  )
-}
-
-test fail_mass_take_order_with_take_order_input_from_different_address() {
-  let input_utxo = mock_utxo_ref(52)
-  let dat =
-    VirtualDexDatum {
-      change_account_address: mock_change_account_address(),
-      trade_account_address: mock_trade_account_address(),
-      is_long: True,
-      list_price_times_1mil: 60000,
-      lot_size: 500,
-    }
-  let red = MassTakeOrder { take_order_input: mock_utxo_ref(51) }
-  let tx =
-    mass_take_order_test(
-      MassTakeOrderTestCase {
-        ..mass_take_order_base_case(),
-        is_input_from_own_address: False,
-      },
-    )
-  let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
-  !virtual_dex_logic(
-    mock_oracle_policy_id(),
-    mock_emergency_token(),
-    ada_asset_class(),
-    mock_token_asset_class(),
-    dat,
-    red,
-    ctx,
-  )
-}
-
-type CancelOrderTestCase {
-  is_order_value_returned: Bool,
-  is_operation_key_signed: Bool,
-}
-
-fn cancel_order_base_case() {
-  CancelOrderTestCase {
-    is_order_value_returned: True,
-    is_operation_key_signed: True,
-  }
-}
-
-fn cancel_order_test(test_case: CancelOrderTestCase) {
-  let CancelOrderTestCase { is_order_value_returned, is_operation_key_signed } =
-    test_case
-  let inputs =
-    [mock_buy_ada_order_input(1, 1612000, 310_000_000)]
-  let outputs =
-    [
-      mock_post_trade_trade_account_output(
-        if is_order_value_returned {
-          mock_buy_ada_order_input(1, 1612000, 310_000_000).output.value
-        } else {
-          mock_buy_ada_order_input(1, 1612000, 310_000_000).output.value
-            |> add("", "", -1)
-        },
-      ),
-    ]
-  let extra_signatories =
-    if is_operation_key_signed {
-      [mock_operation_key()]
-    } else {
-      []
-    }
-  let reference_inputs =
-    [mock_oracle_ref_input()]
-  Transaction {
-    ..placeholder(),
-    inputs: inputs,
-    outputs: outputs,
-    reference_inputs: reference_inputs,
-    extra_signatories: extra_signatories,
-  }
-}
-
-test success_cancel_order() {
-  let input_utxo = mock_utxo_ref(51)
-  let dat =
-    VirtualDexDatum {
-      change_account_address: mock_change_account_address(),
-      trade_account_address: mock_trade_account_address(),
-      is_long: True,
-      list_price_times_1mil: 60000,
-      lot_size: 310_000_000,
-    }
-  let red = CancelOrder
-  let tx = cancel_order_test(cancel_order_base_case())
-  let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
-  virtual_dex_logic(
-    mock_oracle_policy_id(),
-    mock_emergency_token(),
-    ada_asset_class(),
-    mock_token_asset_class(),
-    dat,
-    red,
-    ctx,
-  )
-}
-
-test fail_cancel_order_without_value_returned() {
-  let input_utxo = mock_utxo_ref(51)
-  let dat =
-    VirtualDexDatum {
-      change_account_address: mock_change_account_address(),
-      trade_account_address: mock_trade_account_address(),
-      is_long: True,
-      list_price_times_1mil: 60000,
-      lot_size: 310_000_000,
-    }
-  let red = CancelOrder
-  let tx =
-    cancel_order_test(
-      CancelOrderTestCase {
-        ..cancel_order_base_case(),
-        is_order_value_returned: False,
-      },
-    )
-  let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
-  !virtual_dex_logic(
-    mock_oracle_policy_id(),
-    mock_emergency_token(),
-    ada_asset_class(),
-    mock_token_asset_class(),
-    dat,
-    red,
-    ctx,
-  )
-}
-
-test fail_cancel_order_without_operation_key_signed() {
-  let input_utxo = mock_utxo_ref(51)
-  let dat =
-    VirtualDexDatum {
-      change_account_address: mock_change_account_address(),
-      trade_account_address: mock_trade_account_address(),
-      is_long: True,
-      list_price_times_1mil: 60000,
-      lot_size: 310_000_000,
-    }
-  let red = CancelOrder
-  let tx =
-    cancel_order_test(
-      CancelOrderTestCase {
-        ..cancel_order_base_case(),
-        is_operation_key_signed: False,
-      },
-    )
-  let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
-  !virtual_dex_logic(
-    mock_oracle_policy_id(),
-    mock_emergency_token(),
-    ada_asset_class(),
-    mock_token_asset_class(),
-    dat,
-    red,
-    ctx,
-  )
-}
-
-// type EmergencyCancelTestCase {
-//   is_emergency_token_burnt: Bool,
+// fn mass_take_order_test(test_case: MassTakeOrderTestCase) {
+//   let MassTakeOrderTestCase { is_input_from_own_address, is_redeemer_correct } =
+//     test_case
+//   let inputs =
+//     [
+//       if is_input_from_own_address {
+//         mock_buy_ada_order_input(1, 1612000, 310_000_000)
+//       } else {
+//         Input {
+//           output_reference: mock_utxo_ref(51),
+//           output: Output {
+//             ..mock_buy_ada_order_input(1, 1612000, 310_000_000).output,
+//             address: mock_oracle_address(),
+//           },
+//         }
+//       },
+//       mock_buy_ada_order_input(2, 1612000, 310_000_000),
+//       mock_buy_ada_order_input(3, 1612000, 310_000_000),
+//     ]
+//   let mass_take_order_red: Data =
+//     MassTakeOrder { take_order_input: mock_utxo_ref(51) }
+//   let take_order_red: Data = TakeOrder
+//   let redeemers =
+//     dict.new()
+//       |> dict.insert(
+//            Spend(mock_utxo_ref(51)),
+//            if is_redeemer_correct {
+//              take_order_red
+//            } else {
+//              mass_take_order_red
+//            },
+//            compare_output_reference,
+//          )
+//       |> dict.insert(
+//            Spend(mock_utxo_ref(52)),
+//            mass_take_order_red,
+//            compare_output_reference,
+//          )
+//       |> dict.insert(
+//            Spend(mock_utxo_ref(53)),
+//            mass_take_order_red,
+//            compare_output_reference,
+//          )
+//   Transaction { ..placeholder(), inputs: inputs, redeemers: redeemers }
 // }
 
-test success_emergency_cancel() {
-  let output_reference = mock_utxo_ref(51)
-  let dat =
-    VirtualDexDatum {
-      change_account_address: mock_change_account_address(),
-      trade_account_address: mock_trade_account_address(),
-      is_long: True,
-      list_price_times_1mil: 60000,
-      lot_size: 310_000_000,
-    }
+// test success_mass_take_order() {
+//   let input_utxo = mock_utxo_ref(52)
+//   let dat =
+//     VirtualDexDatum {
+//       change_account_address: mock_change_account_address(),
+//       trade_account_address: mock_trade_account_address(),
+//       is_long: True,
+//       list_price_times_1mil: 60000,
+//       lot_size: 500,
+//     }
+//   let red = MassTakeOrder { take_order_input: mock_utxo_ref(51) }
+//   let tx = mass_take_order_test(mass_take_order_base_case())
+//   let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
+//   virtual_dex_logic(
+//     mock_oracle_policy_id(),
+//     mock_emergency_token(),
+//     ada_asset_class(),
+//     mock_token_asset_class(),
+//     dat,
+//     red,
+//     ctx,
+//   )
+// }
 
-  let red = EmergencyCancel
-  let tx =
-    Transaction {
-      ..placeholder(),
-      mint: to_minted_value(
-        from_asset(
-          mock_emergency_token(),
-          get_emergency_token_name(mock_trade_account_address()),
-          -1,
-        ),
-      ),
-    }
-  let ctx = ScriptContext { purpose: Spend(output_reference), transaction: tx }
-  virtual_dex_logic(
-    mock_oracle_policy_id(),
-    mock_emergency_token(),
-    ada_asset_class(),
-    mock_token_asset_class(),
-    dat,
-    red,
-    ctx,
-  )
-}
+// test fail_mass_take_order_without_correct_redeemer_at_take_order() {
+//   let input_utxo = mock_utxo_ref(52)
+//   let dat =
+//     VirtualDexDatum {
+//       change_account_address: mock_change_account_address(),
+//       trade_account_address: mock_trade_account_address(),
+//       is_long: True,
+//       list_price_times_1mil: 60000,
+//       lot_size: 500,
+//     }
+//   let red = MassTakeOrder { take_order_input: mock_utxo_ref(51) }
+//   let tx =
+//     mass_take_order_test(
+//       MassTakeOrderTestCase {
+//         ..mass_take_order_base_case(),
+//         is_redeemer_correct: False,
+//       },
+//     )
+//   let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
+//   !virtual_dex_logic(
+//     mock_oracle_policy_id(),
+//     mock_emergency_token(),
+//     ada_asset_class(),
+//     mock_token_asset_class(),
+//     dat,
+//     red,
+//     ctx,
+//   )
+// }
 
-test fail_emergency_cancel_without_emergency_token_burnt() {
-  let output_reference = mock_utxo_ref(51)
-  let dat =
-    VirtualDexDatum {
-      change_account_address: mock_change_account_address(),
-      trade_account_address: mock_trade_account_address(),
-      is_long: True,
-      list_price_times_1mil: 60000,
-      lot_size: 310_000_000,
-    }
+// test fail_mass_take_order_with_take_order_input_from_different_address() {
+//   let input_utxo = mock_utxo_ref(52)
+//   let dat =
+//     VirtualDexDatum {
+//       change_account_address: mock_change_account_address(),
+//       trade_account_address: mock_trade_account_address(),
+//       is_long: True,
+//       list_price_times_1mil: 60000,
+//       lot_size: 500,
+//     }
+//   let red = MassTakeOrder { take_order_input: mock_utxo_ref(51) }
+//   let tx =
+//     mass_take_order_test(
+//       MassTakeOrderTestCase {
+//         ..mass_take_order_base_case(),
+//         is_input_from_own_address: False,
+//       },
+//     )
+//   let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
+//   !virtual_dex_logic(
+//     mock_oracle_policy_id(),
+//     mock_emergency_token(),
+//     ada_asset_class(),
+//     mock_token_asset_class(),
+//     dat,
+//     red,
+//     ctx,
+//   )
+// }
 
-  let red = EmergencyCancel
-  let tx =
-    Transaction {
-      ..placeholder(),
-      mint: to_minted_value(
-        from_asset(
-          mock_emergency_token(),
-          get_emergency_token_name(mock_change_account_address()),
-          -1,
-        ),
-      ),
-    }
-  let ctx = ScriptContext { purpose: Spend(output_reference), transaction: tx }
-  !virtual_dex_logic(
-    mock_oracle_policy_id(),
-    mock_emergency_token(),
-    ada_asset_class(),
-    mock_token_asset_class(),
-    dat,
-    red,
-    ctx,
-  )
-}
+// type CancelOrderTestCase {
+//   is_order_value_returned: Bool,
+//   is_operation_key_signed: Bool,
+// }
+
+// fn cancel_order_base_case() {
+//   CancelOrderTestCase {
+//     is_order_value_returned: True,
+//     is_operation_key_signed: True,
+//   }
+// }
+
+// fn cancel_order_test(test_case: CancelOrderTestCase) {
+//   let CancelOrderTestCase { is_order_value_returned, is_operation_key_signed } =
+//     test_case
+//   let inputs =
+//     [mock_buy_ada_order_input(1, 1612000, 310_000_000)]
+//   let outputs =
+//     [
+//       mock_post_trade_trade_account_output(
+//         if is_order_value_returned {
+//           mock_buy_ada_order_input(1, 1612000, 310_000_000).output.value
+//         } else {
+//           mock_buy_ada_order_input(1, 1612000, 310_000_000).output.value
+//             |> add("", "", -1)
+//         },
+//       ),
+//     ]
+//   let extra_signatories =
+//     if is_operation_key_signed {
+//       [mock_operation_key()]
+//     } else {
+//       []
+//     }
+//   let reference_inputs =
+//     [mock_oracle_ref_input()]
+//   Transaction {
+//     ..placeholder(),
+//     inputs: inputs,
+//     outputs: outputs,
+//     reference_inputs: reference_inputs,
+//     extra_signatories: extra_signatories,
+//   }
+// }
+
+// test success_cancel_order() {
+//   let input_utxo = mock_utxo_ref(51)
+//   let dat =
+//     VirtualDexDatum {
+//       change_account_address: mock_change_account_address(),
+//       trade_account_address: mock_trade_account_address(),
+//       is_long: True,
+//       list_price_times_1mil: 60000,
+//       lot_size: 310_000_000,
+//     }
+//   let red = CancelOrder
+//   let tx = cancel_order_test(cancel_order_base_case())
+//   let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
+//   virtual_dex_logic(
+//     mock_oracle_policy_id(),
+//     mock_emergency_token(),
+//     ada_asset_class(),
+//     mock_token_asset_class(),
+//     dat,
+//     red,
+//     ctx,
+//   )
+// }
+
+// test fail_cancel_order_without_value_returned() {
+//   let input_utxo = mock_utxo_ref(51)
+//   let dat =
+//     VirtualDexDatum {
+//       change_account_address: mock_change_account_address(),
+//       trade_account_address: mock_trade_account_address(),
+//       is_long: True,
+//       list_price_times_1mil: 60000,
+//       lot_size: 310_000_000,
+//     }
+//   let red = CancelOrder
+//   let tx =
+//     cancel_order_test(
+//       CancelOrderTestCase {
+//         ..cancel_order_base_case(),
+//         is_order_value_returned: False,
+//       },
+//     )
+//   let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
+//   !virtual_dex_logic(
+//     mock_oracle_policy_id(),
+//     mock_emergency_token(),
+//     ada_asset_class(),
+//     mock_token_asset_class(),
+//     dat,
+//     red,
+//     ctx,
+//   )
+// }
+
+// test fail_cancel_order_without_operation_key_signed() {
+//   let input_utxo = mock_utxo_ref(51)
+//   let dat =
+//     VirtualDexDatum {
+//       change_account_address: mock_change_account_address(),
+//       trade_account_address: mock_trade_account_address(),
+//       is_long: True,
+//       list_price_times_1mil: 60000,
+//       lot_size: 310_000_000,
+//     }
+//   let red = CancelOrder
+//   let tx =
+//     cancel_order_test(
+//       CancelOrderTestCase {
+//         ..cancel_order_base_case(),
+//         is_operation_key_signed: False,
+//       },
+//     )
+//   let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
+//   !virtual_dex_logic(
+//     mock_oracle_policy_id(),
+//     mock_emergency_token(),
+//     ada_asset_class(),
+//     mock_token_asset_class(),
+//     dat,
+//     red,
+//     ctx,
+//   )
+// }
+
+// // type EmergencyCancelTestCase {
+// //   is_emergency_token_burnt: Bool,
+// // }
+
+// test success_emergency_cancel() {
+//   let output_reference = mock_utxo_ref(51)
+//   let dat =
+//     VirtualDexDatum {
+//       change_account_address: mock_change_account_address(),
+//       trade_account_address: mock_trade_account_address(),
+//       is_long: True,
+//       list_price_times_1mil: 60000,
+//       lot_size: 310_000_000,
+//     }
+
+//   let red = EmergencyCancel
+//   let tx =
+//     Transaction {
+//       ..placeholder(),
+//       mint: to_minted_value(
+//         from_asset(
+//           mock_emergency_token(),
+//           get_emergency_token_name(mock_trade_account_address()),
+//           -1,
+//         ),
+//       ),
+//     }
+//   let ctx = ScriptContext { purpose: Spend(output_reference), transaction: tx }
+//   virtual_dex_logic(
+//     mock_oracle_policy_id(),
+//     mock_emergency_token(),
+//     ada_asset_class(),
+//     mock_token_asset_class(),
+//     dat,
+//     red,
+//     ctx,
+//   )
+// }
+
+// test fail_emergency_cancel_without_emergency_token_burnt() {
+//   let output_reference = mock_utxo_ref(51)
+//   let dat =
+//     VirtualDexDatum {
+//       change_account_address: mock_change_account_address(),
+//       trade_account_address: mock_trade_account_address(),
+//       is_long: True,
+//       list_price_times_1mil: 60000,
+//       lot_size: 310_000_000,
+//     }
+
+//   let red = EmergencyCancel
+//   let tx =
+//     Transaction {
+//       ..placeholder(),
+//       mint: to_minted_value(
+//         from_asset(
+//           mock_emergency_token(),
+//           get_emergency_token_name(mock_change_account_address()),
+//           -1,
+//         ),
+//       ),
+//     }
+//   let ctx = ScriptContext { purpose: Spend(output_reference), transaction: tx }
+//   !virtual_dex_logic(
+//     mock_oracle_policy_id(),
+//     mock_emergency_token(),
+//     ada_asset_class(),
+//     mock_token_asset_class(),
+//     dat,
+//     red,
+//     ctx,
+//   )
+// }

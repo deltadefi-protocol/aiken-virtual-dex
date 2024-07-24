@@ -14,15 +14,11 @@ There are in total 6 scripts for the DeltaDeFi virtual dex to work. Below provid
 
    - The script to be compiled into different addresses according to account number, storing the UTxO ready for place order.
 
-4. ChangeAccount - [specification](./4_change_account.md)
-
-   - The script to be compiled into different addresses according to account number, storing the change UTxO after transaction.
-
-5. VirtualDEX - [specification](./5_virtual_dex.md)
+4. VirtualDEX - [specification](./4_virtual_dex.md)
 
    - The script governing the transaction logic.
 
-6. EmergencyToken - [specification](./6_emergency_token.md)
+5. EmergencyToken - [specification](./5_emergency_token.md)
 
    - The minting policy for taking any withdrawal / cancel actions solely by users.
 
@@ -36,8 +32,10 @@ There are in total 6 scripts for the DeltaDeFi virtual dex to work. Below provid
 
 2. Second layer
 
-   - 2.1`TradeAccount` (param: `owner`, 1.1, 1.2)
-   - 2.2 `VirtualDEX` (param: 1.1, 1.2)
+   - 2.1 All account actions (param: `owner`, 1.1, 1.2)
+   - 2.2 All dex actions (param: 1.1, 1.2)
 
 3. Third layer
-   - 3.1 `ChangeAccount` (param: `owner`, 1.2, 2.1)
+
+   - 3.1 `Account` (param: 2.1)
+   - 3.2 `VirtualDEX` (param: 2.2)

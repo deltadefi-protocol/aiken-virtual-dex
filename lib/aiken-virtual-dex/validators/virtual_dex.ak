@@ -1,14 +1,13 @@
-use aiken/dict.{Dict}
 use aiken/list
+use aiken/pairs
 use aiken/transaction.{
   Input, Output, ScriptContext, Spend, Transaction, find_input,
 }
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value, from_asset, merge}
 use aiken_virtual_dex/common.{
-  compare_address, compare_script_address, inputs_at, key_signed,
-  only_input_datum_with, only_minted_token, output_inline_datum, outputs_at,
-  redeemer_from, value_geq,
+  inputs_at, key_signed, only_input_datum_with, only_minted_token,
+  output_inline_datum, outputs_at, redeemer_from, value_geq,
 }
 use aiken_virtual_dex/types.{
   CancelOrder, EmergencyCancel, MassTakeOrder, OracleDatum, TakeOrder,
@@ -21,11 +20,11 @@ pub fn accumulate_all_to_return_value(
   short_token: (PolicyId, AssetName),
   inputs: List<Input>,
   own_address: Address,
-) -> (Dict<Address, (Address, Value)>, Int) {
+) -> (Pairs<Address, (Address, Value)>, Int) {
   list.foldr(
     inputs,
-    (dict.new(), 0),
-    fn(x: Input, acc: (Dict<Address, (Address, Value)>, Int)) {
+    ([], 0),
+    fn(x: Input, acc: (Pairs<Address, (Address, Value)>, Int)) {
       let is_from_same_address = own_address == x.output.address
       when is_from_same_address is {
         True -> {
@@ -36,7 +35,7 @@ pub fn accumulate_all_to_return_value(
             list_price_times_1mil,
             lot_size,
           }: VirtualDexDatum = output_inline_datum(x.output)
-          let current_item = dict.get(acc.1st, trade_account_address)
+          let current_item = pairs.get_first(acc.1st, trade_account_address)
           let to_return_value =
             if is_long {
               from_asset(long_token.1st, long_token.2nd, lot_size)
@@ -50,22 +49,20 @@ pub fn accumulate_all_to_return_value(
           when current_item is {
             None ->
               (
-                dict.insert(
-                  acc.1st,
-                  trade_account_address,
-                  (change_account_address, to_return_value),
-                  compare_script_address,
-                ),
+                acc.1st
+                  |> list.push(
+                      Pair(trade_account_address,
+                      (change_account_address, to_return_value)),
+                    ),
                 acc.2nd + lot_size,
               )
             Some((change_account_address, value)) ->
               (
-                dict.insert(
-                  acc.1st,
-                  trade_account_address,
-                  (change_account_address, merge(value, to_return_value)),
-                  compare_script_address,
-                ),
+                acc.1st
+                  |> list.push(
+                      Pair(trade_account_address,
+                      (change_account_address, merge(value, to_return_value))),
+                    ),
                 acc.2nd + lot_size,
               )
           }
@@ -78,17 +75,16 @@ pub fn accumulate_all_to_return_value(
 
 pub fn accumuate_all_payment_value(
   outputs: List<Output>,
-) -> Dict<Address, Value> {
+) -> Pairs<Address, Value> {
   list.foldr(
     outputs,
-    dict.new(),
-    fn(x: Output, acc: Dict<Address, Value>) {
+    [],
+    fn(x: Output, acc: Pairs<Address, Value>) {
       let this_address = x.address
-      let current_item = dict.get(acc, this_address)
+      let current_item = pairs.get_first(acc, this_address)
       when current_item is {
-        None -> dict.insert(acc, x.address, x.value, compare_address)
-        Some(val) ->
-          dict.insert(acc, x.address, merge(val, x.value), compare_address)
+        None -> acc |> list.push(Pair(x.address, x.value))
+        Some(val) -> acc |> list.push(Pair(x.address, merge(val, x.value)))
       }
     },
   )
@@ -131,14 +127,12 @@ pub fn virtual_dex_logic(
       // 3. Check each unique trade_account_address, if outputs to trade_account + change_account >= to_receive
       let is_token_paid_to_inidividual_maker =
         fn(payment_item) {
-          let (
-            trade_account_address,
-            (change_account_address, to_receive_value),
-          ) = payment_item
+          let Pair(trade_account_address,
+          (change_account_address, to_receive_value)) = payment_item
           let maybe_trade_received_value =
-            dict.get(payment_values, trade_account_address)
+            pairs.get_first(payment_values, trade_account_address)
           let maybe_change_received_value =
-            dict.get(payment_values, change_account_address)
+            pairs.get_first(payment_values, change_account_address)
           when (maybe_trade_received_value, maybe_change_received_value) is {
             (Some(trade_received_value), Some(change_received_value)) ->
               value_geq(
@@ -154,7 +148,6 @@ pub fn virtual_dex_logic(
         }
       let is_token_paid_to_makers =
         trade_payment_map
-          |> dict.to_list()
           |> list.all(is_token_paid_to_inidividual_maker)
       is_operation_key_signed && is_token_paid_to_makers
     }
