@@ -188,10 +188,6 @@ pub fn mock_trade_account_address() {
   mock_script_address(3, None)
 }
 
-pub fn mock_account_address() {
-  mock_script_address(3, None)
-}
-
 pub fn mock_trade_output(lovelace: Int) -> Output {
   Output {
     address: mock_trade_account_address(),
@@ -370,4 +366,12 @@ pub fn mock_post_trade_trade_account_output(value: Value) -> Output {
     datum: InlineDatum(TradeNormalDatum),
     reference_script: None,
   }
+}
+
+pub fn mock_account_address() {
+  mock_script_address(3, None)
+}
+
+pub fn mock_another_account_address() {
+  mock_script_address(4, None)
 }

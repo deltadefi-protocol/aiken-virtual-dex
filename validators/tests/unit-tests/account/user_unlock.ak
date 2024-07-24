@@ -13,6 +13,7 @@ use sidan_placeholder/builder.{
 }
 use sidan_placeholder/output_reference.{mock_utxo_ref}
 use sidan_placeholder/transaction.{add_reference_input} as sidan_transaction
+use tests/unit_tests/account/account.{account_process} as taccount
 
 type TestCase31 {
   is_owner_signed: Bool,
@@ -75,6 +76,7 @@ test t3_1_success() {
 test t3_1_success_mass() {
   let redeemer = AccountUserUnlock
 
+  // TODO: add tx in according to index
   let tx = mock_test_case_3_1(base_test_case_3_1())
 
   let withdrawal_ctx =
@@ -83,22 +85,65 @@ test t3_1_success_mass() {
       transaction: tx,
     }
   let unlock_process =
-    fn(index: Int) {
-      let output_reference = mock_utxo_ref(0, index)
-      let spend_ctx =
-        ScriptContext { purpose: Spend(output_reference), transaction: tx }
-      account_logic(
-        mock_user_vkey_hex(),
-        script_hash_3_1(),
-        script_hash_3_2(),
-        script_hash_3_3(),
-        script_hash_3_4(),
-        AccountNormalDatum,
-        redeemer,
-        spend_ctx,
-      )
+    fn(index: Int) { account_process(index, tx, redeemer) }
+  unlock_process(0) && unlock_process(1) && unlock_process(2) && account_user_unlock_logic(
+    mock_oracle_policy_id(),
+    mock_user_vkey_hex(),
+    Void,
+    withdrawal_ctx,
+  )
+}
+
+test t3_1_fail_without_owner_signed() {
+  let redeemer = AccountUserUnlock
+  let tx =
+    mock_test_case_3_1(
+      TestCase31 { ..base_test_case_3_1(), is_owner_signed: False },
+    )
+  let withdrawal_ctx =
+    ScriptContext {
+      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_3_1()))),
+      transaction: tx,
     }
-  unlock_process(0) && account_user_unlock_logic(
+  account_process(1, tx, redeemer) && !account_user_unlock_logic(
+    mock_oracle_policy_id(),
+    mock_user_vkey_hex(),
+    Void,
+    withdrawal_ctx,
+  )
+}
+
+test t3_1_fail_without_app_signed() {
+  let redeemer = AccountUserUnlock
+  let tx =
+    mock_test_case_3_1(
+      TestCase31 { ..base_test_case_3_1(), is_operation_key_signed: False },
+    )
+  let withdrawal_ctx =
+    ScriptContext {
+      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_3_1()))),
+      transaction: tx,
+    }
+  account_process(1, tx, redeemer) && !account_user_unlock_logic(
+    mock_oracle_policy_id(),
+    mock_user_vkey_hex(),
+    Void,
+    withdrawal_ctx,
+  )
+}
+
+test t3_1_fail_without_withdrawal_script_present() {
+  let redeemer = AccountUserUnlock
+  let tx =
+    mock_test_case_3_1(
+      TestCase31 { ..base_test_case_3_1(), is_withdrawal_script_present: False },
+    )
+  let withdrawal_ctx =
+    ScriptContext {
+      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_3_1()))),
+      transaction: tx,
+    }
+  !account_process(1, tx, redeemer) && account_user_unlock_logic(
     mock_oracle_policy_id(),
     mock_user_vkey_hex(),
     Void,
