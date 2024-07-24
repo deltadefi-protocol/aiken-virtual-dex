@@ -10,8 +10,9 @@ use aiken/transaction/credential.{
 }
 use aiken/transaction/value.{PolicyId, Value, add, from_asset, from_lovelace}
 use aiken_virtual_dex/types.{
-  ChangeAccountDatum, EmergencyIncidentInitiation, OracleDatum,
-  TradeEmergencyDatum, TradeNormalDatum, VirtualDexDatum,
+  ChangeAccountDatum, EmergencyIncidentInitiation, EmergencyUnlockPhase1,
+  EmergencyUnlockPhase2, OracleDatum, TradeEmergencyDatum, TradeNormalDatum,
+  VirtualDexDatum,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
 use sidan_placeholder/key_hex.{mock_policy_id, mock_script_hash_hex}
@@ -368,10 +369,53 @@ pub fn mock_post_trade_trade_account_output(value: Value) -> Output {
   }
 }
 
+// New placeholder
+
 pub fn mock_account_address() {
   mock_script_address(3, None)
 }
 
 pub fn mock_another_account_address() {
   mock_script_address(4, None)
+}
+
+pub fn mock_emergency_unlock_phase1_output(owner: ByteArray) -> Output {
+  Output {
+    address: mock_account_address(),
+    value: from_asset("", "", 2_000_000),
+    datum: InlineDatum(EmergencyUnlockPhase1 { owner }),
+    reference_script: None,
+  }
+}
+
+pub fn mock_emergency_unlock_phase1_input(variation: Int) -> Input {
+  Input {
+    output_reference: mock_utxo_ref(0, 20 + variation),
+    output: mock_emergency_unlock_phase1_output(mock_user_vkey_hex()),
+  }
+}
+
+pub fn mock_emergency_unlock_phase2_output(valid_since: Int, minter: ByteArray) {
+  Output {
+    address: mock_account_address(),
+    value: from_asset("", "", 2_000_000)
+      |> add(
+          mock_emergency_token(),
+          get_emergency_token_name(mock_account_address()),
+          1,
+        ),
+    datum: InlineDatum(EmergencyUnlockPhase2 { valid_since, minter }),
+    reference_script: None,
+  }
+}
+
+pub fn mock_emergency_unlock_phase2_input(
+  variation: Int,
+  valid_since: Int,
+  minter: ByteArray,
+) -> Input {
+  Input {
+    output_reference: mock_utxo_ref(0, 30 + variation),
+    output: mock_emergency_unlock_phase2_output(valid_since, minter),
+  }
 }
