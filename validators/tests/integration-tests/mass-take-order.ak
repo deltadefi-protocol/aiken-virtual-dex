@@ -54,7 +54,7 @@
 // //   } else {
 // //     generate_mock_redeemers(count - 1, red)
 // //       |> dict.insert(
-// //            Spend(mock_utxo_ref(51 + count)),
+// //            Spend(mock_utxo_ref(0,51 + count)),
 // //            red,
 // //            compare_output_reference,
 // //          )
@@ -75,7 +75,7 @@
 // //         mock_buy_ada_order_input(1, price, 310_000_000)
 // //       } else {
 // //         Input {
-// //           output_reference: mock_utxo_ref(51),
+// //           output_reference: mock_utxo_ref(0,51),
 // //           output: Output {
 // //             ..mock_buy_ada_order_input(1, 1612000, 310_000_000).output,
 // //             address: mock_oracle_address(),
@@ -85,12 +85,12 @@
 // //     ]
 // //       |> list.concat(generate_mock_inputs(count - 1, price, token_lot_size))
 // //   let mass_take_order_red: Data =
-// //     MassTakeOrder { take_order_input: mock_utxo_ref(51) }
+// //     MassTakeOrder { take_order_input: mock_utxo_ref(0,51) }
 // //   let take_order_red: Data = TakeOrder
 // //   let redeemers =
 // //     dict.new()
 // //       |> dict.insert(
-// //           Spend(mock_utxo_ref(51)),
+// //           Spend(mock_utxo_ref(0,51)),
 // //           if is_redeemer_correct {
 // //             take_order_red
 // //           } else {
@@ -169,9 +169,9 @@
 //     True
 //   } else {
 //     param_virtual_dex(
-//       MassTakeOrder { take_order_input: mock_utxo_ref(51) },
+//       MassTakeOrder { take_order_input: mock_utxo_ref(0,51) },
 //       ScriptContext {
-//         purpose: Spend(mock_utxo_ref(51 + count)),
+//         purpose: Spend(mock_utxo_ref(0,51 + count)),
 //         transaction: tx,
 //       },
 //     ) && generate_mass_take_order_evaluation(count - 1, tx, param_virtual_dex)
@@ -180,7 +180,7 @@
 
 // test success_mass_take_order_integration_test() {
 //   let count = 20
-//   let input_utxo = mock_utxo_ref(51)
+//   let input_utxo = mock_utxo_ref(0,51)
 //   let dat =
 //     VirtualDexDatum {
 //       change_account_address: mock_change_account_address(),

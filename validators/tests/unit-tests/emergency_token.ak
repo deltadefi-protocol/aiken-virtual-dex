@@ -2,12 +2,13 @@ use aiken/transaction.{Mint, ScriptContext, Transaction, placeholder}
 use aiken/transaction/value.{add, from_asset, to_minted_value}
 use aiken_virtual_dex/placeholder.{
   mock_emergency_action_output, mock_emergency_initiation_input,
-  mock_emergency_token, mock_interval, mock_policy_id_2,
-  mock_trade_account_address, mock_user_vkey_hex,
+  mock_emergency_token, mock_interval, mock_trade_account_address,
+  mock_user_vkey_hex,
 }
 use aiken_virtual_dex/types.{EBurn, EMint}
 use aiken_virtual_dex/utils.{get_emergency_token_name}
 use aiken_virtual_dex/validators/emergency_token.{emergency_token_logic}
+use sidan_placeholder/key_hex.{mock_policy_id}
 
 type TestCase {
   is_owner_signed: Bool,
@@ -175,7 +176,7 @@ test success_burn_with_other_minting() {
     Transaction {
       ..placeholder(),
       mint: to_minted_value(
-        from_asset(policy_id, "", -1) |> add(mock_policy_id_2(), "", 1),
+        from_asset(policy_id, "", -1) |> add(mock_policy_id(1), "", 1),
       ),
     }
   let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }

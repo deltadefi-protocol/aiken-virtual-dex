@@ -9,13 +9,14 @@ use aiken_virtual_dex/placeholder.{
   mock_emergency_token, mock_fee_output, mock_operation_key, mock_oracle_address,
   mock_oracle_policy_id, mock_oracle_ref_input,
   mock_post_trade_trade_account_output, mock_token_asset_class,
-  mock_trade_account_address, mock_utxo_ref,
+  mock_trade_account_address,
 }
 use aiken_virtual_dex/types.{
   CancelOrder, EmergencyCancel, MassTakeOrder, TakeOrder, VirtualDexDatum,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
 use aiken_virtual_dex/validators/virtual_dex.{virtual_dex_logic}
+use sidan_placeholder/output_reference.{mock_utxo_ref}
 
 type TakeOrderTestCase {
   is_token_paid_to_maker: Bool,
@@ -90,7 +91,7 @@ fn take_order_test(test_case: TakeOrderTestCase) {
 }
 
 test success_take_order() {
-  let input_utxo = mock_utxo_ref(51)
+  let input_utxo = mock_utxo_ref(0, 51)
   let dat =
     VirtualDexDatum {
       change_account_address: mock_change_account_address(),
@@ -114,7 +115,7 @@ test success_take_order() {
 }
 
 test fail_take_order_without_token_paid_to_maker() {
-  let input_utxo = mock_utxo_ref(51)
+  let input_utxo = mock_utxo_ref(0, 51)
   let dat =
     VirtualDexDatum {
       change_account_address: mock_change_account_address(),
@@ -144,7 +145,7 @@ test fail_take_order_without_token_paid_to_maker() {
 }
 
 test fail_take_order_without_operation_key_signed() {
-  let input_utxo = mock_utxo_ref(51)
+  let input_utxo = mock_utxo_ref(0, 51)
   let dat =
     VirtualDexDatum {
       change_account_address: mock_change_account_address(),
@@ -193,7 +194,7 @@ fn mass_take_order_base_case() {
 //         mock_buy_ada_order_input(1, 1612000, 310_000_000)
 //       } else {
 //         Input {
-//           output_reference: mock_utxo_ref(51),
+//           output_reference: mock_utxo_ref(0,51),
 //           output: Output {
 //             ..mock_buy_ada_order_input(1, 1612000, 310_000_000).output,
 //             address: mock_oracle_address(),
@@ -204,12 +205,12 @@ fn mass_take_order_base_case() {
 //       mock_buy_ada_order_input(3, 1612000, 310_000_000),
 //     ]
 //   let mass_take_order_red: Data =
-//     MassTakeOrder { take_order_input: mock_utxo_ref(51) }
+//     MassTakeOrder { take_order_input: mock_utxo_ref(0,51) }
 //   let take_order_red: Data = TakeOrder
 //   let redeemers =
 //     dict.new()
 //       |> dict.insert(
-//            Spend(mock_utxo_ref(51)),
+//            Spend(mock_utxo_ref(0,51)),
 //            if is_redeemer_correct {
 //              take_order_red
 //            } else {
@@ -218,12 +219,12 @@ fn mass_take_order_base_case() {
 //            compare_output_reference,
 //          )
 //       |> dict.insert(
-//            Spend(mock_utxo_ref(52)),
+//            Spend(mock_utxo_ref(0,52)),
 //            mass_take_order_red,
 //            compare_output_reference,
 //          )
 //       |> dict.insert(
-//            Spend(mock_utxo_ref(53)),
+//            Spend(mock_utxo_ref(0,53)),
 //            mass_take_order_red,
 //            compare_output_reference,
 //          )
@@ -231,7 +232,7 @@ fn mass_take_order_base_case() {
 // }
 
 // test success_mass_take_order() {
-//   let input_utxo = mock_utxo_ref(52)
+//   let input_utxo = mock_utxo_ref(0,52)
 //   let dat =
 //     VirtualDexDatum {
 //       change_account_address: mock_change_account_address(),
@@ -240,7 +241,7 @@ fn mass_take_order_base_case() {
 //       list_price_times_1mil: 60000,
 //       lot_size: 500,
 //     }
-//   let red = MassTakeOrder { take_order_input: mock_utxo_ref(51) }
+//   let red = MassTakeOrder { take_order_input: mock_utxo_ref(0,51) }
 //   let tx = mass_take_order_test(mass_take_order_base_case())
 //   let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
 //   virtual_dex_logic(
@@ -255,7 +256,7 @@ fn mass_take_order_base_case() {
 // }
 
 // test fail_mass_take_order_without_correct_redeemer_at_take_order() {
-//   let input_utxo = mock_utxo_ref(52)
+//   let input_utxo = mock_utxo_ref(0,52)
 //   let dat =
 //     VirtualDexDatum {
 //       change_account_address: mock_change_account_address(),
@@ -264,7 +265,7 @@ fn mass_take_order_base_case() {
 //       list_price_times_1mil: 60000,
 //       lot_size: 500,
 //     }
-//   let red = MassTakeOrder { take_order_input: mock_utxo_ref(51) }
+//   let red = MassTakeOrder { take_order_input: mock_utxo_ref(0,51) }
 //   let tx =
 //     mass_take_order_test(
 //       MassTakeOrderTestCase {
@@ -285,7 +286,7 @@ fn mass_take_order_base_case() {
 // }
 
 // test fail_mass_take_order_with_take_order_input_from_different_address() {
-//   let input_utxo = mock_utxo_ref(52)
+//   let input_utxo = mock_utxo_ref(0,52)
 //   let dat =
 //     VirtualDexDatum {
 //       change_account_address: mock_change_account_address(),
@@ -294,7 +295,7 @@ fn mass_take_order_base_case() {
 //       list_price_times_1mil: 60000,
 //       lot_size: 500,
 //     }
-//   let red = MassTakeOrder { take_order_input: mock_utxo_ref(51) }
+//   let red = MassTakeOrder { take_order_input: mock_utxo_ref(0,51) }
 //   let tx =
 //     mass_take_order_test(
 //       MassTakeOrderTestCase {
@@ -360,7 +361,7 @@ fn mass_take_order_base_case() {
 // }
 
 // test success_cancel_order() {
-//   let input_utxo = mock_utxo_ref(51)
+//   let input_utxo = mock_utxo_ref(0,51)
 //   let dat =
 //     VirtualDexDatum {
 //       change_account_address: mock_change_account_address(),
@@ -384,7 +385,7 @@ fn mass_take_order_base_case() {
 // }
 
 // test fail_cancel_order_without_value_returned() {
-//   let input_utxo = mock_utxo_ref(51)
+//   let input_utxo = mock_utxo_ref(0,51)
 //   let dat =
 //     VirtualDexDatum {
 //       change_account_address: mock_change_account_address(),
@@ -414,7 +415,7 @@ fn mass_take_order_base_case() {
 // }
 
 // test fail_cancel_order_without_operation_key_signed() {
-//   let input_utxo = mock_utxo_ref(51)
+//   let input_utxo = mock_utxo_ref(0,51)
 //   let dat =
 //     VirtualDexDatum {
 //       change_account_address: mock_change_account_address(),
@@ -448,7 +449,7 @@ fn mass_take_order_base_case() {
 // // }
 
 // test success_emergency_cancel() {
-//   let output_reference = mock_utxo_ref(51)
+//   let output_reference = mock_utxo_ref(0,51)
 //   let dat =
 //     VirtualDexDatum {
 //       change_account_address: mock_change_account_address(),
@@ -483,7 +484,7 @@ fn mass_take_order_base_case() {
 // }
 
 // test fail_emergency_cancel_without_emergency_token_burnt() {
-//   let output_reference = mock_utxo_ref(51)
+//   let output_reference = mock_utxo_ref(0,51)
 //   let dat =
 //     VirtualDexDatum {
 //       change_account_address: mock_change_account_address(),

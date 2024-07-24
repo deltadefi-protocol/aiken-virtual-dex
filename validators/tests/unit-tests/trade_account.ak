@@ -5,7 +5,7 @@ use aiken_virtual_dex/placeholder.{
   mock_emergency_initiation_input, mock_emergency_initiation_output,
   mock_emergency_token, mock_interval, mock_operation_key, mock_oracle_policy_id,
   mock_oracle_ref_input, mock_trade_account_address, mock_trade_input,
-  mock_user_vkey_hex, mock_utxo_ref,
+  mock_user_vkey_hex,
 }
 use aiken_virtual_dex/types.{
   EmergencyIncidentInitiation, InitiateEmergencyIncident, TradeEmergencyAction,
@@ -13,6 +13,7 @@ use aiken_virtual_dex/types.{
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
 use aiken_virtual_dex/validators/trade_account.{trade_account_logic}
+use sidan_placeholder/output_reference.{mock_utxo_ref}
 
 type TradeTestCase {
   is_owner_signed: Bool,
@@ -45,7 +46,7 @@ fn mock_trade_test_case(test_case: TradeTestCase) {
 
 test success_trade() {
   let redeemer = TradeNormalAction
-  let output_reference = mock_utxo_ref(1)
+  let output_reference = mock_utxo_ref(0, 1)
 
   let tx = mock_trade_test_case(base_trade_test_case())
   let ctx = ScriptContext { purpose: Spend(output_reference), transaction: tx }
@@ -61,7 +62,7 @@ test success_trade() {
 
 test fail_trade_without_operation_key() {
   let redeemer = TradeNormalAction
-  let output_reference = mock_utxo_ref(1)
+  let output_reference = mock_utxo_ref(0, 1)
 
   let tx =
     mock_trade_test_case(
@@ -80,7 +81,7 @@ test fail_trade_without_operation_key() {
 
 test fail_trade_without_owner_key() {
   let redeemer = TradeNormalAction
-  let output_reference = mock_utxo_ref(1)
+  let output_reference = mock_utxo_ref(0, 1)
 
   let tx =
     mock_trade_test_case(
@@ -169,7 +170,7 @@ fn mock_emergency_action_test_case(test_case: EmergencyActionTestCase) {
 }
 
 test success_emergency_withdraw() {
-  let output_reference = mock_utxo_ref(31)
+  let output_reference = mock_utxo_ref(0, 31)
   let datum =
     TradeEmergencyDatum { valid_since: 100, minter: mock_user_vkey_hex() }
 
@@ -187,7 +188,7 @@ test success_emergency_withdraw() {
 }
 
 test fail_emergency_withdraw_without_owner_signature() {
-  let output_reference = mock_utxo_ref(31)
+  let output_reference = mock_utxo_ref(0, 31)
   let datum =
     TradeEmergencyDatum { valid_since: 100, minter: mock_user_vkey_hex() }
 
@@ -211,7 +212,7 @@ test fail_emergency_withdraw_without_owner_signature() {
 }
 
 test fail_emergency_withdraw_with_invalid_time() {
-  let output_reference = mock_utxo_ref(31)
+  let output_reference = mock_utxo_ref(0, 31)
   let datum =
     TradeEmergencyDatum { valid_since: 100, minter: mock_user_vkey_hex() }
 
@@ -235,7 +236,7 @@ test fail_emergency_withdraw_with_invalid_time() {
 }
 
 test fail_emergency_withdraw_without_emergency_token_burnt() {
-  let output_reference = mock_utxo_ref(31)
+  let output_reference = mock_utxo_ref(0, 31)
   let datum =
     TradeEmergencyDatum { valid_since: 100, minter: mock_user_vkey_hex() }
 
@@ -299,7 +300,7 @@ fn mock_initiate_emergency_test_case(test_case: InitiateEmergencyTestCase) {
         mock_emergency_initiation_input(1)
       } else {
         Input {
-          output_reference: mock_utxo_ref(21),
+          output_reference: mock_utxo_ref(0, 21),
           output: mock_emergency_initiation_output(mock_operation_key()),
         }
       },
@@ -345,7 +346,7 @@ fn mock_initiate_emergency_test_case(test_case: InitiateEmergencyTestCase) {
 }
 
 test success_initiate_emergency() {
-  let output_reference = mock_utxo_ref(21)
+  let output_reference = mock_utxo_ref(0, 21)
   let datum = EmergencyIncidentInitiation { owner: mock_user_vkey_hex() }
 
   let redeemer = InitiateEmergencyIncident { initiate_before: 100 }
@@ -363,7 +364,7 @@ test success_initiate_emergency() {
 }
 
 test fail_initiate_emergency_without_owner_signature() {
-  let output_reference = mock_utxo_ref(21)
+  let output_reference = mock_utxo_ref(0, 21)
   let datum = EmergencyIncidentInitiation { owner: mock_user_vkey_hex() }
 
   let redeemer = InitiateEmergencyIncident { initiate_before: 100 }
@@ -386,7 +387,7 @@ test fail_initiate_emergency_without_owner_signature() {
 }
 
 test fail_initiate_emergency_without_emergency_token_minted() {
-  let output_reference = mock_utxo_ref(21)
+  let output_reference = mock_utxo_ref(0, 21)
   let datum = EmergencyIncidentInitiation { owner: mock_user_vkey_hex() }
 
   let redeemer = InitiateEmergencyIncident { initiate_before: 100 }
@@ -409,7 +410,7 @@ test fail_initiate_emergency_without_emergency_token_minted() {
 }
 
 test fail_initiate_emergency_without_correct_input_datum() {
-  let output_reference = mock_utxo_ref(21)
+  let output_reference = mock_utxo_ref(0, 21)
   let datum = EmergencyIncidentInitiation { owner: mock_user_vkey_hex() }
 
   let redeemer = InitiateEmergencyIncident { initiate_before: 100 }
@@ -432,7 +433,7 @@ test fail_initiate_emergency_without_correct_input_datum() {
 }
 
 test fail_initiate_emergency_without_correct_output() {
-  let output_reference = mock_utxo_ref(21)
+  let output_reference = mock_utxo_ref(0, 21)
   let datum = EmergencyIncidentInitiation { owner: mock_user_vkey_hex() }
 
   let redeemer = InitiateEmergencyIncident { initiate_before: 100 }
@@ -455,7 +456,7 @@ test fail_initiate_emergency_without_correct_output() {
 }
 
 test fail_initiate_emergency_with_invalid_time() {
-  let output_reference = mock_utxo_ref(21)
+  let output_reference = mock_utxo_ref(0, 21)
   let datum = EmergencyIncidentInitiation { owner: mock_user_vkey_hex() }
 
   let redeemer = InitiateEmergencyIncident { initiate_before: 100 }

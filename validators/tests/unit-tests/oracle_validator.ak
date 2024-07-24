@@ -2,11 +2,13 @@ use aiken/list
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction, placeholder}
 use aiken/transaction/value.{from_asset, to_minted_value}
 use aiken_virtual_dex/placeholder.{
-  mock_operation_key, mock_oracle_datum, mock_oracle_output, mock_policy_id,
-  mock_pub_key_hex, mock_stop_key, mock_utxo_ref,
+  mock_operation_key, mock_oracle_datum, mock_oracle_output, mock_pub_key_hex,
+  mock_stop_key,
 }
 use aiken_virtual_dex/types.{OracleDatum, RotateKey, StopApp}
 use aiken_virtual_dex/validators/oracle_validator.{oracle_validator_logic}
+use sidan_placeholder/key_hex.{mock_policy_id}
+use sidan_placeholder/output_reference.{mock_utxo_ref}
 
 type RotateTestCase {
   is_old_stop_key_signed: Bool,
@@ -28,25 +30,25 @@ fn mock_rotate_test_case(test_case: RotateTestCase) {
     is_new_stop_key_signed,
     is_datum_updated,
   } = test_case
-  let input_utxo = mock_utxo_ref(0)
+  let input_utxo = mock_utxo_ref(0, 0)
   let new_stop_key = mock_pub_key_hex(3)
 
   let extra_signatories =
     []
       |> list.concat(
-           if is_old_stop_key_signed {
-             [mock_stop_key()]
-           } else {
-             []
-           },
-         )
+          if is_old_stop_key_signed {
+            [mock_stop_key()]
+          } else {
+            []
+          },
+        )
       |> list.concat(
-           if is_new_stop_key_signed {
-             [new_stop_key]
-           } else {
-             []
-           },
-         )
+          if is_new_stop_key_signed {
+            [new_stop_key]
+          } else {
+            []
+          },
+        )
   let new_datum =
     if is_datum_updated {
       OracleDatum {
@@ -78,7 +80,7 @@ test success_rotate_key() {
       new_operation_key: mock_stop_key(),
       new_stop_key: mock_pub_key_hex(3),
     }
-  let input_utxo = mock_utxo_ref(0)
+  let input_utxo = mock_utxo_ref(0, 0)
 
   let tx = mock_rotate_test_case(base_rotate_test_case())
   let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
@@ -92,7 +94,7 @@ test fail_rotate_key_without_old_stop_signature() {
       new_operation_key: mock_stop_key(),
       new_stop_key: mock_pub_key_hex(3),
     }
-  let input_utxo = mock_utxo_ref(0)
+  let input_utxo = mock_utxo_ref(0, 0)
 
   let tx =
     mock_rotate_test_case(
@@ -112,7 +114,7 @@ test fail_rotate_key_without_new_stop_signature() {
       new_operation_key: mock_stop_key(),
       new_stop_key: mock_pub_key_hex(3),
     }
-  let input_utxo = mock_utxo_ref(0)
+  let input_utxo = mock_utxo_ref(0, 0)
 
   let tx =
     mock_rotate_test_case(
@@ -133,10 +135,11 @@ test success_stop_app() {
   let tx =
     Transaction {
       ..placeholder(),
-      mint: to_minted_value(from_asset(mock_policy_id(), "", -1)),
+      mint: to_minted_value(from_asset(mock_policy_id(0), "", -1)),
       extra_signatories: [mock_pub_key_hex(2)],
     }
-  let ctx = ScriptContext { purpose: Spend(mock_utxo_ref(0)), transaction: tx }
+  let ctx =
+    ScriptContext { purpose: Spend(mock_utxo_ref(0, 0)), transaction: tx }
 
   oracle_validator_logic(mock_oracle_datum(), redeemer, ctx)
 }
@@ -146,10 +149,11 @@ test fail_stop_app_without_stop_key() {
   let tx =
     Transaction {
       ..placeholder(),
-      mint: to_minted_value(from_asset(mock_policy_id(), "", -1)),
+      mint: to_minted_value(from_asset(mock_policy_id(0), "", -1)),
       extra_signatories: [mock_operation_key()],
     }
-  let ctx = ScriptContext { purpose: Spend(mock_utxo_ref(0)), transaction: tx }
+  let ctx =
+    ScriptContext { purpose: Spend(mock_utxo_ref(0, 0)), transaction: tx }
 
   !oracle_validator_logic(mock_oracle_datum(), redeemer, ctx)
 }
@@ -159,10 +163,11 @@ test success_stop_app_without_oracle_nft_burnt() {
   let tx =
     Transaction {
       ..placeholder(),
-      mint: to_minted_value(from_asset(mock_policy_id(), "not oracle nft", -1)),
+      mint: to_minted_value(from_asset(mock_policy_id(0), "not oracle nft", -1)),
       extra_signatories: [mock_stop_key()],
     }
-  let ctx = ScriptContext { purpose: Spend(mock_utxo_ref(0)), transaction: tx }
+  let ctx =
+    ScriptContext { purpose: Spend(mock_utxo_ref(0, 0)), transaction: tx }
 
   !oracle_validator_logic(mock_oracle_datum(), redeemer, ctx)
 }

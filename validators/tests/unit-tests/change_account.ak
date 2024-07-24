@@ -1,14 +1,11 @@
-use aiken/dict
 use aiken/transaction.{ScriptContext, Spend, Transaction, placeholder}
-use aiken_virtual_dex/common.{compare_output_reference}
 use aiken_virtual_dex/placeholder.{
   mock_change_input, mock_operation_key, mock_trade_account_address,
-  mock_trade_output, mock_user_vkey_hex, mock_utxo_ref,
+  mock_trade_output, mock_user_vkey_hex,
 }
-use aiken_virtual_dex/types.{
-  AppRefill, ChangeAccountDatum, MassRefill, OwnerWithdraw,
-}
+use aiken_virtual_dex/types.{AppRefill, ChangeAccountDatum, OwnerWithdraw}
 use aiken_virtual_dex/validators/change_account.{change_account_logic}
+use sidan_placeholder/output_reference.{mock_utxo_ref}
 
 fn mock_withdraw_test_case(is_owner_signed: Bool) {
   let extra_signatories =
@@ -23,7 +20,7 @@ fn mock_withdraw_test_case(is_owner_signed: Bool) {
 }
 
 test success_withdraw() {
-  let output_reference = mock_utxo_ref(1)
+  let output_reference = mock_utxo_ref(0, 1)
   let datum = ChangeAccountDatum
 
   let redeemer = OwnerWithdraw
@@ -39,7 +36,7 @@ test success_withdraw() {
 }
 
 test fail_withdraw_without_owner_signature() {
-  let output_reference = mock_utxo_ref(1)
+  let output_reference = mock_utxo_ref(0, 1)
   let datum = ChangeAccountDatum
 
   let redeemer = OwnerWithdraw
@@ -76,7 +73,7 @@ fn mock_app_refill_test_case(is_value_sufficient: Bool) {
 }
 
 test success_app_refill() {
-  let output_reference = mock_utxo_ref(41)
+  let output_reference = mock_utxo_ref(0, 41)
   let datum = ChangeAccountDatum
 
   let redeemer = AppRefill
@@ -92,7 +89,7 @@ test success_app_refill() {
 }
 
 test fail_app_refill_without_sufficient_value() {
-  let output_reference = mock_utxo_ref(41)
+  let output_reference = mock_utxo_ref(0, 41)
   let datum = ChangeAccountDatum
 
   let redeemer = AppRefill
@@ -119,19 +116,19 @@ test fail_app_refill_without_sufficient_value() {
 //     if is_app_refill_redeemer_provided {
 //       AppRefill
 //     } else {
-//       MassRefill { refill_input: mock_utxo_ref(42) }
+//       MassRefill { refill_input: mock_utxo_ref(0,42) }
 //     }
 //   let redeemers =
 //     dict.new()
-//       |> dict.insert(Spend(mock_utxo_ref(41)), red1, compare_output_reference)
+//       |> dict.insert(Spend(mock_utxo_ref(0,41)), red1, compare_output_reference)
 //       |> dict.insert(
-//            Spend(mock_utxo_ref(42)),
-//            MassRefill { refill_input: mock_utxo_ref(41) },
+//            Spend(mock_utxo_ref(0,42)),
+//            MassRefill { refill_input: mock_utxo_ref(0,41) },
 //            compare_output_reference,
 //          )
 //       |> dict.insert(
-//            Spend(mock_utxo_ref(43)),
-//            MassRefill { refill_input: mock_utxo_ref(41) },
+//            Spend(mock_utxo_ref(0,43)),
+//            MassRefill { refill_input: mock_utxo_ref(0,41) },
 //            compare_output_reference,
 //          )
 //   Transaction {
@@ -143,7 +140,7 @@ test fail_app_refill_without_sufficient_value() {
 // }
 
 // test success_mass_refill() {
-//   let output_reference = mock_utxo_ref(41)
+//   let output_reference = mock_utxo_ref(0,41)
 //   let datum = ChangeAccountDatum
 
 //   let redeemer = MassRefill { refill_input: output_reference }
@@ -159,7 +156,7 @@ test fail_app_refill_without_sufficient_value() {
 // }
 
 // test fail_mass_refill_without_app_refill_redeemer() {
-//   let output_reference = mock_utxo_ref(41)
+//   let output_reference = mock_utxo_ref(0,41)
 //   let datum = ChangeAccountDatum
 
 //   let redeemer = MassRefill { refill_input: output_reference }

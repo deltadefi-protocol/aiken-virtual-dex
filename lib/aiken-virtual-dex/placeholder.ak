@@ -15,35 +15,8 @@ use aiken_virtual_dex/types.{
   TradeEmergencyDatum, TradeNormalDatum, VirtualDexDatum,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
-
-pub fn mock_policy_id() -> PolicyId {
-  #"1c1b7afe8affbee1505cf3ec5a58bd2734d4ffdfcc9b9f059625bd76"
-}
-
-pub fn mock_policy_id_2() -> PolicyId {
-  #"52e322a5dd87fe977c5ee5b91e3f42eedeccd6795a7ef4f158bd8892"
-}
-
-pub fn mock_policy_id_3() -> PolicyId {
-  #"a15cd6051ea2fc92c034b0bb1d33f2b7ba7ac92277e6ee5c30ab19a4"
-}
-
-pub fn mock_policy_id_4() -> PolicyId {
-  #"c0f778be07f8b129d2546ad37b0e13b3486747dfe1767ff8e7e8a4f3"
-}
-
-pub fn mock_policy_id_5() -> PolicyId {
-  #"ab4e38cc1e95e42c6f6e56d8d4243731c483bb57e49da5047c38e9d8"
-}
-
-pub fn mock_utxo_ref(output_index: Int) -> OutputReference {
-  OutputReference {
-    transaction_id: TransactionId(
-      #"5a077cbcdffb88b104f292aacb9687ce93e2191e103a30a0cc5505c18b719f98",
-    ),
-    output_index,
-  }
-}
+use sidan_placeholder/key_hex.{mock_policy_id}
+use sidan_placeholder/output_reference.{mock_utxo_ref}
 
 pub fn mock_output() -> Output {
   Output {
@@ -131,7 +104,7 @@ pub fn mock_script_address(
 
 // Smart contract specific placeholders
 pub fn mock_oracle_policy_id() -> PolicyId {
-  mock_policy_id()
+  mock_policy_id(0)
 }
 
 pub fn mock_oracle_address() {
@@ -139,7 +112,7 @@ pub fn mock_oracle_address() {
 }
 
 pub fn mock_fee_ref_token() {
-  mock_policy_id_2()
+  mock_policy_id(1)
 }
 
 pub fn mock_fee_info_address() {
@@ -155,7 +128,7 @@ pub fn mock_stop_key() {
 }
 
 pub fn mock_emergency_token() {
-  mock_policy_id_3()
+  mock_policy_id(2)
 }
 
 pub fn mock_user_vkey_hex() {
@@ -171,7 +144,7 @@ pub fn ada_asset_class() {
 }
 
 pub fn mock_token_asset_class() {
-  (mock_policy_id_5(), "A potentially very long name")
+  (mock_policy_id(4), "A potentially very long name")
 }
 
 pub fn mock_oracle_datum() {
@@ -195,7 +168,7 @@ pub fn mock_oracle_output(oracle_datum: OracleDatum) -> Output {
 
 pub fn mock_oracle_ref_input() -> Input {
   Input {
-    output_reference: mock_utxo_ref(0),
+    output_reference: mock_utxo_ref(0, 0),
     output: mock_oracle_output(mock_oracle_datum()),
   }
 }
@@ -215,7 +188,7 @@ pub fn mock_trade_output(lovelace: Int) -> Output {
 
 pub fn mock_trade_input(variation: Int) -> Input {
   Input {
-    output_reference: mock_utxo_ref(10 + variation),
+    output_reference: mock_utxo_ref(0, 10 + variation),
     output: mock_trade_output(500_000_000),
   }
 }
@@ -231,7 +204,7 @@ pub fn mock_emergency_initiation_output(owner: ByteArray) -> Output {
 
 pub fn mock_emergency_initiation_input(variation: Int) -> Input {
   Input {
-    output_reference: mock_utxo_ref(20 + variation),
+    output_reference: mock_utxo_ref(0, 20 + variation),
     output: mock_emergency_initiation_output(mock_user_vkey_hex()),
   }
 }
@@ -241,10 +214,10 @@ pub fn mock_emergency_action_output(valid_since: Int, minter: ByteArray) {
     address: mock_trade_account_address(),
     value: from_asset("", "", 2_000_000)
       |> add(
-           mock_emergency_token(),
-           get_emergency_token_name(mock_trade_account_address()),
-           1,
-         ),
+          mock_emergency_token(),
+          get_emergency_token_name(mock_trade_account_address()),
+          1,
+        ),
     datum: InlineDatum(TradeEmergencyDatum { valid_since, minter }),
     reference_script: None,
   }
@@ -256,7 +229,7 @@ pub fn mock_emergency_action_input(
   minter: ByteArray,
 ) -> Input {
   Input {
-    output_reference: mock_utxo_ref(30 + variation),
+    output_reference: mock_utxo_ref(0, 30 + variation),
     output: mock_emergency_action_output(valid_since, minter),
   }
 }
@@ -285,7 +258,7 @@ pub fn mock_change_output(lovelace: Int) -> Output {
 
 pub fn mock_change_input(variation: Int, lovelace: Int) -> Input {
   Input {
-    output_reference: mock_utxo_ref(40 + variation),
+    output_reference: mock_utxo_ref(0, 40 + variation),
     output: Output {
       address: mock_change_account_address(),
       value: from_asset("", "", lovelace),
@@ -329,7 +302,7 @@ pub fn mock_buy_ada_order_input(
   lot_size: Int,
 ) {
   Input {
-    output_reference: mock_utxo_ref(50 + variation),
+    output_reference: mock_utxo_ref(0, 50 + variation),
     output: Output {
       address: mock_virtual_dex_address(),
       value: from_asset(
@@ -357,7 +330,7 @@ pub fn mock_sell_ada_order_input(
   lot_size: Int,
 ) {
   Input {
-    output_reference: mock_utxo_ref(60 + variation),
+    output_reference: mock_utxo_ref(0, 60 + variation),
     output: Output {
       address: mock_virtual_dex_address(),
       value: from_asset("", "", lot_size),
