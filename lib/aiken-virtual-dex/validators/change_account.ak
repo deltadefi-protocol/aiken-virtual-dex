@@ -2,12 +2,13 @@ use aiken/transaction.{ScriptContext, Spend, Transaction, find_input}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{merge}
 use aiken_virtual_dex/common.{
-  get_all_value_from, get_all_value_to, key_signed, redeemer_from, value_geq,
+  get_all_value_from, get_all_value_to, redeemer_from, value_geq,
 }
 use aiken_virtual_dex/types.{
   AppRefill, ChangeAccountDatum, ChangeAccountRedeemer, MassRefill,
   OwnerWithdraw,
 }
+use sidan_utils/extra_signatories.{key_signed}
 
 pub fn change_account_logic(
   owner: ByteArray,

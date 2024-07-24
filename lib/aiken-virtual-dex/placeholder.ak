@@ -1,10 +1,9 @@
+use aiken/bytearray
+use aiken/hash.{blake2b_256}
 use aiken/interval.{
   Finite, Interval, IntervalBound, NegativeInfinity, PositiveInfinity,
 }
-use aiken/transaction.{
-  InlineDatum, Input, NoDatum, Output, OutputReference, TransactionId,
-  ValidityRange,
-}
+use aiken/transaction.{InlineDatum, Input, NoDatum, Output, ValidityRange}
 use aiken/transaction/credential.{
   Address, Credential, ScriptCredential, StakeCredential,
   VerificationKeyCredential,
@@ -15,8 +14,32 @@ use aiken_virtual_dex/types.{
   TradeEmergencyDatum, TradeNormalDatum, VirtualDexDatum,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
-use sidan_placeholder/key_hex.{mock_policy_id}
+use sidan_placeholder/key_hex.{mock_policy_id, mock_script_hash_hex}
 use sidan_placeholder/output_reference.{mock_utxo_ref}
+
+pub fn script_hash_3_1() -> ByteArray {
+  bytearray.concat(mock_script_hash_hex(3), #"01")
+    |> blake2b_256()
+    |> bytearray.take(28)
+}
+
+pub fn script_hash_3_2() -> ByteArray {
+  bytearray.concat(mock_script_hash_hex(3), #"02")
+    |> blake2b_256()
+    |> bytearray.take(28)
+}
+
+pub fn script_hash_3_3() -> ByteArray {
+  bytearray.concat(mock_script_hash_hex(3), #"03")
+    |> blake2b_256()
+    |> bytearray.take(28)
+}
+
+pub fn script_hash_3_4() -> ByteArray {
+  bytearray.concat(mock_script_hash_hex(3), #"04")
+    |> blake2b_256()
+    |> bytearray.take(28)
+}
 
 pub fn mock_output() -> Output {
   Output {
@@ -75,18 +98,6 @@ pub fn mock_interval(lower: Option<Int>, upper: Option<Int>) -> ValidityRange {
 }
 
 // Script Addresses
-
-pub fn mock_script_hash_hex(variation: Int) -> ByteArray {
-  when variation is {
-    1 -> #"70ce90786897b6f7b6430a57ae005ecaf7c8cab817dd7510598403a9"
-    2 -> #"efa5288b2b13cff1db555eed5debc54f3b25a62b7321db37f8af9213"
-    3 -> #"a8ba4d8ab8d7f1f864a27a63dab1185cc47929dc3c3a34956d946286"
-    4 -> #"ee557be73b5084e8907e2118a2b1cddf3a1e14dcb2e1ee5d586a3f90"
-    5 -> #"84944ba25d1708d71058ee2ef715375873784adc588f6a0706fa2589"
-    6 -> #"8be60057c65fbae6d5c0673f899fea68868b16aeba6ff06f2d7f3161"
-    _ -> #"e9fbf88caff6bf3742fd30047abf3883d50ed7059ae832fddfda4b71"
-  }
-}
 
 pub fn mock_script_credential(variation: Int) -> Credential {
   ScriptCredential(mock_script_hash_hex(variation))
@@ -174,6 +185,10 @@ pub fn mock_oracle_ref_input() -> Input {
 }
 
 pub fn mock_trade_account_address() {
+  mock_script_address(3, None)
+}
+
+pub fn mock_account_address() {
   mock_script_address(3, None)
 }
 

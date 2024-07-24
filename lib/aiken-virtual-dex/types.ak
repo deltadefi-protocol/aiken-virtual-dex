@@ -1,4 +1,4 @@
-use aiken/transaction.{OutputReference}
+use aiken/transaction.{Input, OutputReference}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{PolicyId}
 
@@ -65,4 +65,32 @@ pub type VirtualDexRedeemer {
 pub type EmergencyTokenMintingPolarity {
   EMint { current_timestamp: Int, trade_account_address: Address }
   EBurn
+}
+
+// New Types
+
+// 3. Account
+pub type AccountRedeemer {
+  AccountUserUnlock
+  AccountAppUnlock
+  AccountEmergencyUnlockPhase1
+  AccountEmergencyUnlockPhase2
+}
+
+pub type AccountDatum {
+  AccountNormalDatum
+  EmergencyUnlockPhase1 { owner: ByteArray }
+  EmergencyUnlockPhase2 { valid_since: Int, minter: ByteArray }
+}
+
+pub type AccountEmergencyActionPhase1Redeemer {
+  owner: ByteArray,
+  own_input: Input,
+  initiate_before: Int,
+}
+
+pub type AccountEmergencyActionPhase2Redeemer {
+  owner: ByteArray,
+  own_input: Input,
+  withdraw_output: OutputReference,
 }

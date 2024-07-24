@@ -1,10 +1,9 @@
 use aiken/bytearray
-use aiken/interval.{Finite, IntervalBound}
 use aiken/list
 use aiken/pairs
 use aiken/transaction.{
   InlineDatum, Input, Output, OutputReference, Redeemer, ScriptPurpose, Spend,
-  ValidityRange, find_input,
+  find_input,
 }
 use aiken/transaction/credential.{
   Address, ScriptCredential, VerificationKeyCredential,
@@ -93,20 +92,6 @@ pub fn outputs_with(outputs: List<Output>, policy: PolicyId, name: AssetName) {
   )
 }
 
-pub fn outputs_at_with(
-  outputs: List<Output>,
-  address: Address,
-  policy: PolicyId,
-  name: AssetName,
-) -> List<Output> {
-  list.filter(
-    outputs,
-    fn(output) {
-      output.address == address && quantity_of(output.value, policy, name) == 1
-    },
-  )
-}
-
 pub fn outputs_at_with_policy(
   outputs: List<Output>,
   address: Address,
@@ -137,19 +122,6 @@ pub fn check_policy_only_burn(mint: MintedValue, policy: PolicyId) -> Bool {
   )
 }
 
-pub fn only_minted_token(
-  mint: MintedValue,
-  policy: PolicyId,
-  name: AssetName,
-  quantity: Int,
-) {
-  when from_minted_value(mint) |> flatten() is {
-    [(mPolicy, mAssetName, mQuantity)] ->
-      mPolicy == policy && mAssetName == name && mQuantity == quantity
-    _ -> False
-  }
-}
-
 pub fn convert_int_to_bytes(i: Int) -> ByteArray {
   convert_int_to_bytes_go(i, get_number_digit(i))
 }
@@ -175,14 +147,6 @@ fn go_get_number_digit(newInt: Int, digit: Int) -> Int {
   } else {
     go_get_number_digit(newInt / 10, digit * 10)
   }
-}
-
-pub fn key_signed(witnesses: List<ByteArray>, key: ByteArray) {
-  list.has(witnesses, key)
-}
-
-pub fn all_key_signed(witnesses: List<ByteArray>, keys: List<ByteArray>) {
-  list.all(keys, fn(key) { key_signed(witnesses, key) })
 }
 
 pub fn value_length(value: Value) -> Int {
@@ -257,30 +221,6 @@ pub fn value_geq(greater: Value, smaller: Value) -> Bool {
     flatten(smaller),
     fn(token) { quantity_of(greater, token.1st, token.2nd) >= token.3rd },
   )
-}
-
-pub fn valid_after(
-  validity_range: ValidityRange,
-  required_timestamp: Int,
-) -> Bool {
-  let IntervalBound { bound_type, is_inclusive } = validity_range.lower_bound
-  when (bound_type, is_inclusive) is {
-    (Finite(lower_bound), True) -> lower_bound > required_timestamp
-    (Finite(lower_bound), False) -> lower_bound >= required_timestamp
-    _ -> False
-  }
-}
-
-pub fn valid_before(
-  validity_range: ValidityRange,
-  required_timestamp: Int,
-) -> Bool {
-  let IntervalBound { bound_type, is_inclusive } = validity_range.upper_bound
-  when (bound_type, is_inclusive) is {
-    (Finite(upper_bound), True) -> upper_bound < required_timestamp
-    (Finite(upper_bound), False) -> upper_bound <= required_timestamp
-    _ -> False
-  }
 }
 
 pub fn compare_script_address(x: Address, y: Address) -> Ordering {

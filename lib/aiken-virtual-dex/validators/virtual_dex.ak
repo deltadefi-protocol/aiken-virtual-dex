@@ -6,14 +6,16 @@ use aiken/transaction.{
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value, from_asset, merge}
 use aiken_virtual_dex/common.{
-  inputs_at, key_signed, only_input_datum_with, only_minted_token,
-  output_inline_datum, outputs_at, redeemer_from, value_geq,
+  inputs_at, only_input_datum_with, output_inline_datum, outputs_at,
+  redeemer_from, value_geq,
 }
 use aiken_virtual_dex/types.{
   CancelOrder, EmergencyCancel, MassTakeOrder, OracleDatum, TakeOrder,
   VirtualDexDatum, VirtualDexRedeemer,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
+use sidan_utils/extra_signatories.{key_signed}
+use sidan_utils/mints.{only_minted_token}
 
 pub fn accumulate_all_to_return_value(
   long_token: (PolicyId, AssetName),

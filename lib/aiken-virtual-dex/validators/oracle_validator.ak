@@ -1,8 +1,8 @@
 use aiken/transaction.{InlineDatum, Output, ScriptContext, Spend, Transaction}
-use aiken_virtual_dex/common.{
-  all_key_signed, key_signed, only_minted_token, outputs_at_with,
-}
 use aiken_virtual_dex/types.{OracleDatum, OracleRedeemer, RotateKey, StopApp}
+use sidan_utils/extra_signatories.{all_key_signed, key_signed}
+use sidan_utils/mints.{only_minted_token}
+use sidan_utils/outputs.{outputs_at_with}
 
 pub fn oracle_validator_logic(
   datum: OracleDatum,
