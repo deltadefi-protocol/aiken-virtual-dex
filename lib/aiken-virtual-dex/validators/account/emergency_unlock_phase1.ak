@@ -55,5 +55,5 @@ pub fn account_emergency_unlock_phase_1_logic(
       _ -> False
     }
   let is_time_valid = valid_before(transaction.validity_range, initiate_before)
-  is_owner_signed && is_emergency_token_minted && is_input_datum_correct && is_output_correct && is_time_valid
+  is_owner_signed? && is_emergency_token_minted? && is_input_datum_correct? && is_output_correct? && is_time_valid?
 }

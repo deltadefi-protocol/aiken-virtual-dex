@@ -419,3 +419,10 @@ pub fn mock_emergency_unlock_phase2_input(
     output: mock_emergency_unlock_phase2_output(valid_since, minter),
   }
 }
+
+pub fn mock_account_input(variation: Int) -> Input {
+  Input {
+    output_reference: mock_utxo_ref(0, 10 + variation),
+    output: mock_trade_output(500_000_000),
+  }
+}

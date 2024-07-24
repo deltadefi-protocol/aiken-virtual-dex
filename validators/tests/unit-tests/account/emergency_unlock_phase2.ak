@@ -1,160 +1,175 @@
-// type EmergencyActionTestCase {
-//   is_owner_signed: Bool,
-//   is_input_datum_correct: Bool,
-//   is_time_valid: Bool,
-//   is_emergency_token_burnt: Bool,
-// }
+use aiken/transaction.{ScriptContext, WithdrawFrom}
+use aiken/transaction/credential.{Inline, ScriptCredential}
+use aiken_virtual_dex/placeholder.{
+  mock_account_address, mock_account_input, mock_emergency_token,
+  mock_emergency_unlock_phase2_input, mock_operation_key, mock_user_vkey_hex,
+  script_hash_3_4,
+}
+use aiken_virtual_dex/types.{
+  AccountEmergencyActionPhase2Redeemer, AccountEmergencyUnlockPhase2,
+}
+use aiken_virtual_dex/utils.{get_emergency_token_name}
+use aiken_virtual_dex/validators/account/emergency_unlock_phase2.{
+  account_emergency_unlock_phase_2_logic,
+}
+use sidan_placeholder/builder.{
+  complete, invalid_before, mint, new_tx_tester, required_signer_hash,
+  script_withdrawal,
+}
+use sidan_placeholder/output_reference.{mock_utxo_ref}
+use sidan_placeholder/transaction.{add_input, add_redeemer} as sidan_tx
+use tests/unit_tests/account/account.{account_process}
 
-// fn base_emergency_action_test_case() {
-//   EmergencyActionTestCase {
-//     is_owner_signed: True,
-//     is_input_datum_correct: True,
-//     is_time_valid: True,
-//     is_emergency_token_burnt: True,
-//   }
-// }
+type TestCase34 {
+  is_owner_signed: Bool,
+  is_input_datum_correct: Bool,
+  is_time_valid: Bool,
+  is_emergency_token_burnt: Bool,
+  is_withdrawal_script_present: Bool,
+}
 
-// fn mock_emergency_action_test_case(test_case: EmergencyActionTestCase) {
-//   let EmergencyActionTestCase {
-//     is_owner_signed,
-//     is_input_datum_correct,
-//     is_time_valid,
-//     is_emergency_token_burnt,
-//   } = test_case
+fn base_emergency_action_test_case() {
+  TestCase34 {
+    is_owner_signed: True,
+    is_input_datum_correct: True,
+    is_time_valid: True,
+    is_emergency_token_burnt: True,
+    is_withdrawal_script_present: True,
+  }
+}
 
-//   let extra_signatories =
-//     when is_owner_signed is {
-//       True ->
-//         [mock_user_vkey_hex()]
-//       False ->
-//         []
-//     }
-//   let emergency_action_input =
-//     if is_input_datum_correct {
-//       mock_emergency_action_input(1, 100, mock_user_vkey_hex())
-//     } else {
-//       mock_emergency_action_input(1, 100, mock_operation_key())
-//     }
-//   let inputs =
-//     [mock_trade_input(1), mock_trade_input(2), emergency_action_input]
-//   let mint =
-//     to_minted_value(
-//       if is_emergency_token_burnt {
-//         from_asset(
-//           mock_emergency_token(),
-//           get_emergency_token_name(mock_trade_account_address()),
-//           -1,
-//         )
-//       } else {
-//         zero()
-//       },
-//     )
-//   let validity_range =
-//     mock_interval(
-//       Some(
-//         if is_time_valid {
-//           101
-//         } else {
-//           99
-//         },
-//       ),
-//       None,
-//     )
-//   Transaction {
-//     ..placeholder(),
-//     mint: mint,
-//     extra_signatories: extra_signatories,
-//     validity_range: validity_range,
-//     inputs: inputs,
-//   }
-// }
+fn mock_redeemer() {
+  AccountEmergencyActionPhase2Redeemer {
+    owner: mock_user_vkey_hex(),
+    own_input: mock_emergency_unlock_phase2_input(1, 100, mock_user_vkey_hex()),
+    withdraw_output: mock_utxo_ref(0, 31),
+  }
+}
 
-// test success_emergency_withdraw() {
-//   let output_reference = mock_utxo_ref(0, 31)
-//   let datum =
-//     TradeEmergencyDatum { valid_since: 100, minter: mock_user_vkey_hex() }
+fn mock_emergency_action_test_case(test_case: TestCase34) {
+  let TestCase34 {
+    is_owner_signed,
+    is_input_datum_correct,
+    is_time_valid,
+    is_emergency_token_burnt,
+    is_withdrawal_script_present,
+  } = test_case
 
-//   let redeemer = TradeEmergencyAction { withdraw_output: output_reference }
-//   let tx = mock_emergency_action_test_case(base_emergency_action_test_case())
-//   let ctx = ScriptContext { purpose: Spend(output_reference), transaction: tx }
-//   trade_account_logic(
-//     mock_oracle_policy_id(),
-//     mock_user_vkey_hex(),
-//     mock_emergency_token(),
-//     datum,
-//     redeemer,
-//     ctx,
-//   )
-// }
+  let redeemer: Data = mock_redeemer()
 
-// test fail_emergency_withdraw_without_owner_signature() {
-//   let output_reference = mock_utxo_ref(0, 31)
-//   let datum =
-//     TradeEmergencyDatum { valid_since: 100, minter: mock_user_vkey_hex() }
+  new_tx_tester()
+    |> required_signer_hash(is_owner_signed, mock_user_vkey_hex())
+    |> mint(
+        is_emergency_token_burnt,
+        mock_emergency_token(),
+        get_emergency_token_name(mock_account_address()),
+        -1,
+      )
+    |> invalid_before(is_time_valid, 101)
+    |> invalid_before(!is_time_valid, 99)
+    |> script_withdrawal(is_withdrawal_script_present, script_hash_3_4(), 0)
+    |> complete()
+    |> add_input(True, mock_account_input(1))
+    |> add_input(True, mock_account_input(2))
+    |> add_input(
+        is_input_datum_correct,
+        mock_emergency_unlock_phase2_input(1, 100, mock_user_vkey_hex()),
+      )
+    |> add_input(
+        !is_input_datum_correct,
+        mock_emergency_unlock_phase2_input(1, 100, mock_operation_key()),
+      )
+    |> add_redeemer(
+        True,
+        Pair(WithdrawFrom(Inline(ScriptCredential(script_hash_3_4()))),
+        redeemer),
+      )
+}
 
-//   let redeemer = TradeEmergencyAction { withdraw_output: output_reference }
-//   let tx =
-//     mock_emergency_action_test_case(
-//       EmergencyActionTestCase {
-//         ..base_emergency_action_test_case(),
-//         is_owner_signed: False,
-//       },
-//     )
-//   let ctx = ScriptContext { purpose: Spend(output_reference), transaction: tx }
-//   !trade_account_logic(
-//     mock_oracle_policy_id(),
-//     mock_user_vkey_hex(),
-//     mock_emergency_token(),
-//     datum,
-//     redeemer,
-//     ctx,
-//   )
-// }
+test t3_4_success() {
+  let tx = mock_emergency_action_test_case(base_emergency_action_test_case())
+  let ctx =
+    ScriptContext {
+      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_3_4()))),
+      transaction: tx,
+    }
+  account_process(31, tx, AccountEmergencyUnlockPhase2) && account_emergency_unlock_phase_2_logic(
+    mock_emergency_token(),
+    mock_redeemer(),
+    ctx,
+  )
+}
 
-// test fail_emergency_withdraw_with_invalid_time() {
-//   let output_reference = mock_utxo_ref(0, 31)
-//   let datum =
-//     TradeEmergencyDatum { valid_since: 100, minter: mock_user_vkey_hex() }
+test t3_4_failed_emergency_withdraw_without_owner_signature() {
+  let tx =
+    mock_emergency_action_test_case(
+      TestCase34 { ..base_emergency_action_test_case(), is_owner_signed: False },
+    )
+  let ctx =
+    ScriptContext {
+      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_3_4()))),
+      transaction: tx,
+    }
+  account_process(31, tx, AccountEmergencyUnlockPhase2) && !account_emergency_unlock_phase_2_logic(
+    mock_emergency_token(),
+    mock_redeemer(),
+    ctx,
+  )
+}
 
-//   let redeemer = TradeEmergencyAction { withdraw_output: output_reference }
-//   let tx =
-//     mock_emergency_action_test_case(
-//       EmergencyActionTestCase {
-//         ..base_emergency_action_test_case(),
-//         is_time_valid: False,
-//       },
-//     )
-//   let ctx = ScriptContext { purpose: Spend(output_reference), transaction: tx }
-//   !trade_account_logic(
-//     mock_oracle_policy_id(),
-//     mock_user_vkey_hex(),
-//     mock_emergency_token(),
-//     datum,
-//     redeemer,
-//     ctx,
-//   )
-// }
+test t3_4_failed_emergency_withdraw_with_invalid_time() {
+  let tx =
+    mock_emergency_action_test_case(
+      TestCase34 { ..base_emergency_action_test_case(), is_time_valid: False },
+    )
+  let ctx =
+    ScriptContext {
+      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_3_4()))),
+      transaction: tx,
+    }
+  account_process(31, tx, AccountEmergencyUnlockPhase2) && !account_emergency_unlock_phase_2_logic(
+    mock_emergency_token(),
+    mock_redeemer(),
+    ctx,
+  )
+}
 
-// test fail_emergency_withdraw_without_emergency_token_burnt() {
-//   let output_reference = mock_utxo_ref(0, 31)
-//   let datum =
-//     TradeEmergencyDatum { valid_since: 100, minter: mock_user_vkey_hex() }
+test t3_4_failed_emergency_withdraw_without_emergency_token_burnt() {
+  let tx =
+    mock_emergency_action_test_case(
+      TestCase34 {
+        ..base_emergency_action_test_case(),
+        is_emergency_token_burnt: False,
+      },
+    )
+  let ctx =
+    ScriptContext {
+      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_3_4()))),
+      transaction: tx,
+    }
+  account_process(31, tx, AccountEmergencyUnlockPhase2) && !account_emergency_unlock_phase_2_logic(
+    mock_emergency_token(),
+    mock_redeemer(),
+    ctx,
+  )
+}
 
-//   let redeemer = TradeEmergencyAction { withdraw_output: output_reference }
-//   let tx =
-//     mock_emergency_action_test_case(
-//       EmergencyActionTestCase {
-//         ..base_emergency_action_test_case(),
-//         is_emergency_token_burnt: False,
-//       },
-//     )
-//   let ctx = ScriptContext { purpose: Spend(output_reference), transaction: tx }
-//   !trade_account_logic(
-//     mock_oracle_policy_id(),
-//     mock_user_vkey_hex(),
-//     mock_emergency_token(),
-//     datum,
-//     redeemer,
-//     ctx,
-//   )
-// }
+test t3_4_failed_initiate_emergency_without_withdrawal() {
+  let tx =
+    mock_emergency_action_test_case(
+      TestCase34 {
+        ..base_emergency_action_test_case(),
+        is_withdrawal_script_present: False,
+      },
+    )
+  let ctx =
+    ScriptContext {
+      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_3_4()))),
+      transaction: tx,
+    }
+  !account_process(31, tx, AccountEmergencyUnlockPhase2) && account_emergency_unlock_phase_2_logic(
+    mock_emergency_token(),
+    mock_redeemer(),
+    ctx,
+  )
+}

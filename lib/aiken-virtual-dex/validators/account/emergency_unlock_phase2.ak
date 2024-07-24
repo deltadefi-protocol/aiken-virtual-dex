@@ -33,7 +33,7 @@ pub fn account_emergency_unlock_phase_2_logic(
           get_emergency_token_name(own_input.output.address),
           -1,
         )
-      is_minted_info_correct && is_owner_signed && is_time_valid && is_emergency_token_burnt
+      is_minted_info_correct? && is_owner_signed? && is_time_valid? && is_emergency_token_burnt?
     }
     _ -> False
   }
