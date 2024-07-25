@@ -1,10 +1,13 @@
 use aiken/transaction.{Input, Mint, ScriptContext, Transaction, placeholder}
-use aiken/transaction/value.{PolicyId, add, from_asset, to_minted_value}
-use aiken_virtual_dex/placeholder.{mock_output}
+use aiken/transaction/value.{
+  PolicyId, add, from_asset, from_lovelace, to_minted_value,
+}
 use aiken_virtual_dex/types.{RBurn, RMint}
 use aiken_virtual_dex/validators/oracle_nft.{oracle_nft_logic}
+use sidan_placeholder/address.{mock_pub_key_address}
 use sidan_placeholder/key_hex.{mock_policy_id}
 use sidan_placeholder/output_reference.{mock_utxo_ref}
+use sidan_placeholder/outputs.{mock_pub_key_output}
 
 test success_mint() {
   let redeemer = RMint
@@ -16,7 +19,15 @@ test success_mint() {
     Transaction {
       ..placeholder(),
       mint: to_minted_value(from_asset(policy_id, "", 1)),
-      inputs: [Input { output_reference: input_utxo, output: mock_output() }],
+      inputs: [
+        Input {
+          output_reference: input_utxo,
+          output: mock_pub_key_output(
+            mock_pub_key_address(0, None),
+            from_lovelace(1000000),
+          ),
+        },
+      ],
     }
   let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
 

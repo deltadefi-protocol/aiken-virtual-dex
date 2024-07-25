@@ -2,12 +2,11 @@ use aiken/list
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction, placeholder}
 use aiken/transaction/value.{from_asset, to_minted_value}
 use aiken_virtual_dex/placeholder.{
-  mock_operation_key, mock_oracle_datum, mock_oracle_output, mock_pub_key_hex,
-  mock_stop_key,
+  mock_operation_key, mock_oracle_datum, mock_oracle_output, mock_stop_key,
 }
 use aiken_virtual_dex/types.{OracleDatum, RotateKey, StopApp}
 use aiken_virtual_dex/validators/oracle_validator.{oracle_validator_logic}
-use sidan_placeholder/key_hex.{mock_policy_id}
+use sidan_placeholder/key_hex.{mock_policy_id, mock_pub_key_hex}
 use sidan_placeholder/output_reference.{mock_utxo_ref}
 
 type RotateTestCase {

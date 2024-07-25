@@ -1,94 +1,17 @@
 use aiken/bytearray
 use aiken/hash.{blake2b_256}
-use aiken/interval.{
-  Finite, Interval, IntervalBound, NegativeInfinity, PositiveInfinity,
-}
-use aiken/transaction.{InlineDatum, Input, NoDatum, Output, ValidityRange}
-use aiken/transaction/credential.{
-  Address, Credential, ScriptCredential, StakeCredential,
-  VerificationKeyCredential,
-}
-use aiken/transaction/value.{PolicyId, Value, add, from_asset, from_lovelace}
+use aiken/transaction.{InlineDatum, Input, NoDatum, Output}
+use aiken/transaction/value.{PolicyId, Value, add, from_asset}
 use aiken_virtual_dex/types.{
-  ChangeAccountDatum, EmergencyIncidentInitiation, EmergencyUnlockPhase1,
-  EmergencyUnlockPhase2, OracleDatum, TradeEmergencyDatum, TradeNormalDatum,
+  AccountNormalDatum, EmergencyUnlockPhase1, EmergencyUnlockPhase2, OracleDatum,
   VirtualDexDatum,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
-use sidan_placeholder/key_hex.{mock_policy_id, mock_script_hash_hex}
+use sidan_placeholder/address.{mock_pub_key_address, mock_script_address}
+use sidan_placeholder/key_hex.{
+  mock_policy_id, mock_pub_key_hex, mock_script_hash_hex,
+}
 use sidan_placeholder/output_reference.{mock_utxo_ref}
-
-pub fn mock_output() -> Output {
-  Output {
-    address: Address {
-      payment_credential: VerificationKeyCredential(""),
-      stake_credential: None,
-    },
-    value: from_lovelace(1000000),
-    datum: NoDatum,
-    reference_script: None,
-  }
-}
-
-// Pub Key Addresses
-
-pub fn mock_pub_key_hex(variation: Int) -> ByteArray {
-  when variation is {
-    1 -> #"a2c20c77887ace1cd986193e4e75babd8993cfd56995cd5cfce609c2"
-    2 -> #"e2cfca46ecdf7feb8a3a7f957ead86b88c156f3fdd9607bcb44eb8f5"
-    _ -> #"310b3e52ee714c92f723d4e3e4060fc8029f13f672872eefa742a716"
-  }
-}
-
-pub fn mock_verfication_key_credential(variation: Int) -> Credential {
-  VerificationKeyCredential(mock_pub_key_hex(variation))
-}
-
-pub fn mock_pub_key_address(variation: Int, stake_credential) -> Address {
-  Address {
-    payment_credential: mock_verfication_key_credential(variation),
-    stake_credential,
-  }
-}
-
-pub fn mock_interval(lower: Option<Int>, upper: Option<Int>) -> ValidityRange {
-  let lower_bound =
-    when lower is {
-      Some(lower_bound_number) ->
-        IntervalBound {
-          bound_type: Finite(lower_bound_number),
-          is_inclusive: True,
-        }
-      None -> IntervalBound { bound_type: NegativeInfinity, is_inclusive: True }
-    }
-  let upper_bound =
-    when upper is {
-      Some(upper_bound_number) ->
-        IntervalBound {
-          bound_type: Finite(upper_bound_number),
-          is_inclusive: True,
-        }
-      None -> IntervalBound { bound_type: PositiveInfinity, is_inclusive: True }
-    }
-
-  Interval { lower_bound, upper_bound }
-}
-
-// Script Addresses
-
-pub fn mock_script_credential(variation: Int) -> Credential {
-  ScriptCredential(mock_script_hash_hex(variation))
-}
-
-pub fn mock_script_address(
-  variation: Int,
-  stake_credential: Option<StakeCredential>,
-) -> Address {
-  Address {
-    payment_credential: mock_script_credential(variation),
-    stake_credential,
-  }
-}
 
 // Smart contract specific placeholders
 pub fn mock_oracle_policy_id() -> PolicyId {
@@ -161,98 +84,12 @@ pub fn mock_oracle_ref_input() -> Input {
   }
 }
 
-pub fn mock_trade_account_address() {
-  mock_script_address(3, None)
-}
-
-pub fn mock_trade_output(lovelace: Int) -> Output {
-  Output {
-    address: mock_trade_account_address(),
-    value: from_asset("", "", lovelace),
-    datum: InlineDatum(TradeNormalDatum),
-    reference_script: None,
-  }
-}
-
-pub fn mock_trade_input(variation: Int) -> Input {
-  Input {
-    output_reference: mock_utxo_ref(0, 10 + variation),
-    output: mock_trade_output(500_000_000),
-  }
-}
-
-pub fn mock_emergency_initiation_output(owner: ByteArray) -> Output {
-  Output {
-    address: mock_trade_account_address(),
-    value: from_asset("", "", 2_000_000),
-    datum: InlineDatum(EmergencyIncidentInitiation { owner }),
-    reference_script: None,
-  }
-}
-
-pub fn mock_emergency_initiation_input(variation: Int) -> Input {
-  Input {
-    output_reference: mock_utxo_ref(0, 20 + variation),
-    output: mock_emergency_initiation_output(mock_user_vkey_hex()),
-  }
-}
-
-pub fn mock_emergency_action_output(valid_since: Int, minter: ByteArray) {
-  Output {
-    address: mock_trade_account_address(),
-    value: from_asset("", "", 2_000_000)
-      |> add(
-          mock_emergency_token(),
-          get_emergency_token_name(mock_trade_account_address()),
-          1,
-        ),
-    datum: InlineDatum(TradeEmergencyDatum { valid_since, minter }),
-    reference_script: None,
-  }
-}
-
-pub fn mock_emergency_action_input(
-  variation: Int,
-  valid_since: Int,
-  minter: ByteArray,
-) -> Input {
-  Input {
-    output_reference: mock_utxo_ref(0, 30 + variation),
-    output: mock_emergency_action_output(valid_since, minter),
-  }
-}
-
 pub fn mock_user_output(value: Value) -> Output {
   Output {
     address: mock_user_address(),
     value,
     datum: NoDatum,
     reference_script: None,
-  }
-}
-
-pub fn mock_change_account_address() {
-  mock_script_address(4, None)
-}
-
-pub fn mock_change_output(lovelace: Int) -> Output {
-  Output {
-    address: mock_change_account_address(),
-    value: from_asset("", "", lovelace),
-    datum: InlineDatum(ChangeAccountDatum),
-    reference_script: None,
-  }
-}
-
-pub fn mock_change_input(variation: Int, lovelace: Int) -> Input {
-  Input {
-    output_reference: mock_utxo_ref(0, 40 + variation),
-    output: Output {
-      address: mock_change_account_address(),
-      value: from_asset("", "", lovelace),
-      datum: InlineDatum(ChangeAccountDatum),
-      reference_script: None,
-    },
   }
 }
 
@@ -288,6 +125,7 @@ pub fn mock_buy_ada_order_input(
   variation: Int,
   list_price_times_1mil: Int,
   lot_size: Int,
+  extra_lovelace: Int,
 ) {
   Input {
     output_reference: mock_utxo_ref(0, 50 + variation),
@@ -300,11 +138,11 @@ pub fn mock_buy_ada_order_input(
       ),
       datum: InlineDatum(
         VirtualDexDatum {
-          change_account_address: mock_change_account_address(),
-          trade_account_address: mock_trade_account_address(),
+          account_address: mock_account_address(),
           is_long: True,
           list_price_times_1mil,
           lot_size,
+          extra_lovelace,
         },
       ),
       reference_script: None,
@@ -316,6 +154,7 @@ pub fn mock_sell_ada_order_input(
   variation: Int,
   list_price_times_1mil: Int,
   lot_size: Int,
+  extra_lovelace: Int,
 ) {
   Input {
     output_reference: mock_utxo_ref(0, 60 + variation),
@@ -324,11 +163,11 @@ pub fn mock_sell_ada_order_input(
       value: from_asset("", "", lot_size),
       datum: InlineDatum(
         VirtualDexDatum {
-          change_account_address: mock_change_account_address(),
-          trade_account_address: mock_trade_account_address(),
+          account_address: mock_account_address(),
           is_long: True,
           list_price_times_1mil,
           lot_size,
+          extra_lovelace,
         },
       ),
       reference_script: None,
@@ -336,11 +175,11 @@ pub fn mock_sell_ada_order_input(
   }
 }
 
-pub fn mock_post_trade_trade_account_output(value: Value) -> Output {
+pub fn mock_post_trade_account_output(value: Value) -> Output {
   Output {
-    address: mock_trade_account_address(),
+    address: mock_account_address(),
     value,
-    datum: InlineDatum(TradeNormalDatum),
+    datum: InlineDatum(AccountNormalDatum),
     reference_script: None,
   }
 }
@@ -370,7 +209,6 @@ pub fn script_hash_4_4() -> ByteArray {
     |> blake2b_256()
     |> bytearray.take(28)
 }
-
 
 pub fn mock_account_address() {
   mock_script_address(3, None)
@@ -425,5 +263,62 @@ pub fn mock_account_input(variation: Int) -> Input {
   Input {
     output_reference: mock_utxo_ref(0, 10 + variation),
     output: mock_trade_output(500_000_000),
+  }
+}
+
+pub fn mock_trade_output(lovelace: Int) -> Output {
+  Output {
+    address: mock_account_address(),
+    value: from_asset("", "", lovelace),
+    datum: InlineDatum(AccountNormalDatum),
+    reference_script: None,
+  }
+}
+
+pub fn mock_trade_input(variation: Int) -> Input {
+  Input {
+    output_reference: mock_utxo_ref(0, 10 + variation),
+    output: mock_trade_output(500_000_000),
+  }
+}
+
+pub fn mock_emergency_initiation_output(owner: ByteArray) -> Output {
+  Output {
+    address: mock_account_address(),
+    value: from_asset("", "", 2_000_000),
+    datum: InlineDatum(EmergencyUnlockPhase1 { owner }),
+    reference_script: None,
+  }
+}
+
+pub fn mock_emergency_initiation_input(variation: Int) -> Input {
+  Input {
+    output_reference: mock_utxo_ref(0, 20 + variation),
+    output: mock_emergency_initiation_output(mock_user_vkey_hex()),
+  }
+}
+
+pub fn mock_emergency_action_output(valid_since: Int, minter: ByteArray) {
+  Output {
+    address: mock_account_address(),
+    value: from_asset("", "", 2_000_000)
+      |> add(
+          mock_emergency_token(),
+          get_emergency_token_name(mock_account_address()),
+          1,
+        ),
+    datum: InlineDatum(EmergencyUnlockPhase2 { valid_since, minter }),
+    reference_script: None,
+  }
+}
+
+pub fn mock_emergency_action_input(
+  variation: Int,
+  valid_since: Int,
+  minter: ByteArray,
+) -> Input {
+  Input {
+    output_reference: mock_utxo_ref(0, 30 + variation),
+    output: mock_emergency_action_output(valid_since, minter),
   }
 }

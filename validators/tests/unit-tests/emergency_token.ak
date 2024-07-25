@@ -1,14 +1,14 @@
 use aiken/transaction.{Mint, ScriptContext, Transaction, placeholder}
 use aiken/transaction/value.{add, from_asset, to_minted_value}
 use aiken_virtual_dex/placeholder.{
-  mock_emergency_action_output, mock_emergency_initiation_input,
-  mock_emergency_token, mock_interval, mock_trade_account_address,
-  mock_user_vkey_hex,
+  mock_account_address, mock_emergency_action_output,
+  mock_emergency_initiation_input, mock_emergency_token, mock_user_vkey_hex,
 }
 use aiken_virtual_dex/types.{EBurn, EMint}
 use aiken_virtual_dex/utils.{get_emergency_token_name}
 use aiken_virtual_dex/validators/emergency_token.{emergency_token_logic}
 use sidan_placeholder/key_hex.{mock_policy_id}
+use sidan_placeholder/validity_range.{mock_interval}
 
 type TestCase {
   is_owner_signed: Bool,
@@ -44,7 +44,7 @@ fn mint_test_case(test_case: TestCase) {
       to_minted_value(
         from_asset(
           mock_emergency_token(),
-          get_emergency_token_name(mock_trade_account_address()),
+          get_emergency_token_name(mock_account_address()),
           1,
         ),
       )
@@ -87,10 +87,7 @@ fn mint_test_case(test_case: TestCase) {
 
 test success_mint() {
   let redeemer =
-    EMint {
-      current_timestamp: 100,
-      trade_account_address: mock_trade_account_address(),
-    }
+    EMint { current_timestamp: 100, account_address: mock_account_address() }
   let policy_id = mock_emergency_token()
 
   let tx = mint_test_case(base_test_case())
@@ -100,10 +97,7 @@ test success_mint() {
 
 test fail_mint_without_owner_signature() {
   let redeemer =
-    EMint {
-      current_timestamp: 100,
-      trade_account_address: mock_trade_account_address(),
-    }
+    EMint { current_timestamp: 100, account_address: mock_account_address() }
   let policy_id = mock_emergency_token()
 
   let tx =
@@ -114,10 +108,7 @@ test fail_mint_without_owner_signature() {
 
 test fail_mint_with_incorrect_emergency_token_name() {
   let redeemer =
-    EMint {
-      current_timestamp: 100,
-      trade_account_address: mock_trade_account_address(),
-    }
+    EMint { current_timestamp: 100, account_address: mock_account_address() }
   let policy_id = mock_emergency_token()
 
   let tx =
@@ -130,10 +121,7 @@ test fail_mint_with_incorrect_emergency_token_name() {
 
 test fail_mint_without_correct_datum() {
   let redeemer =
-    EMint {
-      current_timestamp: 100,
-      trade_account_address: mock_trade_account_address(),
-    }
+    EMint { current_timestamp: 100, account_address: mock_account_address() }
   let policy_id = mock_emergency_token()
 
   let tx =
@@ -144,10 +132,7 @@ test fail_mint_without_correct_datum() {
 
 test fail_mint_with_invalid_time() {
   let redeemer =
-    EMint {
-      current_timestamp: 100,
-      trade_account_address: mock_trade_account_address(),
-    }
+    EMint { current_timestamp: 100, account_address: mock_account_address() }
   let policy_id = mock_emergency_token()
 
   let tx = mint_test_case(TestCase { ..base_test_case(), is_time_valid: False })

@@ -28,8 +28,6 @@ There are in total 6 scripts for the DeltaDeFi virtual dex to work. Below provid
    - The script governing the transaction logic.
    - Action specification:
      - 5.1: Take Orders - [specification](./5_virtual_dex/5.1_take_orders.md)
-     - 5.2: Cancel Order - [specification](./5_virtual_dex/5.2_cancel_order.md)
-     - 5.3: Emergency Cancel - [specification](./5_virtual_dex/5.3_emergency_cancel.md)
 
 ## Param Dependency Graph
 

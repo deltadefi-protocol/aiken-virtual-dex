@@ -3,8 +3,8 @@ use aiken_virtual_dex/common.{
   check_policy_only_burn, inputs_at, output_inline_datum, outputs_at,
 }
 use aiken_virtual_dex/types.{
-  EBurn, EMint, EmergencyIncidentInitiation, EmergencyTokenMintingPolarity,
-  TradeAccountDatum, TradeEmergencyDatum,
+  AccountDatum, EBurn, EMint, EmergencyTokenMintingPolarity,
+  EmergencyUnlockPhase1, EmergencyUnlockPhase2,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
 use sidan_utils/extra_signatories.{key_signed}
@@ -18,7 +18,7 @@ pub fn emergency_token_logic(
   let ScriptContext { purpose, transaction } = context
   expect Mint(current_policy) = purpose
   when redeemer is {
-    EMint { current_timestamp, trade_account_address } -> {
+    EMint { current_timestamp, account_address } -> {
       let Transaction {
         inputs,
         outputs,
@@ -27,17 +27,17 @@ pub fn emergency_token_logic(
         validity_range,
         ..
       } = transaction
-      expect [initiation_input] = inputs_at(inputs, trade_account_address)
-      expect EmergencyIncidentInitiation { owner }: TradeAccountDatum =
+      expect [initiation_input] = inputs_at(inputs, account_address)
+      expect EmergencyUnlockPhase1 { owner }: AccountDatum =
         output_inline_datum(initiation_input.output)
-      expect [emergency_output] = outputs_at(outputs, trade_account_address)
-      expect TradeEmergencyDatum { valid_since, minter }: TradeAccountDatum =
+      expect [emergency_output] = outputs_at(outputs, account_address)
+      expect EmergencyUnlockPhase2 { valid_since, minter }: AccountDatum =
         output_inline_datum(emergency_output)
       let is_emergency_token_name_correct =
         only_minted_token(
           mint,
           current_policy,
-          get_emergency_token_name(trade_account_address),
+          get_emergency_token_name(account_address),
           1,
         )
       let is_datum_correct = owner == minter && valid_since == current_timestamp

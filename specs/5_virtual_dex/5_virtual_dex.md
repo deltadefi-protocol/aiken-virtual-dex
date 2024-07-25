@@ -4,35 +4,27 @@
 
 - `oracle_nft`: The policy id of `OracleNFT`
 - `emergency_token`: The policy id of the emergency token
-- `param_long_token`: The long side of token in trading pairs
-- `param_short_token`: The short side of token in trading pairs
+- `take_orders`: The script hash of `take_orders` withdrawal script
 
 ## Datum
 
-- `change_account_address`: The address of the change account number of the owner
-- `trade_account_address`: The address of the trade account number of the owner
+- `account_address`: The address of the account number of the owner
 - `is_long`: If the current order is for buying long token (`buy_token`)
 - `list_price_times_10k`: Order exchange in a rate of `list_price` \* `lot_size` = quantity of `param_short_token`
 - `lot_size`: Quantity of `sell token` in this order
+- `extra_lovelace`: The extra lovelace provided in the utxo, to be returned to `Account`
 
 ## User Action
 
-1. Core logic of taking orders - Redeemer `TakeOrder {order_taker}`
+1. Core logic of taking orders - Redeemer `TakeOrders`
 
-   - Reference to oracle utxo
-   - Accumulate proceeds supposed send to order creators, check output value to them
-   - Signed by operation key
+   - Withdrawal script of `take_orders` validating
 
-2. Bypassing check if any other redeemer is with the core logic - Redeemer `MassTakeOrder { take_order_input }`
+2. Cancelling order which is mistakenly listed onchain - Redeemer `CancelOrder`
 
-   - The input provided by redeemer comes from same address ad own input
-   - The input provided by redeemer is with correct redeemer of `TakeOrder`
-
-3. Cancelling order which is mistakenly listed onchain - Redeemer `CancelOrder`
-
-   - Whole value spent to `TradeAccount` with correct owner in datum
+   - Whole value spent to `Account` with correct owner in datum
    - signed by both `operating_key` and owner
 
-4. Emergency operation - Redeemer `EmergencyCancel`
+3. Emergency operation - Redeemer `EmergencyCancel`
 
    - `EmergencyToken` with token name hashing `trade_account_address` burnt in current transaction
