@@ -3,7 +3,7 @@ use aiken/transaction/credential.{Inline, ScriptCredential}
 use aiken_virtual_dex/placeholder.{
   mock_account_address, mock_account_input, mock_emergency_token,
   mock_emergency_unlock_phase2_input, mock_operation_key, mock_user_vkey_hex,
-  script_hash_3_4,
+  script_hash_4_4,
 }
 use aiken_virtual_dex/types.{
   AccountEmergencyActionPhase2Redeemer, AccountEmergencyUnlockPhase2,
@@ -20,7 +20,7 @@ use sidan_placeholder/output_reference.{mock_utxo_ref}
 use sidan_placeholder/transaction.{add_input, add_redeemer} as sidan_tx
 use tests/unit_tests/account/account.{account_process}
 
-type TestCase34 {
+type TestCase44 {
   is_owner_signed: Bool,
   is_input_datum_correct: Bool,
   is_time_valid: Bool,
@@ -29,7 +29,7 @@ type TestCase34 {
 }
 
 fn base_emergency_action_test_case() {
-  TestCase34 {
+  TestCase44 {
     is_owner_signed: True,
     is_input_datum_correct: True,
     is_time_valid: True,
@@ -46,8 +46,8 @@ fn mock_redeemer() {
   }
 }
 
-fn mock_emergency_action_test_case(test_case: TestCase34) {
-  let TestCase34 {
+fn mock_emergency_action_test_case(test_case: TestCase44) {
+  let TestCase44 {
     is_owner_signed,
     is_input_datum_correct,
     is_time_valid,
@@ -67,7 +67,7 @@ fn mock_emergency_action_test_case(test_case: TestCase34) {
       )
     |> invalid_before(is_time_valid, 101)
     |> invalid_before(!is_time_valid, 99)
-    |> script_withdrawal(is_withdrawal_script_present, script_hash_3_4(), 0)
+    |> script_withdrawal(is_withdrawal_script_present, script_hash_4_4(), 0)
     |> complete()
     |> add_input(True, mock_account_input(1))
     |> add_input(True, mock_account_input(2))
@@ -81,16 +81,16 @@ fn mock_emergency_action_test_case(test_case: TestCase34) {
       )
     |> add_redeemer(
         True,
-        Pair(WithdrawFrom(Inline(ScriptCredential(script_hash_3_4()))),
+        Pair(WithdrawFrom(Inline(ScriptCredential(script_hash_4_4()))),
         redeemer),
       )
 }
 
-test t3_4_success() {
+test t4_4_success() {
   let tx = mock_emergency_action_test_case(base_emergency_action_test_case())
   let ctx =
     ScriptContext {
-      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_3_4()))),
+      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_4()))),
       transaction: tx,
     }
   account_process(31, tx, AccountEmergencyUnlockPhase2) && account_emergency_unlock_phase_2_logic(
@@ -100,14 +100,14 @@ test t3_4_success() {
   )
 }
 
-test t3_4_failed_emergency_withdraw_without_owner_signature() {
+test t4_4_failed_emergency_withdraw_without_owner_signature() {
   let tx =
     mock_emergency_action_test_case(
-      TestCase34 { ..base_emergency_action_test_case(), is_owner_signed: False },
+      TestCase44 { ..base_emergency_action_test_case(), is_owner_signed: False },
     )
   let ctx =
     ScriptContext {
-      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_3_4()))),
+      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_4()))),
       transaction: tx,
     }
   account_process(31, tx, AccountEmergencyUnlockPhase2) && !account_emergency_unlock_phase_2_logic(
@@ -117,14 +117,14 @@ test t3_4_failed_emergency_withdraw_without_owner_signature() {
   )
 }
 
-test t3_4_failed_emergency_withdraw_with_invalid_time() {
+test t4_4_failed_emergency_withdraw_with_invalid_time() {
   let tx =
     mock_emergency_action_test_case(
-      TestCase34 { ..base_emergency_action_test_case(), is_time_valid: False },
+      TestCase44 { ..base_emergency_action_test_case(), is_time_valid: False },
     )
   let ctx =
     ScriptContext {
-      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_3_4()))),
+      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_4()))),
       transaction: tx,
     }
   account_process(31, tx, AccountEmergencyUnlockPhase2) && !account_emergency_unlock_phase_2_logic(
@@ -134,17 +134,17 @@ test t3_4_failed_emergency_withdraw_with_invalid_time() {
   )
 }
 
-test t3_4_failed_emergency_withdraw_without_emergency_token_burnt() {
+test t4_4_failed_emergency_withdraw_without_emergency_token_burnt() {
   let tx =
     mock_emergency_action_test_case(
-      TestCase34 {
+      TestCase44 {
         ..base_emergency_action_test_case(),
         is_emergency_token_burnt: False,
       },
     )
   let ctx =
     ScriptContext {
-      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_3_4()))),
+      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_4()))),
       transaction: tx,
     }
   account_process(31, tx, AccountEmergencyUnlockPhase2) && !account_emergency_unlock_phase_2_logic(
@@ -154,17 +154,17 @@ test t3_4_failed_emergency_withdraw_without_emergency_token_burnt() {
   )
 }
 
-test t3_4_failed_initiate_emergency_without_withdrawal() {
+test t4_4_failed_initiate_emergency_without_withdrawal() {
   let tx =
     mock_emergency_action_test_case(
-      TestCase34 {
+      TestCase44 {
         ..base_emergency_action_test_case(),
         is_withdrawal_script_present: False,
       },
     )
   let ctx =
     ScriptContext {
-      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_3_4()))),
+      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_4()))),
       transaction: tx,
     }
   !account_process(31, tx, AccountEmergencyUnlockPhase2) && account_emergency_unlock_phase_2_logic(

@@ -3,7 +3,7 @@ use aiken/transaction/credential.{Inline, ScriptCredential}
 use aiken/transaction/value.{from_lovelace}
 use aiken_virtual_dex/placeholder.{
   mock_account_address, mock_another_account_address, mock_operation_key,
-  mock_oracle_policy_id, mock_oracle_ref_input, script_hash_3_2,
+  mock_oracle_policy_id, mock_oracle_ref_input, script_hash_4_2,
 }
 use aiken_virtual_dex/types.{AccountAppUnlock, AccountNormalDatum}
 use aiken_virtual_dex/validators/account/app_unlock.{account_app_unlock_logic}
@@ -15,15 +15,15 @@ use sidan_placeholder/output_reference.{mock_tx_hash}
 use sidan_placeholder/transaction.{add_reference_input} as sidan_transaction
 use tests/unit_tests/account/account.{account_process} as taccount
 
-type TestCase32 {
+type TestCase42 {
   is_operation_key_signed: Bool,
   is_value_resepnt_into_account: Bool,
   is_only_single_account: Bool,
   is_withdrawal_script_present: Bool,
 }
 
-fn base_test_case_3_2() {
-  TestCase32 {
+fn base_test_case_4_2() {
+  TestCase42 {
     is_operation_key_signed: True,
     is_value_resepnt_into_account: True,
     is_only_single_account: True,
@@ -31,8 +31,8 @@ fn base_test_case_3_2() {
   }
 }
 
-fn mock_test_case_3_2(number_of_inputs: Int, test_case: TestCase32) {
-  let TestCase32 {
+fn mock_test_case_4_2(number_of_inputs: Int, test_case: TestCase42) {
+  let TestCase42 {
     is_operation_key_signed,
     is_value_resepnt_into_account,
     is_only_single_account,
@@ -85,16 +85,16 @@ fn mock_test_case_3_2(number_of_inputs: Int, test_case: TestCase32) {
       )
     |> tx_out_inline_datum(is_value_resepnt_into_account, AccountNormalDatum)
     |> required_signer_hash(is_operation_key_signed, mock_operation_key())
-    |> script_withdrawal(is_withdrawal_script_present, script_hash_3_2(), 0)
+    |> script_withdrawal(is_withdrawal_script_present, script_hash_4_2(), 0)
     |> complete()
     |> add_reference_input(True, mock_oracle_ref_input())
 }
 
-test t3_2_success() {
-  let tx = mock_test_case_3_2(10, base_test_case_3_2())
+test t4_2_success() {
+  let tx = mock_test_case_4_2(10, base_test_case_4_2())
   let withdrawal_ctx =
     ScriptContext {
-      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_3_2()))),
+      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_2()))),
       transaction: tx,
     }
   account_process(0, tx, AccountAppUnlock) && account_app_unlock_logic(
@@ -104,15 +104,15 @@ test t3_2_success() {
   )
 }
 
-test t3_2_failed_without_operation_key_signed() {
+test t4_2_failed_without_operation_key_signed() {
   let tx =
-    mock_test_case_3_2(
+    mock_test_case_4_2(
       10,
-      TestCase32 { ..base_test_case_3_2(), is_operation_key_signed: False },
+      TestCase42 { ..base_test_case_4_2(), is_operation_key_signed: False },
     )
   let withdrawal_ctx =
     ScriptContext {
-      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_3_2()))),
+      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_2()))),
       transaction: tx,
     }
   account_process(0, tx, AccountAppUnlock) && !account_app_unlock_logic(
@@ -122,18 +122,18 @@ test t3_2_failed_without_operation_key_signed() {
   )
 }
 
-test t3_2_failed_without_value_resepnt_into_account() {
+test t4_2_failed_without_value_resepnt_into_account() {
   let tx =
-    mock_test_case_3_2(
+    mock_test_case_4_2(
       10,
-      TestCase32 {
-        ..base_test_case_3_2(),
+      TestCase42 {
+        ..base_test_case_4_2(),
         is_value_resepnt_into_account: False,
       },
     )
   let withdrawal_ctx =
     ScriptContext {
-      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_3_2()))),
+      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_2()))),
       transaction: tx,
     }
   account_process(0, tx, AccountAppUnlock) && !account_app_unlock_logic(
@@ -143,15 +143,15 @@ test t3_2_failed_without_value_resepnt_into_account() {
   )
 }
 
-test t3_2_failed_with_other_account_unlock_attempt() {
+test t4_2_failed_with_other_account_unlock_attempt() {
   let tx =
-    mock_test_case_3_2(
+    mock_test_case_4_2(
       10,
-      TestCase32 { ..base_test_case_3_2(), is_only_single_account: False },
+      TestCase42 { ..base_test_case_4_2(), is_only_single_account: False },
     )
   let withdrawal_ctx =
     ScriptContext {
-      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_3_2()))),
+      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_2()))),
       transaction: tx,
     }
   account_process(0, tx, AccountAppUnlock) && !account_app_unlock_logic(
@@ -161,15 +161,15 @@ test t3_2_failed_with_other_account_unlock_attempt() {
   )
 }
 
-test t3_2_failed_without_withdrawal_script_present() {
+test t4_2_failed_without_withdrawal_script_present() {
   let tx =
-    mock_test_case_3_2(
+    mock_test_case_4_2(
       10,
-      TestCase32 { ..base_test_case_3_2(), is_withdrawal_script_present: False },
+      TestCase42 { ..base_test_case_4_2(), is_withdrawal_script_present: False },
     )
   let withdrawal_ctx =
     ScriptContext {
-      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_3_2()))),
+      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_2()))),
       transaction: tx,
     }
   !account_process(0, tx, AccountAppUnlock) && account_app_unlock_logic(

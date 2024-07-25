@@ -18,30 +18,6 @@ use aiken_virtual_dex/utils.{get_emergency_token_name}
 use sidan_placeholder/key_hex.{mock_policy_id, mock_script_hash_hex}
 use sidan_placeholder/output_reference.{mock_utxo_ref}
 
-pub fn script_hash_3_1() -> ByteArray {
-  bytearray.concat(mock_script_hash_hex(3), #"01")
-    |> blake2b_256()
-    |> bytearray.take(28)
-}
-
-pub fn script_hash_3_2() -> ByteArray {
-  bytearray.concat(mock_script_hash_hex(3), #"02")
-    |> blake2b_256()
-    |> bytearray.take(28)
-}
-
-pub fn script_hash_3_3() -> ByteArray {
-  bytearray.concat(mock_script_hash_hex(3), #"03")
-    |> blake2b_256()
-    |> bytearray.take(28)
-}
-
-pub fn script_hash_3_4() -> ByteArray {
-  bytearray.concat(mock_script_hash_hex(3), #"04")
-    |> blake2b_256()
-    |> bytearray.take(28)
-}
-
 pub fn mock_output() -> Output {
   Output {
     address: Address {
@@ -370,6 +346,31 @@ pub fn mock_post_trade_trade_account_output(value: Value) -> Output {
 }
 
 // New placeholder
+
+pub fn script_hash_4_1() -> ByteArray {
+  bytearray.concat(mock_script_hash_hex(3), #"01")
+    |> blake2b_256()
+    |> bytearray.take(28)
+}
+
+pub fn script_hash_4_2() -> ByteArray {
+  bytearray.concat(mock_script_hash_hex(3), #"02")
+    |> blake2b_256()
+    |> bytearray.take(28)
+}
+
+pub fn script_hash_4_3() -> ByteArray {
+  bytearray.concat(mock_script_hash_hex(3), #"03")
+    |> blake2b_256()
+    |> bytearray.take(28)
+}
+
+pub fn script_hash_4_4() -> ByteArray {
+  bytearray.concat(mock_script_hash_hex(3), #"04")
+    |> blake2b_256()
+    |> bytearray.take(28)
+}
+
 
 pub fn mock_account_address() {
   mock_script_address(3, None)
