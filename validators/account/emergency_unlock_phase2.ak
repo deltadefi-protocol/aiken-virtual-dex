@@ -6,7 +6,7 @@ use aiken_virtual_dex/validators/account/emergency_unlock_phase2.{
 }
 
 validator(emergency_token: PolicyId) {
-  pub fn account_emergency_unlock_phase_2(
+  fn account_emergency_unlock_phase_2(
     redeemer: AccountEmergencyActionPhase2Redeemer,
     context: ScriptContext,
   ) -> Bool {

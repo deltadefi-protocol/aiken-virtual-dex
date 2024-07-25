@@ -2,11 +2,12 @@ use aiken/transaction.{Input, ScriptContext, WithdrawFrom}
 use aiken/transaction/credential.{Inline, ScriptCredential}
 use aiken_virtual_dex/placeholder.{
   mock_account_address, mock_emergency_token, mock_emergency_unlock_phase1_input,
-  mock_emergency_unlock_phase1_output, mock_emergency_unlock_phase2_output,
-  mock_operation_key, mock_user_vkey_hex, script_hash_4_3,
+  mock_emergency_unlock_phase1_output, mock_emergency_unlock_phase1_utxo,
+  mock_emergency_unlock_phase2_output, mock_operation_key, mock_user_vkey_hex,
+  script_hash_4_3,
 }
 use aiken_virtual_dex/types.{
-  AccountEmergencyPhase1Redeemer, AccountEmergencyUnlockPhase1,
+  AccountEmergencyActionPhase1Redeemer, AccountEmergencyUnlockPhase1,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
 use aiken_virtual_dex/validators/account/emergency_unlock_phase1.{
@@ -42,9 +43,9 @@ fn base_test_case() {
 }
 
 fn mock_redeemer() {
-  AccountEmergencyPhase1Redeemer {
+  AccountEmergencyActionPhase1Redeemer {
     owner: mock_user_vkey_hex(),
-    own_input: mock_emergency_unlock_phase1_input(1),
+    own_input: mock_emergency_unlock_phase1_utxo(1),
     initiate_before: 100,
   }
 }
@@ -154,7 +155,7 @@ test t4_3_failed_initiate_emergency_without_correct_input_datum() {
       purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_3()))),
       transaction: tx,
     }
-  !account_process(21, tx, AccountEmergencyUnlockPhase1) && account_emergency_unlock_phase_1_logic(
+  account_process(21, tx, AccountEmergencyUnlockPhase1) && !account_emergency_unlock_phase_1_logic(
     mock_emergency_token(),
     mock_redeemer(),
     ctx,

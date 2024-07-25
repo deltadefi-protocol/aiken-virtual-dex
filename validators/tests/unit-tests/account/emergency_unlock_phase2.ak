@@ -2,8 +2,8 @@ use aiken/transaction.{ScriptContext, WithdrawFrom}
 use aiken/transaction/credential.{Inline, ScriptCredential}
 use aiken_virtual_dex/placeholder.{
   mock_account_address, mock_account_input, mock_emergency_token,
-  mock_emergency_unlock_phase2_input, mock_operation_key, mock_user_vkey_hex,
-  script_hash_4_4,
+  mock_emergency_unlock_phase2_input, mock_emergency_unlock_phase2_utxo,
+  mock_operation_key, mock_user_vkey_hex, script_hash_4_4,
 }
 use aiken_virtual_dex/types.{
   AccountEmergencyActionPhase2Redeemer, AccountEmergencyUnlockPhase2,
@@ -41,7 +41,7 @@ fn base_emergency_action_test_case() {
 fn mock_redeemer() {
   AccountEmergencyActionPhase2Redeemer {
     owner: mock_user_vkey_hex(),
-    own_input: mock_emergency_unlock_phase2_input(1, 100, mock_user_vkey_hex()),
+    own_input: mock_emergency_unlock_phase2_utxo(1),
     withdraw_output: mock_utxo_ref(0, 31),
   }
 }

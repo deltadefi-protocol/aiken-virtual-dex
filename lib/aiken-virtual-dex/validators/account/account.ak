@@ -1,10 +1,10 @@
 use aiken/hash.{Blake2b_224, Hash}
 use aiken/pairs
-use aiken/transaction.{ScriptContext, Spend, Transaction, find_input}
+use aiken/transaction.{ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Inline, Script, ScriptCredential}
 use aiken_virtual_dex/types.{
-  AccountAppUnlock, AccountDatum, AccountEmergencyActionPhase2Redeemer,
-  AccountEmergencyPhase1Redeemer, AccountEmergencyUnlockPhase1,
+  AccountAppUnlock, AccountDatum, AccountEmergencyActionPhase1Redeemer,
+  AccountEmergencyActionPhase2Redeemer, AccountEmergencyUnlockPhase1,
   AccountEmergencyUnlockPhase2, AccountRedeemer, AccountUserUnlock,
 }
 use sidan_utils/redeemers.{withdrawal_redeemer}
@@ -36,16 +36,15 @@ pub fn account_logic(
         [Pair(stake_cred, _)] -> {
           expect Inline(ScriptCredential(stake_script_hash)) = stake_cred
           expect Spend(own_utxo) = purpose
-          expect Some(own_input) = find_input(transaction.inputs, own_utxo)
           expect Some(withdrawal_script_redeemer) =
             transaction.redeemers |> withdrawal_redeemer(stake_script_hash)
-          expect AccountEmergencyPhase1Redeemer {
+          expect AccountEmergencyActionPhase1Redeemer {
             owner: redeemer_owner,
             own_input: redeemer_own_input,
             ..
-          }: AccountEmergencyPhase1Redeemer = withdrawal_script_redeemer
+          }: AccountEmergencyActionPhase1Redeemer = withdrawal_script_redeemer
           let is_withdrawal_redeemer_correct =
-            redeemer_owner == owner && redeemer_own_input == own_input
+            redeemer_owner == owner && redeemer_own_input == own_utxo
           let is_withdrawal_script_present =
             stake_script_hash == emergency_unlock_phase1
           is_withdrawal_redeemer_correct && is_withdrawal_script_present
@@ -57,7 +56,6 @@ pub fn account_logic(
         [Pair(stake_cred, _)] -> {
           expect Inline(ScriptCredential(stake_script_hash)) = stake_cred
           expect Spend(own_utxo) = purpose
-          expect Some(own_input) = find_input(transaction.inputs, own_utxo)
           expect Some(withdrawal_script_redeemer) =
             transaction.redeemers |> withdrawal_redeemer(stake_script_hash)
           expect AccountEmergencyActionPhase2Redeemer {
@@ -66,7 +64,7 @@ pub fn account_logic(
             ..
           }: AccountEmergencyActionPhase2Redeemer = withdrawal_script_redeemer
           let is_withdrawal_redeemer_correct =
-            redeemer_owner == owner && redeemer_own_input == own_input
+            redeemer_owner == owner && redeemer_own_input == own_utxo
           let is_withdrawal_script_present =
             stake_script_hash == emergency_unlock_phase2
           is_withdrawal_redeemer_correct && is_withdrawal_script_present

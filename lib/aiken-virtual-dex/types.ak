@@ -1,4 +1,4 @@
-use aiken/transaction.{Input, OutputReference}
+use aiken/transaction.{OutputReference}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{PolicyId}
 
@@ -41,15 +41,15 @@ pub type AccountDatum {
   EmergencyUnlockPhase2 { valid_since: Int, minter: ByteArray }
 }
 
-pub type AccountEmergencyPhase1Redeemer {
+pub type AccountEmergencyActionPhase1Redeemer {
   owner: ByteArray,
-  own_input: Input,
+  own_input: OutputReference,
   initiate_before: Int,
 }
 
 pub type AccountEmergencyActionPhase2Redeemer {
   owner: ByteArray,
-  own_input: Input,
+  own_input: OutputReference,
   withdraw_output: OutputReference,
 }
 

@@ -1,6 +1,6 @@
 use aiken/bytearray
 use aiken/hash.{blake2b_256}
-use aiken/transaction.{InlineDatum, Input, NoDatum, Output}
+use aiken/transaction.{InlineDatum, Input, NoDatum, Output, OutputReference}
 use aiken/transaction/value.{PolicyId, Value, add, from_asset}
 use aiken_virtual_dex/types.{
   AccountNormalDatum, AccountOracleDatum, DexOracleDatum, EmergencyUnlockPhase1,
@@ -271,9 +271,13 @@ pub fn mock_emergency_unlock_phase1_output(owner: ByteArray) -> Output {
   }
 }
 
+pub fn mock_emergency_unlock_phase1_utxo(variation: Int) -> OutputReference {
+  mock_utxo_ref(0, 20 + variation)
+}
+
 pub fn mock_emergency_unlock_phase1_input(variation: Int) -> Input {
   Input {
-    output_reference: mock_utxo_ref(0, 20 + variation),
+    output_reference: mock_emergency_unlock_phase1_utxo(variation),
     output: mock_emergency_unlock_phase1_output(mock_user_vkey_hex()),
   }
 }
@@ -292,13 +296,17 @@ pub fn mock_emergency_unlock_phase2_output(valid_since: Int, minter: ByteArray) 
   }
 }
 
+pub fn mock_emergency_unlock_phase2_utxo(variation: Int) -> OutputReference {
+  mock_utxo_ref(0, 30 + variation)
+}
+
 pub fn mock_emergency_unlock_phase2_input(
   variation: Int,
   valid_since: Int,
   minter: ByteArray,
 ) -> Input {
   Input {
-    output_reference: mock_utxo_ref(0, 30 + variation),
+    output_reference: mock_emergency_unlock_phase2_utxo(variation),
     output: mock_emergency_unlock_phase2_output(valid_since, minter),
   }
 }

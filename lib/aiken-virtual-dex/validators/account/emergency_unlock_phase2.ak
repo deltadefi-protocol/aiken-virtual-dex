@@ -19,6 +19,7 @@ pub fn account_emergency_unlock_phase_2_logic(
     redeemer
   expect WithdrawFrom(_) = purpose
   expect Some(input) = find_input(transaction.inputs, withdraw_output)
+  expect Some(own_input) = find_input(transaction.inputs, own_input)
   expect InlineDatum(raw_datum) = input.output.datum
   expect casted_datum: AccountDatum = raw_datum
   when casted_datum is {
