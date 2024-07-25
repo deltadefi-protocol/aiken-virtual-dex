@@ -35,11 +35,11 @@ pub fn account_logic(
             own_input: redeemer_own_input,
             ..
           }: AccountEmergencyActionPhase1Redeemer = withdrawal_script_redeemer
-          let is_withdrawal_rdeemer_correct =
+          let is_withdrawal_redeemer_correct =
             redeemer_owner == owner && redeemer_own_input == own_input
           let is_withdrawal_script_present =
             stake_script_hash == emergency_unlock_phase1
-          is_withdrawal_rdeemer_correct && is_withdrawal_script_present
+          is_withdrawal_redeemer_correct && is_withdrawal_script_present
         }
         AccountEmergencyUnlockPhase2 -> {
           expect Spend(own_utxo) = purpose
@@ -51,11 +51,11 @@ pub fn account_logic(
             own_input: redeemer_own_input,
             ..
           }: AccountEmergencyActionPhase2Redeemer = withdrawal_script_redeemer
-          let is_withdrawal_rdeemer_correct =
+          let is_withdrawal_redeemer_correct =
             redeemer_owner == owner && redeemer_own_input == own_input
           let is_withdrawal_script_present =
             stake_script_hash == emergency_unlock_phase2
-          is_withdrawal_rdeemer_correct && is_withdrawal_script_present
+          is_withdrawal_redeemer_correct && is_withdrawal_script_present
         }
       }
     }

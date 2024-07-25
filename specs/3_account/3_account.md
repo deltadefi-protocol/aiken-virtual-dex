@@ -34,8 +34,10 @@
 
 3. Emergency operation phase 1 - Redeemer `AccountEmergencyUnlockPhase1 {owner, initiate_before}`
 
+   - Supplying owner and own_input information for the withdrawal script
    - Withdrawal script of `emergency_unlock_phase1` validating
 
 4. Emergency operation phase 2 - Redeemer `AccountEmergencyUnlockPhase2 {owner, withdraw_output}`
 
+   - Supplying owner and own_input information for the withdrawal script
    - Withdrawal script of `emergency_unlock_phase2` validating
