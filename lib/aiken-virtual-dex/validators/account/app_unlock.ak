@@ -3,7 +3,7 @@ use aiken/transaction.{ScriptContext, Transaction, WithdrawFrom}
 use aiken/transaction/value.{PolicyId, merge, zero}
 use aiken_virtual_dex/common.{get_all_value_to,
   only_input_datum_with, value_geq}
-use aiken_virtual_dex/types.{OracleDatum}
+use aiken_virtual_dex/types.{AccountOracleDatum}
 use sidan_utils/address.{address_script_hash}
 use sidan_utils/extra_signatories.{key_signed}
 
@@ -15,7 +15,7 @@ pub fn account_app_unlock_logic(
   let ScriptContext { purpose, transaction } = context
   let Transaction { inputs, outputs, extra_signatories, .. } = transaction
   expect WithdrawFrom(_) = purpose
-  expect OracleDatum { operation_key, .. }: OracleDatum =
+  expect AccountOracleDatum { operation_key, .. }: AccountOracleDatum =
     only_input_datum_with(transaction.reference_inputs, oracle_nft, "")
 
   let (is_only_single_script_address, maybe_script_address, account_input_value) =

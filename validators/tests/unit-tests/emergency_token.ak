@@ -85,7 +85,7 @@ fn mint_test_case(test_case: TestCase) {
   }
 }
 
-test success_mint() {
+test t2_1_success_mint() {
   let redeemer =
     EMint { current_timestamp: 100, account_address: mock_account_address() }
   let policy_id = mock_emergency_token()
@@ -95,7 +95,7 @@ test success_mint() {
   emergency_token_logic(redeemer, ctx)
 }
 
-test fail_mint_without_owner_signature() {
+test t2_1_fail_mint_without_owner_signature() {
   let redeemer =
     EMint { current_timestamp: 100, account_address: mock_account_address() }
   let policy_id = mock_emergency_token()
@@ -106,7 +106,7 @@ test fail_mint_without_owner_signature() {
   !emergency_token_logic(redeemer, ctx)
 }
 
-test fail_mint_with_incorrect_emergency_token_name() {
+test t2_1_fail_mint_with_incorrect_emergency_token_name() {
   let redeemer =
     EMint { current_timestamp: 100, account_address: mock_account_address() }
   let policy_id = mock_emergency_token()
@@ -119,7 +119,7 @@ test fail_mint_with_incorrect_emergency_token_name() {
   !emergency_token_logic(redeemer, ctx)
 }
 
-test fail_mint_without_correct_datum() {
+test t2_1_fail_mint_without_correct_datum() {
   let redeemer =
     EMint { current_timestamp: 100, account_address: mock_account_address() }
   let policy_id = mock_emergency_token()
@@ -130,7 +130,7 @@ test fail_mint_without_correct_datum() {
   !emergency_token_logic(redeemer, ctx)
 }
 
-test fail_mint_with_invalid_time() {
+test t2_1_fail_mint_with_invalid_time() {
   let redeemer =
     EMint { current_timestamp: 100, account_address: mock_account_address() }
   let policy_id = mock_emergency_token()
@@ -140,7 +140,7 @@ test fail_mint_with_invalid_time() {
   !emergency_token_logic(redeemer, ctx)
 }
 
-test success_burn() {
+test t2_2_success_burn() {
   let redeemer = EBurn
   let policy_id = mock_emergency_token()
 
@@ -153,7 +153,7 @@ test success_burn() {
   emergency_token_logic(redeemer, ctx)
 }
 
-test success_burn_with_other_minting() {
+test t2_2_success_burn_with_other_minting() {
   let redeemer = EBurn
   let policy_id = mock_emergency_token()
 
@@ -168,7 +168,7 @@ test success_burn_with_other_minting() {
   emergency_token_logic(redeemer, ctx)
 }
 
-test fail_burn_with_mint() {
+test t2_2_fail_burn_with_mint() {
   let redeemer = EBurn
   let policy_id = mock_emergency_token()
 
@@ -181,7 +181,7 @@ test fail_burn_with_mint() {
   !emergency_token_logic(redeemer, ctx)
 }
 
-test fail_burn_with_mix() {
+test t2_2_fail_burn_with_mix() {
   let redeemer = EBurn
   let policy_id = mock_emergency_token()
 

@@ -4,8 +4,8 @@ use aiken/transaction.{
 use aiken/transaction/value.{add, from_asset, to_minted_value}
 use aiken_virtual_dex/placeholder.{
   mock_account_address, mock_another_account_address, mock_buy_ada_order_input,
-  mock_emergency_token, mock_operation_key, mock_oracle_policy_id,
-  mock_oracle_ref_input, mock_post_trade_account_output, script_hash_5_1,
+  mock_dex_oracle_policy_id, mock_dex_oracle_ref_input, mock_emergency_token,
+  mock_operation_key, mock_post_trade_account_output, script_hash_5_1,
 }
 use aiken_virtual_dex/types.{
   CancelOrder, EmergencyCancel, VirtualDexDatum, VirtualDexRedeemer,
@@ -23,7 +23,7 @@ pub fn virtual_dex_process(
   let output_reference = mock_utxo_ref(0, 50 + index)
   let ctx = ScriptContext { purpose: Spend(output_reference), transaction: tx }
   virtual_dex_logic(
-    mock_oracle_policy_id(),
+    mock_dex_oracle_policy_id(),
     mock_emergency_token(),
     script_hash_5_1(),
     datum,
@@ -45,14 +45,14 @@ fn cancel_order_test(test_case: TestCase52) {
   let TestCase52 { is_order_value_returned, is_operation_key_signed } =
     test_case
   let inputs =
-    [mock_buy_ada_order_input(1, 1612000, 310_000_000, 0)]
+    [mock_buy_ada_order_input(1, 1612000, 310_000_000, 0, 0)]
   let outputs =
     [
       mock_post_trade_account_output(
         if is_order_value_returned {
-          mock_buy_ada_order_input(1, 1612000, 310_000_000, 0).output.value
+          mock_buy_ada_order_input(1, 1612000, 310_000_000, 0, 0).output.value
         } else {
-          mock_buy_ada_order_input(1, 1612000, 310_000_000, 0).output.value
+          mock_buy_ada_order_input(1, 1612000, 310_000_000, 0, 0).output.value
             |> add("", "", -1)
         },
       ),
@@ -64,7 +64,7 @@ fn cancel_order_test(test_case: TestCase52) {
       []
     }
   let reference_inputs =
-    [mock_oracle_ref_input()]
+    [mock_dex_oracle_ref_input()]
   Transaction {
     ..placeholder(),
     inputs: inputs,
@@ -74,7 +74,7 @@ fn cancel_order_test(test_case: TestCase52) {
   }
 }
 
-test t5_2_success_cancel_order() {
+test t6_2_success_cancel_order() {
   let dat =
     VirtualDexDatum {
       account_address: mock_account_address(),
@@ -88,7 +88,7 @@ test t5_2_success_cancel_order() {
   virtual_dex_process(1, tx, dat, red)
 }
 
-test t5_2_fail_cancel_order_without_value_returned() {
+test t6_2_fail_cancel_order_without_value_returned() {
   let dat =
     VirtualDexDatum {
       account_address: mock_account_address(),
@@ -105,7 +105,7 @@ test t5_2_fail_cancel_order_without_value_returned() {
   !virtual_dex_process(1, tx, dat, red)
 }
 
-test t5_2_fail_cancel_order_without_operation_key_signed() {
+test t6_2_fail_cancel_order_without_operation_key_signed() {
   let dat =
     VirtualDexDatum {
       account_address: mock_account_address(),
@@ -126,7 +126,7 @@ test t5_2_fail_cancel_order_without_operation_key_signed() {
 //   is_emergency_token_burnt: Bool,
 // }
 
-test t5_3_success_emergency_cancel() {
+test t6_3_success_emergency_cancel() {
   let dat =
     VirtualDexDatum {
       account_address: mock_account_address(),
@@ -151,7 +151,7 @@ test t5_3_success_emergency_cancel() {
   virtual_dex_process(1, tx, dat, red)
 }
 
-test t5_3_fail_emergency_cancel_without_emergency_token_burnt() {
+test t6_3_fail_emergency_cancel_without_emergency_token_burnt() {
   let dat =
     VirtualDexDatum {
       account_address: mock_account_address(),

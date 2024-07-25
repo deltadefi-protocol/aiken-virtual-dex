@@ -1,8 +1,8 @@
 use aiken/transaction.{ScriptContext, WithdrawFrom}
 use aiken/transaction/credential.{Inline, ScriptCredential}
 use aiken_virtual_dex/placeholder.{
-  mock_operation_key, mock_oracle_policy_id, mock_oracle_ref_input,
-  mock_user_vkey_hex, script_hash_4_1,
+  mock_account_oracle_policy_id, mock_account_oracle_ref_input,
+  mock_operation_key, mock_user_vkey_hex, script_hash_4_1,
 }
 use aiken_virtual_dex/types.{AccountUserUnlock}
 use aiken_virtual_dex/validators/account/user_unlock.{account_user_unlock_logic}
@@ -38,7 +38,7 @@ fn mock_test_case_4_1(test_case: TestCase41) {
     |> required_signer_hash(is_operation_key_signed, mock_operation_key())
     |> script_withdrawal(is_withdrawal_script_present, script_hash_4_1(), 0)
     |> complete()
-    |> add_reference_input(True, mock_oracle_ref_input())
+    |> add_reference_input(True, mock_account_oracle_ref_input())
 }
 
 test t4_1_success() {
@@ -50,7 +50,7 @@ test t4_1_success() {
       transaction: tx,
     }
   account_process(1, tx, redeemer) && account_user_unlock_logic(
-    mock_oracle_policy_id(),
+    mock_account_oracle_policy_id(),
     mock_user_vkey_hex(),
     Void,
     withdrawal_ctx,
@@ -71,7 +71,7 @@ test t4_1_success_mass() {
   let unlock_process =
     fn(index: Int) { account_process(index, tx, redeemer) }
   unlock_process(0) && unlock_process(1) && unlock_process(2) && account_user_unlock_logic(
-    mock_oracle_policy_id(),
+    mock_account_oracle_policy_id(),
     mock_user_vkey_hex(),
     Void,
     withdrawal_ctx,
@@ -90,7 +90,7 @@ test t4_1_fail_without_owner_signed() {
       transaction: tx,
     }
   account_process(1, tx, redeemer) && !account_user_unlock_logic(
-    mock_oracle_policy_id(),
+    mock_account_oracle_policy_id(),
     mock_user_vkey_hex(),
     Void,
     withdrawal_ctx,
@@ -109,7 +109,7 @@ test t4_1_fail_without_app_signed() {
       transaction: tx,
     }
   account_process(1, tx, redeemer) && !account_user_unlock_logic(
-    mock_oracle_policy_id(),
+    mock_account_oracle_policy_id(),
     mock_user_vkey_hex(),
     Void,
     withdrawal_ctx,
@@ -128,7 +128,7 @@ test t4_1_fail_without_withdrawal_script_present() {
       transaction: tx,
     }
   !account_process(1, tx, redeemer) && account_user_unlock_logic(
-    mock_oracle_policy_id(),
+    mock_account_oracle_policy_id(),
     mock_user_vkey_hex(),
     Void,
     withdrawal_ctx,

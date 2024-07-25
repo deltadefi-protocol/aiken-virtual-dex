@@ -1,6 +1,6 @@
 use aiken/transaction.{InlineDatum, Input, ScriptContext, WithdrawFrom}
 use aiken_virtual_dex/types.{
-  AccountDatum, AccountEmergencyActionPhase1Redeemer, EmergencyUnlockPhase1,
+  AccountDatum, AccountEmergencyPhase1Redeemer, EmergencyUnlockPhase1,
   EmergencyUnlockPhase2,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
@@ -11,13 +11,13 @@ use sidan_utils/validity_range.{valid_before}
 
 pub fn account_emergency_unlock_phase_1_logic(
   emergency_token: ByteArray,
-  redeemer: AccountEmergencyActionPhase1Redeemer,
+  redeemer: AccountEmergencyPhase1Redeemer,
   context: ScriptContext,
 ) -> Bool {
   let ScriptContext { purpose, transaction } = context
   expect WithdrawFrom(_) = purpose
 
-  let AccountEmergencyActionPhase1Redeemer { owner, own_input, initiate_before } =
+  let AccountEmergencyPhase1Redeemer { owner, own_input, initiate_before } =
     redeemer
   let current_address = own_input.output.address
   expect [own_output] =

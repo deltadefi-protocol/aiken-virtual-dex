@@ -8,7 +8,7 @@ use aiken/transaction/value.{
 use aiken_virtual_dex/common.{
   only_input_datum_with, output_inline_datum, value_geq,
 }
-use aiken_virtual_dex/types.{OracleDatum, VirtualDexDatum}
+use aiken_virtual_dex/types.{DexOracleDatum, VirtualDexDatum}
 use sidan_utils/address.{address_script_hash}
 use sidan_utils/extra_signatories.{key_signed}
 
@@ -16,58 +16,54 @@ pub fn accumulate_all_to_return_value(
   long_token: (PolicyId, AssetName),
   short_token: (PolicyId, AssetName),
   inputs: List<Input>,
-) -> (Bool, Option<Address>, Pairs<Address, Value>, Int) {
+  dex_address: Address,
+) -> (Pairs<Address, Value>, Int) {
   list.foldr(
     inputs,
-    (True, None, [], 0),
-    fn(input: Input, acc: (Bool, Option<Address>, Pairs<Address, Value>, Int)) {
+    ([], 0),
+    fn(input: Input, acc: (Pairs<Address, Value>, Int)) {
       when address_script_hash(input.output.address) is {
         None -> acc
         Some(_) -> {
           let current_address = input.output.address
-          let is_address_valid =
-            when acc.2nd is {
-              None -> True
-              Some(script_address) -> script_address == current_address
+          if current_address != dex_address {
+            acc
+          } else {
+            expect VirtualDexDatum {
+              account_address,
+              is_long,
+              list_price_times_1mil,
+              lot_size,
+              extra_lovelace,
+            }: VirtualDexDatum = output_inline_datum(input.output)
+            let current_item = pairs.get_first(acc.1st, account_address)
+            let to_return_value =
+              if is_long {
+                from_asset(long_token.1st, long_token.2nd, lot_size)
+              } else {
+                from_asset(
+                  short_token.1st,
+                  short_token.2nd,
+                  list_price_times_1mil * lot_size / 1000000,
+                )
+              }
+                |> merge(from_lovelace(extra_lovelace))
+            when current_item is {
+              None ->
+                (
+                  acc.1st
+                    |> list.push(Pair(account_address, to_return_value)),
+                  acc.2nd + lot_size,
+                )
+              Some(value) ->
+                (
+                  acc.1st
+                    |> list.push(
+                        Pair(account_address, merge(value, to_return_value)),
+                      ),
+                  acc.2nd + lot_size,
+                )
             }
-          expect VirtualDexDatum {
-            account_address,
-            is_long,
-            list_price_times_1mil,
-            lot_size,
-            extra_lovelace,
-          }: VirtualDexDatum = output_inline_datum(input.output)
-          let current_item = pairs.get_first(acc.3rd, account_address)
-          let to_return_value =
-            if is_long {
-              from_asset(long_token.1st, long_token.2nd, lot_size)
-            } else {
-              from_asset(
-                short_token.1st,
-                short_token.2nd,
-                list_price_times_1mil * lot_size / 1000000,
-              )
-            }
-              |> merge(from_lovelace(extra_lovelace))
-          when current_item is {
-            None ->
-              (
-                is_address_valid,
-                Some(current_address),
-                acc.3rd
-                  |> list.push(Pair(account_address, to_return_value)),
-                acc.4th + lot_size,
-              )
-            Some(value) ->
-              (
-                is_address_valid,
-                Some(current_address),
-                acc.3rd
-                  |> list.push(
-                      Pair(account_address, merge(value, to_return_value)),
-                    ),
-                acc.4th + lot_size,
-              )
           }
         }
       }
@@ -103,10 +99,15 @@ pub fn virtual_dex_take_orders_logic(
   expect WithdrawFrom(_) = purpose
 
   let Transaction { reference_inputs, inputs, outputs, .. } = transaction
-  expect OracleDatum { operation_key, .. }: OracleDatum =
+  expect DexOracleDatum { operation_key, dex_address, .. }: DexOracleDatum =
     only_input_datum_with(reference_inputs, oracle_nft, "")
-  let (is_only_one_script_address, _, trade_payment_map, _long_token_quantity) =
-    accumulate_all_to_return_value(param_long_token, param_short_token, inputs)
+  let (trade_payment_map, _long_token_quantity) =
+    accumulate_all_to_return_value(
+      param_long_token,
+      param_short_token,
+      inputs,
+      dex_address,
+    )
   let payment_values = accumuate_all_payment_value(outputs)
   let is_operation_key_signed =
     key_signed(transaction.extra_signatories, operation_key)
@@ -129,5 +130,5 @@ pub fn virtual_dex_take_orders_logic(
   let is_token_paid_to_makers =
     trade_payment_map
       |> list.all(is_token_paid_to_inidividual_maker)
-  is_only_one_script_address && is_operation_key_signed && is_token_paid_to_makers
+  is_operation_key_signed && is_token_paid_to_makers
 }

@@ -2,8 +2,9 @@ use aiken/transaction.{ScriptContext, WithdrawFrom}
 use aiken/transaction/credential.{Inline, ScriptCredential}
 use aiken/transaction/value.{from_lovelace}
 use aiken_virtual_dex/placeholder.{
-  mock_account_address, mock_another_account_address, mock_operation_key,
-  mock_oracle_policy_id, mock_oracle_ref_input, script_hash_4_2,
+  mock_account_address, mock_account_oracle_policy_id,
+  mock_account_oracle_ref_input, mock_another_account_address,
+  mock_operation_key, script_hash_4_2,
 }
 use aiken_virtual_dex/types.{AccountAppUnlock, AccountNormalDatum}
 use aiken_virtual_dex/validators/account/app_unlock.{account_app_unlock_logic}
@@ -87,7 +88,7 @@ fn mock_test_case_4_2(number_of_inputs: Int, test_case: TestCase42) {
     |> required_signer_hash(is_operation_key_signed, mock_operation_key())
     |> script_withdrawal(is_withdrawal_script_present, script_hash_4_2(), 0)
     |> complete()
-    |> add_reference_input(True, mock_oracle_ref_input())
+    |> add_reference_input(True, mock_account_oracle_ref_input())
 }
 
 test t4_2_success() {
@@ -98,7 +99,7 @@ test t4_2_success() {
       transaction: tx,
     }
   account_process(0, tx, AccountAppUnlock) && account_app_unlock_logic(
-    mock_oracle_policy_id(),
+    mock_account_oracle_policy_id(),
     Void,
     withdrawal_ctx,
   )
@@ -116,7 +117,7 @@ test t4_2_failed_without_operation_key_signed() {
       transaction: tx,
     }
   account_process(0, tx, AccountAppUnlock) && !account_app_unlock_logic(
-    mock_oracle_policy_id(),
+    mock_account_oracle_policy_id(),
     Void,
     withdrawal_ctx,
   )
@@ -137,7 +138,7 @@ test t4_2_failed_without_value_resepnt_into_account() {
       transaction: tx,
     }
   account_process(0, tx, AccountAppUnlock) && !account_app_unlock_logic(
-    mock_oracle_policy_id(),
+    mock_account_oracle_policy_id(),
     Void,
     withdrawal_ctx,
   )
@@ -155,7 +156,7 @@ test t4_2_failed_with_other_account_unlock_attempt() {
       transaction: tx,
     }
   account_process(0, tx, AccountAppUnlock) && !account_app_unlock_logic(
-    mock_oracle_policy_id(),
+    mock_account_oracle_policy_id(),
     Void,
     withdrawal_ctx,
   )
@@ -173,7 +174,7 @@ test t4_2_failed_without_withdrawal_script_present() {
       transaction: tx,
     }
   !account_process(0, tx, AccountAppUnlock) && account_app_unlock_logic(
-    mock_oracle_policy_id(),
+    mock_account_oracle_policy_id(),
     Void,
     withdrawal_ctx,
   )

@@ -8,23 +8,23 @@ pub type MintPolarity {
   RBurn
 }
 
-// 2. OracleValidator
-pub type OracleDatum {
+// 2. EmergencyToken
+pub type EmergencyTokenMintingPolarity {
+  EMint { current_timestamp: Int, account_address: Address }
+  EBurn
+}
+
+// 3. AccountOracle
+pub type AccountOracleDatum {
   oracle_nft: PolicyId,
   oracle_address: Address,
   operation_key: ByteArray,
   stop_key: ByteArray,
 }
 
-pub type OracleRedeemer {
+pub type AccountOracleRedeemer {
   RotateKey { new_operation_key: ByteArray, new_stop_key: ByteArray }
   StopApp
-}
-
-// 3. EmergencyToken
-pub type EmergencyTokenMintingPolarity {
-  EMint { current_timestamp: Int, account_address: Address }
-  EBurn
 }
 
 // 3. Account
@@ -41,7 +41,7 @@ pub type AccountDatum {
   EmergencyUnlockPhase2 { valid_since: Int, minter: ByteArray }
 }
 
-pub type AccountEmergencyActionPhase1Redeemer {
+pub type AccountEmergencyPhase1Redeemer {
   owner: ByteArray,
   own_input: Input,
   initiate_before: Int,
@@ -53,7 +53,22 @@ pub type AccountEmergencyActionPhase2Redeemer {
   withdraw_output: OutputReference,
 }
 
-// 5. VirtualDex
+// 5. DexOracle
+
+pub type DexOracleDatum {
+  oracle_nft: PolicyId,
+  oracle_address: Address,
+  dex_address: Address,
+  operation_key: ByteArray,
+  stop_key: ByteArray,
+}
+
+pub type DexOracleRedeemer {
+  DexRotateKey { new_operation_key: ByteArray, new_stop_key: ByteArray }
+  StopDex
+}
+
+// 6. VirtualDex
 pub type VirtualDexDatum {
   account_address: Address,
   is_long: Bool,

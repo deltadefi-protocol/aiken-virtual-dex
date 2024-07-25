@@ -3,8 +3,8 @@ use aiken/hash.{blake2b_256}
 use aiken/transaction.{InlineDatum, Input, NoDatum, Output}
 use aiken/transaction/value.{PolicyId, Value, add, from_asset}
 use aiken_virtual_dex/types.{
-  AccountNormalDatum, EmergencyUnlockPhase1, EmergencyUnlockPhase2, OracleDatum,
-  VirtualDexDatum,
+  AccountNormalDatum, AccountOracleDatum, DexOracleDatum, EmergencyUnlockPhase1,
+  EmergencyUnlockPhase2, VirtualDexDatum,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
 use sidan_placeholder/address.{mock_pub_key_address, mock_script_address}
@@ -14,12 +14,20 @@ use sidan_placeholder/key_hex.{
 use sidan_placeholder/output_reference.{mock_utxo_ref}
 
 // Smart contract specific placeholders
-pub fn mock_oracle_policy_id() -> PolicyId {
+pub fn mock_account_oracle_policy_id() -> PolicyId {
   mock_policy_id(0)
 }
 
-pub fn mock_oracle_address() {
+pub fn mock_dex_oracle_policy_id() -> PolicyId {
+  mock_policy_id(3)
+}
+
+pub fn mock_account_oracle_address() {
   mock_script_address(1, None)
+}
+
+pub fn mock_dex_oracle_address() {
+  mock_script_address(6, None)
 }
 
 pub fn mock_fee_ref_token() {
@@ -58,29 +66,56 @@ pub fn mock_token_asset_class() {
   (mock_policy_id(4), "A potentially very long name")
 }
 
-pub fn mock_oracle_datum() {
-  OracleDatum {
-    oracle_nft: mock_oracle_policy_id(),
-    oracle_address: mock_oracle_address(),
+pub fn mock_account_oracle_datum() {
+  AccountOracleDatum {
+    oracle_nft: mock_account_oracle_policy_id(),
+    oracle_address: mock_account_oracle_address(),
     operation_key: mock_operation_key(),
     stop_key: mock_stop_key(),
   }
 }
 
-pub fn mock_oracle_output(oracle_datum: OracleDatum) -> Output {
+pub fn mock_account_oracle_output(oracle_datum: AccountOracleDatum) -> Output {
   Output {
-    address: mock_oracle_address(),
-    value: from_asset(mock_oracle_policy_id(), "", 1)
+    address: mock_account_oracle_address(),
+    value: from_asset(mock_account_oracle_policy_id(), "", 1)
       |> add(#"", #"", 2_000_000),
     datum: InlineDatum(oracle_datum),
     reference_script: None,
   }
 }
 
-pub fn mock_oracle_ref_input() -> Input {
+pub fn mock_account_oracle_ref_input() -> Input {
   Input {
     output_reference: mock_utxo_ref(0, 0),
-    output: mock_oracle_output(mock_oracle_datum()),
+    output: mock_account_oracle_output(mock_account_oracle_datum()),
+  }
+}
+
+pub fn mock_dex_oracle_datum() {
+  DexOracleDatum {
+    oracle_nft: mock_dex_oracle_policy_id(),
+    oracle_address: mock_dex_oracle_address(),
+    dex_address: mock_virtual_dex_address(),
+    operation_key: mock_operation_key(),
+    stop_key: mock_stop_key(),
+  }
+}
+
+pub fn mock_dex_oracle_output(oracle_datum: DexOracleDatum) -> Output {
+  Output {
+    address: mock_dex_oracle_address(),
+    value: from_asset(mock_dex_oracle_policy_id(), "", 1)
+      |> add(#"", #"", 2_000_000),
+    datum: InlineDatum(oracle_datum),
+    reference_script: None,
+  }
+}
+
+pub fn mock_dex_oracle_ref_input() -> Input {
+  Input {
+    output_reference: mock_utxo_ref(1, 0),
+    output: mock_dex_oracle_output(mock_dex_oracle_datum()),
   }
 }
 
@@ -126,6 +161,7 @@ pub fn mock_buy_ada_order_input(
   list_price_times_1mil: Int,
   lot_size: Int,
   extra_lovelace: Int,
+  fee_lovelace: Int,
 ) {
   Input {
     output_reference: mock_utxo_ref(0, 50 + variation),
@@ -135,7 +171,8 @@ pub fn mock_buy_ada_order_input(
         mock_token_asset_class().1st,
         mock_token_asset_class().2nd,
         lot_size,
-      ),
+      )
+        |> add("", "", extra_lovelace + fee_lovelace),
       datum: InlineDatum(
         VirtualDexDatum {
           account_address: mock_account_address(),
@@ -155,12 +192,13 @@ pub fn mock_sell_ada_order_input(
   list_price_times_1mil: Int,
   lot_size: Int,
   extra_lovelace: Int,
+  fee_lovelace: Int,
 ) {
   Input {
     output_reference: mock_utxo_ref(0, 60 + variation),
     output: Output {
       address: mock_virtual_dex_address(),
-      value: from_asset("", "", lot_size),
+      value: from_asset("", "", lot_size + extra_lovelace + fee_lovelace),
       datum: InlineDatum(
         VirtualDexDatum {
           account_address: mock_account_address(),

@@ -6,7 +6,7 @@ use aiken_virtual_dex/placeholder.{
   mock_operation_key, mock_user_vkey_hex, script_hash_4_3,
 }
 use aiken_virtual_dex/types.{
-  AccountEmergencyActionPhase1Redeemer, AccountEmergencyUnlockPhase1,
+  AccountEmergencyPhase1Redeemer, AccountEmergencyUnlockPhase1,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
 use aiken_virtual_dex/validators/account/emergency_unlock_phase1.{
@@ -42,7 +42,7 @@ fn base_test_case() {
 }
 
 fn mock_redeemer() {
-  AccountEmergencyActionPhase1Redeemer {
+  AccountEmergencyPhase1Redeemer {
     owner: mock_user_vkey_hex(),
     own_input: mock_emergency_unlock_phase1_input(1),
     initiate_before: 100,

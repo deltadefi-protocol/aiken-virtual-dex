@@ -6,13 +6,13 @@ There are in total 6 scripts for the DeltaDeFi virtual dex to work. Below provid
 
    - The one time minting policy, minting the NFT to be reference token locking in `OracleValidator`. It is used for serving static app information.
 
-2. OracleValidator - [specification](./2_oracle_validator.md)
-
-   - The validator locking `OracleNFT`, for serving app static information while protecting information integrity.
-
-3. EmergencyToken - [specification](./3_emergency_token.md)
+2. EmergencyToken - [specification](./2_emergency_token.md)
 
    - The minting policy for taking any withdrawal / cancel actions solely by users.
+
+3. AccountOracle - [specification](./3_account_oracle.md)
+
+   - The validator locking `OracleNFT`, for serving app static information on `Account` while protecting information integrity.
 
 4. Account - [specification](./4_account/4_account.md)
 
@@ -23,11 +23,15 @@ There are in total 6 scripts for the DeltaDeFi virtual dex to work. Below provid
      - 4.3: Emergency Unlock Phase 1 - [specification](./4_account/4.3_emergency_unlock_phase1.md)
      - 4.4: Emergency Unlock Phase 2- [specification](./4_account/4.4_emergency_unlock_phase2.md)
 
-5. VirtualDEX - [specification](./5_virtual_dex/5_virtual_dex.md)
+5. DexOracle - [specification](./5_account_oracle.md)
+
+   - The validator locking a specific `OracleNFT`, for serving app static information on `VirtualDEX` while protecting information integrity.
+
+6. VirtualDEX - [specification](./6_virtual_dex/6_virtual_dex.md)
 
    - The script governing the transaction logic.
    - Action specification:
-     - 5.1: Take Orders - [specification](./5_virtual_dex/5.1_take_orders.md)
+     - 5.1: Take Orders - [specification](./6_virtual_dex/6.1_take_orders.md)
 
 ## Param Dependency Graph
 

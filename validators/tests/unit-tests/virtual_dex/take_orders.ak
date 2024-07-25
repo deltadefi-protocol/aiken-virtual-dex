@@ -1,11 +1,11 @@
-use aiken/transaction.{InlineDatum, Input, Output, ScriptContext, WithdrawFrom}
+use aiken/transaction.{ScriptContext, WithdrawFrom}
 use aiken/transaction/credential.{Inline, ScriptCredential}
 use aiken/transaction/value.{from_asset}
 use aiken_virtual_dex/placeholder.{
   ada_asset_class, mock_account_address, mock_buy_ada_order_input,
-  mock_fee_output, mock_operation_key, mock_oracle_address,
-  mock_oracle_policy_id, mock_oracle_ref_input, mock_post_trade_account_output,
-  mock_token_asset_class, script_hash_5_1,
+  mock_dex_oracle_policy_id, mock_dex_oracle_ref_input, mock_fee_output,
+  mock_operation_key, mock_post_trade_account_output, mock_token_asset_class,
+  script_hash_5_1,
 }
 use aiken_virtual_dex/types.{TakeOrders, VirtualDexDatum}
 use aiken_virtual_dex/validators/virtual_dex/take_orders.{
@@ -14,23 +14,22 @@ use aiken_virtual_dex/validators/virtual_dex/take_orders.{
 use sidan_placeholder/builder.{
   complete, new_tx_tester, required_signer_hash, script_withdrawal,
 }
-use sidan_placeholder/output_reference.{mock_utxo_ref}
 use sidan_placeholder/transaction.{add_input,
   add_output, add_reference_input} as sidan_transaction
 use tests/unit_tests/virtual_dex/virtual_dex.{virtual_dex_process} as tvirtual_dex
 
 type TestCase51 {
   is_token_paid_to_maker: Bool,
+  is_extra_lovelace_returned: Bool,
   is_operation_key_signed: Bool,
-  is_only_one_script_address: Bool,
   is_withdrawal_script_present: Bool,
 }
 
 fn take_order_base_case() {
   TestCase51 {
     is_token_paid_to_maker: True,
+    is_extra_lovelace_returned: True,
     is_operation_key_signed: True,
-    is_only_one_script_address: True,
     is_withdrawal_script_present: True,
   }
 }
@@ -38,8 +37,8 @@ fn take_order_base_case() {
 fn take_order_test(test_case: TestCase51) {
   let TestCase51 {
     is_token_paid_to_maker,
+    is_extra_lovelace_returned,
     is_operation_key_signed,
-    is_only_one_script_address,
     is_withdrawal_script_present,
   } = test_case
   let token_lot_size = 310_000_000
@@ -52,7 +51,7 @@ fn take_order_test(test_case: TestCase51) {
     |> script_withdrawal(is_withdrawal_script_present, script_hash_5_1(), 0)
     |> required_signer_hash(is_operation_key_signed, mock_operation_key())
     |> complete()
-    |> add_reference_input(True, mock_oracle_ref_input())
+    |> add_reference_input(True, mock_dex_oracle_ref_input())
     |> add_output(
         True,
         mock_fee_output(ada_lot_size * 3, min_fee, percentage_fee_times_10k),
@@ -71,45 +70,53 @@ fn take_order_test(test_case: TestCase51) {
           ),
         ),
       )
-    |> add_input(
+    |> add_output(
         True,
-        mock_buy_ada_order_input(1, list_price_times_1mil, ada_lot_size, 0),
+        mock_post_trade_account_output(
+          from_asset(
+            "",
+            "",
+            if is_extra_lovelace_returned {
+              5_000_000 * 3
+            } else {
+              4_999_999 * 3
+            },
+          ),
+        ),
       )
     |> add_input(
         True,
-        mock_buy_ada_order_input(2, list_price_times_1mil, ada_lot_size, 0),
+        mock_buy_ada_order_input(
+          1,
+          list_price_times_1mil,
+          ada_lot_size,
+          5_000_000,
+          0,
+        ),
       )
     |> add_input(
         True,
-        mock_buy_ada_order_input(3, list_price_times_1mil, ada_lot_size, 0),
+        mock_buy_ada_order_input(
+          2,
+          list_price_times_1mil,
+          ada_lot_size,
+          5_000_000,
+          0,
+        ),
       )
     |> add_input(
-        !is_only_one_script_address,
-        Input {
-          output_reference: mock_utxo_ref(1, 51),
-          output: Output {
-            address: mock_oracle_address(),
-            value: from_asset(
-              mock_token_asset_class().1st,
-              mock_token_asset_class().2nd,
-              ada_lot_size,
-            ),
-            datum: InlineDatum(
-              VirtualDexDatum {
-                account_address: mock_account_address(),
-                is_long: True,
-                list_price_times_1mil,
-                lot_size: ada_lot_size,
-                extra_lovelace: 0,
-              },
-            ),
-            reference_script: None,
-          },
-        },
+        True,
+        mock_buy_ada_order_input(
+          3,
+          list_price_times_1mil,
+          ada_lot_size,
+          5_000_000,
+          0,
+        ),
       )
 }
 
-test t5_1_success_take_order() {
+test t6_1_success_take_order() {
   let dat =
     VirtualDexDatum {
       account_address: mock_account_address(),
@@ -125,7 +132,7 @@ test t5_1_success_take_order() {
       transaction: tx,
     }
   virtual_dex_process(1, tx, dat, TakeOrders) && virtual_dex_take_orders_logic(
-    mock_oracle_policy_id(),
+    mock_dex_oracle_policy_id(),
     ada_asset_class(),
     mock_token_asset_class(),
     Void,
@@ -133,7 +140,34 @@ test t5_1_success_take_order() {
   )
 }
 
-test t5_1_fail_take_order_without_token_paid_to_maker() {
+test t6_1_fail_take_order_without_extra_lovelace_returned() {
+  let dat =
+    VirtualDexDatum {
+      account_address: mock_account_address(),
+      is_long: True,
+      list_price_times_1mil: 60000,
+      lot_size: 500,
+      extra_lovelace: 0,
+    }
+  let tx =
+    take_order_test(
+      TestCase51 { ..take_order_base_case(), is_extra_lovelace_returned: False },
+    )
+  let withdrawal_ctx =
+    ScriptContext {
+      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_5_1()))),
+      transaction: tx,
+    }
+  virtual_dex_process(1, tx, dat, TakeOrders) && !virtual_dex_take_orders_logic(
+    mock_dex_oracle_policy_id(),
+    ada_asset_class(),
+    mock_token_asset_class(),
+    Void,
+    withdrawal_ctx,
+  )
+}
+
+test t6_1_fail_take_order_without_token_paid_to_maker() {
   let dat =
     VirtualDexDatum {
       account_address: mock_account_address(),
@@ -152,7 +186,7 @@ test t5_1_fail_take_order_without_token_paid_to_maker() {
       transaction: tx,
     }
   virtual_dex_process(1, tx, dat, TakeOrders) && !virtual_dex_take_orders_logic(
-    mock_oracle_policy_id(),
+    mock_dex_oracle_policy_id(),
     ada_asset_class(),
     mock_token_asset_class(),
     Void,
@@ -160,7 +194,7 @@ test t5_1_fail_take_order_without_token_paid_to_maker() {
   )
 }
 
-test t5_1_fail_take_order_without_operation_key_signed() {
+test t6_1_fail_take_order_without_operation_key_signed() {
   let dat =
     VirtualDexDatum {
       account_address: mock_account_address(),
@@ -179,7 +213,7 @@ test t5_1_fail_take_order_without_operation_key_signed() {
       transaction: tx,
     }
   virtual_dex_process(1, tx, dat, TakeOrders) && !virtual_dex_take_orders_logic(
-    mock_oracle_policy_id(),
+    mock_dex_oracle_policy_id(),
     ada_asset_class(),
     mock_token_asset_class(),
     Void,
@@ -187,34 +221,7 @@ test t5_1_fail_take_order_without_operation_key_signed() {
   )
 }
 
-test t5_1_fail_take_order_with_more_than_one_script_address() {
-  let dat =
-    VirtualDexDatum {
-      account_address: mock_account_address(),
-      is_long: True,
-      list_price_times_1mil: 60000,
-      lot_size: 500,
-      extra_lovelace: 0,
-    }
-  let tx =
-    take_order_test(
-      TestCase51 { ..take_order_base_case(), is_only_one_script_address: False },
-    )
-  let withdrawal_ctx =
-    ScriptContext {
-      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_5_1()))),
-      transaction: tx,
-    }
-  virtual_dex_process(1, tx, dat, TakeOrders) && !virtual_dex_take_orders_logic(
-    mock_oracle_policy_id(),
-    ada_asset_class(),
-    mock_token_asset_class(),
-    Void,
-    withdrawal_ctx,
-  )
-}
-
-test t5_1_failed_without_withdrawal_script_present() {
+test t6_1_failed_without_withdrawal_script_present() {
   let dat =
     VirtualDexDatum {
       account_address: mock_account_address(),
@@ -236,11 +243,10 @@ test t5_1_failed_without_withdrawal_script_present() {
       transaction: tx,
     }
   !virtual_dex_process(1, tx, dat, TakeOrders) && virtual_dex_take_orders_logic(
-    mock_oracle_policy_id(),
+    mock_dex_oracle_policy_id(),
     ada_asset_class(),
     mock_token_asset_class(),
     Void,
     withdrawal_ctx,
   )
 }
-
