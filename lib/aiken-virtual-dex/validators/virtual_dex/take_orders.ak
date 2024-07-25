@@ -1,8 +1,6 @@
 use aiken/list
 use aiken/pairs
-use aiken/transaction.{
-  Input, Output, ScriptContext, Spend, Transaction, WithdrawFrom, find_input,
-}
+use aiken/transaction.{Input, Output, ScriptContext, Transaction, WithdrawFrom}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{
   AssetName, PolicyId, Value, from_asset, from_lovelace, merge,
@@ -11,29 +9,35 @@ use aiken_virtual_dex/common.{
   only_input_datum_with, output_inline_datum, value_geq,
 }
 use aiken_virtual_dex/types.{OracleDatum, VirtualDexDatum}
+use sidan_utils/address.{address_script_hash}
 use sidan_utils/extra_signatories.{key_signed}
 
 pub fn accumulate_all_to_return_value(
   long_token: (PolicyId, AssetName),
   short_token: (PolicyId, AssetName),
   inputs: List<Input>,
-  own_address: Address,
-) -> (Pairs<Address, Value>, Int) {
+) -> (Bool, Option<Address>, Pairs<Address, Value>, Int) {
   list.foldr(
     inputs,
-    ([], 0),
-    fn(x: Input, acc: (Pairs<Address, Value>, Int)) {
-      let is_from_same_address = own_address == x.output.address
-      when is_from_same_address is {
-        True -> {
+    (True, None, [], 0),
+    fn(input: Input, acc: (Bool, Option<Address>, Pairs<Address, Value>, Int)) {
+      when address_script_hash(input.output.address) is {
+        None -> acc
+        Some(_) -> {
+          let current_address = input.output.address
+          let is_address_valid =
+            when acc.2nd is {
+              None -> True
+              Some(script_address) -> script_address == current_address
+            }
           expect VirtualDexDatum {
             account_address,
             is_long,
             list_price_times_1mil,
             lot_size,
             extra_lovelace,
-          }: VirtualDexDatum = output_inline_datum(x.output)
-          let current_item = pairs.get_first(acc.1st, account_address)
+          }: VirtualDexDatum = output_inline_datum(input.output)
+          let current_item = pairs.get_first(acc.3rd, account_address)
           let to_return_value =
             if is_long {
               from_asset(long_token.1st, long_token.2nd, lot_size)
@@ -48,21 +52,24 @@ pub fn accumulate_all_to_return_value(
           when current_item is {
             None ->
               (
-                acc.1st
+                is_address_valid,
+                Some(current_address),
+                acc.3rd
                   |> list.push(Pair(account_address, to_return_value)),
-                acc.2nd + lot_size,
+                acc.4th + lot_size,
               )
             Some(value) ->
               (
-                acc.1st
+                is_address_valid,
+                Some(current_address),
+                acc.3rd
                   |> list.push(
                       Pair(account_address, merge(value, to_return_value)),
                     ),
-                acc.2nd + lot_size,
+                acc.4th + lot_size,
               )
           }
         }
-        False -> acc
       }
     },
   )
@@ -98,16 +105,8 @@ pub fn virtual_dex_take_orders_logic(
   let Transaction { reference_inputs, inputs, outputs, .. } = transaction
   expect OracleDatum { operation_key, .. }: OracleDatum =
     only_input_datum_with(reference_inputs, oracle_nft, "")
-  expect Spend(own_utxo) = purpose
-  expect Some(own_input) = find_input(transaction.inputs, own_utxo)
-  let own_address = own_input.output.address
-  let (trade_payment_map, _long_token_quantity) =
-    accumulate_all_to_return_value(
-      param_long_token,
-      param_short_token,
-      inputs,
-      own_address,
-    )
+  let (is_only_one_script_address, _, trade_payment_map, _long_token_quantity) =
+    accumulate_all_to_return_value(param_long_token, param_short_token, inputs)
   let payment_values = accumuate_all_payment_value(outputs)
   let is_operation_key_signed =
     key_signed(transaction.extra_signatories, operation_key)
@@ -130,5 +129,5 @@ pub fn virtual_dex_take_orders_logic(
   let is_token_paid_to_makers =
     trade_payment_map
       |> list.all(is_token_paid_to_inidividual_maker)
-  is_operation_key_signed && is_token_paid_to_makers
+  is_only_one_script_address && is_operation_key_signed && is_token_paid_to_makers
 }

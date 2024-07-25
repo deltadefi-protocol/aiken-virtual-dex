@@ -187,25 +187,31 @@ pub fn mock_post_trade_account_output(value: Value) -> Output {
 // New placeholder
 
 pub fn script_hash_4_1() -> ByteArray {
-  bytearray.concat(mock_script_hash_hex(3), #"01")
+  bytearray.concat(mock_script_hash_hex(4), #"01")
     |> blake2b_256()
     |> bytearray.take(28)
 }
 
 pub fn script_hash_4_2() -> ByteArray {
-  bytearray.concat(mock_script_hash_hex(3), #"02")
+  bytearray.concat(mock_script_hash_hex(4), #"02")
     |> blake2b_256()
     |> bytearray.take(28)
 }
 
 pub fn script_hash_4_3() -> ByteArray {
-  bytearray.concat(mock_script_hash_hex(3), #"03")
+  bytearray.concat(mock_script_hash_hex(4), #"03")
     |> blake2b_256()
     |> bytearray.take(28)
 }
 
 pub fn script_hash_4_4() -> ByteArray {
-  bytearray.concat(mock_script_hash_hex(3), #"04")
+  bytearray.concat(mock_script_hash_hex(4), #"04")
+    |> blake2b_256()
+    |> bytearray.take(28)
+}
+
+pub fn script_hash_5_1() -> ByteArray {
+  bytearray.concat(mock_script_hash_hex(5), #"01")
     |> blake2b_256()
     |> bytearray.take(28)
 }
