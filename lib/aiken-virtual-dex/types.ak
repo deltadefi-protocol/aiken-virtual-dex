@@ -8,61 +8,77 @@ pub type MintPolarity {
   RBurn
 }
 
-// 2. OracleValidator
-pub type OracleDatum {
+// 2. EmergencyToken
+pub type EmergencyTokenMintingPolarity {
+  EMint { current_timestamp: Int, account_address: Address }
+  EBurn
+}
+
+// 3. AccountOracle
+pub type AccountOracleDatum {
   oracle_nft: PolicyId,
   oracle_address: Address,
   operation_key: ByteArray,
   stop_key: ByteArray,
 }
 
-pub type OracleRedeemer {
+pub type AccountOracleRedeemer {
   RotateKey { new_operation_key: ByteArray, new_stop_key: ByteArray }
   StopApp
 }
 
-// 3. TradeAccount
-pub type TradeAccountDatum {
-  TradeNormalDatum
-  TradeEmergencyDatum { valid_since: Int, minter: ByteArray }
-  EmergencyIncidentInitiation { owner: ByteArray }
+// 3. Account
+pub type AccountRedeemer {
+  AccountUserUnlock
+  AccountAppUnlock
+  AccountEmergencyUnlockPhase1
+  AccountEmergencyUnlockPhase2
 }
 
-pub type TradeAccountRedeemer {
-  TradeNormalAction
-  TradeEmergencyAction { withdraw_output: OutputReference }
-  InitiateEmergencyIncident { initiate_before: Int }
+pub type AccountDatum {
+  AccountNormalDatum
+  EmergencyUnlockPhase1 { owner: ByteArray }
+  EmergencyUnlockPhase2 { valid_since: Int, minter: ByteArray }
 }
 
-// 4. ChangeAccount
-pub type ChangeAccountDatum {
-  ChangeAccountDatum
+pub type AccountEmergencyActionPhase1Redeemer {
+  owner: ByteArray,
+  own_input: OutputReference,
+  initiate_before: Int,
 }
 
-pub type ChangeAccountRedeemer {
-  OwnerWithdraw
-  AppRefill
-  MassRefill { refill_input: OutputReference }
+pub type AccountEmergencyActionPhase2Redeemer {
+  owner: ByteArray,
+  own_input: OutputReference,
+  withdraw_output: OutputReference,
 }
 
-// 5. VirtualDex
+// 5. DexOracle
+
+pub type DexOracleDatum {
+  oracle_nft: PolicyId,
+  oracle_address: Address,
+  dex_address: Address,
+  operation_key: ByteArray,
+  stop_key: ByteArray,
+}
+
+pub type DexOracleRedeemer {
+  DexRotateKey { new_operation_key: ByteArray, new_stop_key: ByteArray }
+  StopDex
+}
+
+// 6. VirtualDex
 pub type VirtualDexDatum {
-  change_account_address: Address,
-  trade_account_address: Address,
+  account_address: Address,
   is_long: Bool,
   list_price_times_1mil: Int,
   lot_size: Int,
+  extra_lovelace: Int,
 }
 
 pub type VirtualDexRedeemer {
-  TakeOrder
-  MassTakeOrder { take_order_input: OutputReference }
+  TakeOrders
   CancelOrder
   EmergencyCancel
-}
-
-// 6. EmergencyToken
-pub type EmergencyTokenMintingPolarity {
-  EMint { current_timestamp: Int, trade_account_address: Address }
-  EBurn
 }

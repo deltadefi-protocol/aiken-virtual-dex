@@ -1,13 +1,14 @@
 use aiken/transaction.{Mint, ScriptContext, Transaction, placeholder}
 use aiken/transaction/value.{add, from_asset, to_minted_value}
 use aiken_virtual_dex/placeholder.{
-  mock_emergency_action_output, mock_emergency_initiation_input,
-  mock_emergency_token, mock_interval, mock_policy_id_2,
-  mock_trade_account_address, mock_user_vkey_hex,
+  mock_account_address, mock_emergency_action_output,
+  mock_emergency_initiation_input, mock_emergency_token, mock_user_vkey_hex,
 }
 use aiken_virtual_dex/types.{EBurn, EMint}
 use aiken_virtual_dex/utils.{get_emergency_token_name}
 use aiken_virtual_dex/validators/emergency_token.{emergency_token_logic}
+use sidan_placeholder/key_hex.{mock_policy_id}
+use sidan_placeholder/validity_range.{mock_interval}
 
 type TestCase {
   is_owner_signed: Bool,
@@ -43,7 +44,7 @@ fn mint_test_case(test_case: TestCase) {
       to_minted_value(
         from_asset(
           mock_emergency_token(),
-          get_emergency_token_name(mock_trade_account_address()),
+          get_emergency_token_name(mock_account_address()),
           1,
         ),
       )
@@ -84,12 +85,9 @@ fn mint_test_case(test_case: TestCase) {
   }
 }
 
-test success_mint() {
+test t2_1_success_mint() {
   let redeemer =
-    EMint {
-      current_timestamp: 100,
-      trade_account_address: mock_trade_account_address(),
-    }
+    EMint { current_timestamp: 100, account_address: mock_account_address() }
   let policy_id = mock_emergency_token()
 
   let tx = mint_test_case(base_test_case())
@@ -97,12 +95,9 @@ test success_mint() {
   emergency_token_logic(redeemer, ctx)
 }
 
-test fail_mint_without_owner_signature() {
+test t2_1_fail_mint_without_owner_signature() {
   let redeemer =
-    EMint {
-      current_timestamp: 100,
-      trade_account_address: mock_trade_account_address(),
-    }
+    EMint { current_timestamp: 100, account_address: mock_account_address() }
   let policy_id = mock_emergency_token()
 
   let tx =
@@ -111,12 +106,9 @@ test fail_mint_without_owner_signature() {
   !emergency_token_logic(redeemer, ctx)
 }
 
-test fail_mint_with_incorrect_emergency_token_name() {
+test t2_1_fail_mint_with_incorrect_emergency_token_name() {
   let redeemer =
-    EMint {
-      current_timestamp: 100,
-      trade_account_address: mock_trade_account_address(),
-    }
+    EMint { current_timestamp: 100, account_address: mock_account_address() }
   let policy_id = mock_emergency_token()
 
   let tx =
@@ -127,12 +119,9 @@ test fail_mint_with_incorrect_emergency_token_name() {
   !emergency_token_logic(redeemer, ctx)
 }
 
-test fail_mint_without_correct_datum() {
+test t2_1_fail_mint_without_correct_datum() {
   let redeemer =
-    EMint {
-      current_timestamp: 100,
-      trade_account_address: mock_trade_account_address(),
-    }
+    EMint { current_timestamp: 100, account_address: mock_account_address() }
   let policy_id = mock_emergency_token()
 
   let tx =
@@ -141,12 +130,9 @@ test fail_mint_without_correct_datum() {
   !emergency_token_logic(redeemer, ctx)
 }
 
-test fail_mint_with_invalid_time() {
+test t2_1_fail_mint_with_invalid_time() {
   let redeemer =
-    EMint {
-      current_timestamp: 100,
-      trade_account_address: mock_trade_account_address(),
-    }
+    EMint { current_timestamp: 100, account_address: mock_account_address() }
   let policy_id = mock_emergency_token()
 
   let tx = mint_test_case(TestCase { ..base_test_case(), is_time_valid: False })
@@ -154,7 +140,7 @@ test fail_mint_with_invalid_time() {
   !emergency_token_logic(redeemer, ctx)
 }
 
-test success_burn() {
+test t2_2_success_burn() {
   let redeemer = EBurn
   let policy_id = mock_emergency_token()
 
@@ -167,7 +153,7 @@ test success_burn() {
   emergency_token_logic(redeemer, ctx)
 }
 
-test success_burn_with_other_minting() {
+test t2_2_success_burn_with_other_minting() {
   let redeemer = EBurn
   let policy_id = mock_emergency_token()
 
@@ -175,14 +161,14 @@ test success_burn_with_other_minting() {
     Transaction {
       ..placeholder(),
       mint: to_minted_value(
-        from_asset(policy_id, "", -1) |> add(mock_policy_id_2(), "", 1),
+        from_asset(policy_id, "", -1) |> add(mock_policy_id(1), "", 1),
       ),
     }
   let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
   emergency_token_logic(redeemer, ctx)
 }
 
-test fail_burn_with_mint() {
+test t2_2_fail_burn_with_mint() {
   let redeemer = EBurn
   let policy_id = mock_emergency_token()
 
@@ -195,7 +181,7 @@ test fail_burn_with_mint() {
   !emergency_token_logic(redeemer, ctx)
 }
 
-test fail_burn_with_mix() {
+test t2_2_fail_burn_with_mix() {
   let redeemer = EBurn
   let policy_id = mock_emergency_token()
 
