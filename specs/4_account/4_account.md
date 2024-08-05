@@ -11,17 +11,17 @@
 
 ## Datum
 
-1. TradeNormalDatum
+1. AccountNormalDatum
 
    - Stating that the UTxO is ready for normal app operation, including placing orders, taking orders and authorized withdrawal
 
-2. TradeEmergencyDatum {valid_since, minter}
-
-   - Stating that the UTxO is attached with an emergency token, ready for user withdrawal without passing through application logic
-
-3. EmergencyIncidentInitiation {owner}
+2. EmergencyUnlockPhase1 {owner}
 
    - Stating that the UTxO is ready to be the authorization input for minting the emergency token.
+
+3. EmergencyUnlockPhase2 {valid_since, minter}
+
+   - Stating that the UTxO is attached with an emergency token, ready for user withdrawal without passing through application logic
 
 ## User Action
 
