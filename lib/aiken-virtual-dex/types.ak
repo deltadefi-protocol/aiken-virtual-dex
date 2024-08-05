@@ -29,7 +29,8 @@ pub type AccountOracleRedeemer {
 
 // 3. Account
 pub type AccountRedeemer {
-  AccountUserUnlock
+  AccountUserUnlock1
+  AccountUserUnlock2
   AccountAppUnlock
   AccountEmergencyUnlockPhase1
   AccountEmergencyUnlockPhase2

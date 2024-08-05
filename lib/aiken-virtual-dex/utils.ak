@@ -3,11 +3,6 @@ use aiken/hash.{blake2b_256}
 use aiken/transaction/credential.{
   Address, Inline, ScriptCredential, VerificationKeyCredential,
 }
-use aiken_virtual_dex/common.{convert_int_to_bytes}
-
-pub fn get_account_token_name(count: Int) -> ByteArray {
-  convert_int_to_bytes(count)
-}
 
 pub fn get_emergency_token_name(trade_account_address: Address) -> ByteArray {
   expect ScriptCredential(script_hash) =

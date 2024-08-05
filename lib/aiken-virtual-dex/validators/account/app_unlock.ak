@@ -1,11 +1,12 @@
 use aiken/list
 use aiken/transaction.{ScriptContext, Transaction, WithdrawFrom}
 use aiken/transaction/value.{PolicyId, merge, zero}
-use aiken_virtual_dex/common.{get_all_value_to,
-  only_input_datum_with, value_geq}
+use aiken_virtual_dex/common.{get_all_value_to}
 use aiken_virtual_dex/types.{AccountOracleDatum}
 use sidan_utils/address.{address_script_hash}
 use sidan_utils/extra_signatories.{key_signed}
+use sidan_utils/inputs.{only_input_datum_with}
+use sidan_utils/value.{value_geq} as sidan_value
 
 pub fn account_app_unlock_logic(
   oracle_nft: PolicyId,

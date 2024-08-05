@@ -5,14 +5,15 @@ use aiken/transaction.{
 }
 use aiken/transaction/credential.{Inline, Script, ScriptCredential}
 use aiken/transaction/value.{PolicyId}
-use aiken_virtual_dex/common.{inputs_at, only_input_datum_with, outputs_at}
 use aiken_virtual_dex/types.{
   CancelOrder, DexOracleDatum, EmergencyCancel, TakeOrders, VirtualDexDatum,
   VirtualDexRedeemer,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
 use sidan_utils/extra_signatories.{key_signed}
+use sidan_utils/inputs.{inputs_at, only_input_datum_with}
 use sidan_utils/mints.{only_minted_token}
+use sidan_utils/outputs.{outputs_at}
 
 pub fn virtual_dex_logic(
   oracle_nft: PolicyId,

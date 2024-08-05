@@ -2,110 +2,12 @@ use aiken/bytearray
 use aiken/list
 use aiken/pairs
 use aiken/transaction.{
-  InlineDatum, Input, Output, OutputReference, Redeemer, ScriptPurpose, Spend,
-  find_input,
+  Input, Output, OutputReference, Redeemer, ScriptPurpose, Spend, find_input,
 }
-use aiken/transaction/credential.{
-  Address, ScriptCredential, VerificationKeyCredential,
-}
+use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{
   AssetName, MintedValue, PolicyId, Value, flatten, from_minted_value, merge,
   quantity_of, zero,
-}
-
-pub fn output_inline_datum(output: Output) {
-  expect InlineDatum(raw_datum) = output.datum
-  raw_datum
-}
-
-pub fn only_input_datum_with(
-  inputs: List<Input>,
-  policy: PolicyId,
-  name: AssetName,
-) {
-  expect Some(input) =
-    list.find(
-      inputs,
-      fn(input) { quantity_of(input.output.value, policy, name) == 1 },
-    )
-  expect InlineDatum(raw_datum) = input.output.datum
-  raw_datum
-}
-
-pub fn inputs_at(inputs: List<Input>, address: Address) -> List<Input> {
-  list.filter(inputs, fn(input) { input.output.address == address })
-}
-
-pub fn inputs_with(
-  inputs: List<Input>,
-  policy: PolicyId,
-  name: AssetName,
-) -> List<Input> {
-  list.filter(
-    inputs,
-    fn(input) { quantity_of(input.output.value, policy, name) == 1 },
-  )
-}
-
-pub fn inputs_at_with(
-  inputs: List<Input>,
-  address: Address,
-  policy: PolicyId,
-  name: AssetName,
-) -> List<Input> {
-  list.filter(
-    inputs,
-    fn(input) {
-      input.output.address == address && quantity_of(
-        input.output.value,
-        policy,
-        name,
-      ) == 1
-    },
-  )
-}
-
-pub fn inputs_at_with_policy(
-  inputs: List<Input>,
-  address: Address,
-  policy: PolicyId,
-) -> List<Input> {
-  list.filter(
-    inputs,
-    fn(input) {
-      input.output.address == address && list.any(
-        flatten(input.output.value),
-        fn(token) { token.1st == policy },
-      )
-    },
-  )
-}
-
-pub fn outputs_at(outputs: List<Output>, address: Address) -> List<Output> {
-  list.filter(outputs, fn(output) { output.address == address })
-}
-
-pub fn outputs_with(outputs: List<Output>, policy: PolicyId, name: AssetName) {
-  list.filter(
-    outputs,
-    fn(output) { quantity_of(output.value, policy, name) == 1 },
-  )
-}
-
-pub fn outputs_at_with_policy(
-  outputs: List<Output>,
-  address: Address,
-  policy: PolicyId,
-) -> List<Output> {
-  list.filter(
-    outputs,
-    fn(output) {
-      output.address == address && list.any(
-        flatten(output.value),
-        fn(token) { token.1st == policy },
-      )
-    },
-  )
 }
 
 pub fn check_policy_only_burn(mint: MintedValue, policy: PolicyId) -> Bool {
@@ -214,33 +116,6 @@ pub fn get_all_value_from(inputs: List<Input>, address: Address) -> Value {
       }
     },
   )
-}
-
-pub fn value_geq(greater: Value, smaller: Value) -> Bool {
-  list.all(
-    flatten(smaller),
-    fn(token) { quantity_of(greater, token.1st, token.2nd) >= token.3rd },
-  )
-}
-
-pub fn compare_script_address(x: Address, y: Address) -> Ordering {
-  expect ScriptCredential(x_hash) = x.payment_credential
-  expect ScriptCredential(y_hash) = y.payment_credential
-  bytearray.compare(x_hash, y_hash)
-}
-
-pub fn compare_address(x: Address, y: Address) -> Ordering {
-  let x_hash = x.payment_credential
-  let y_hash = y.payment_credential
-  when (x_hash, y_hash) is {
-    (ScriptCredential(x_script_hash), ScriptCredential(y_script_hash)) ->
-      bytearray.compare(x_script_hash, y_script_hash)
-    (
-      VerificationKeyCredential(x_key_hash),
-      VerificationKeyCredential(y_key_hash),
-    ) -> bytearray.compare(x_key_hash, y_key_hash)
-    _ -> Equal
-  }
 }
 
 test byte_conversion() {

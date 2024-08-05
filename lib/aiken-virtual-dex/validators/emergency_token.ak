@@ -1,14 +1,14 @@
 use aiken/transaction.{Mint, ScriptContext, Transaction}
-use aiken_virtual_dex/common.{
-  check_policy_only_burn, inputs_at, output_inline_datum, outputs_at,
-}
+use aiken_virtual_dex/common.{check_policy_only_burn}
 use aiken_virtual_dex/types.{
   AccountDatum, EBurn, EMint, EmergencyTokenMintingPolarity,
   EmergencyUnlockPhase1, EmergencyUnlockPhase2,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
 use sidan_utils/extra_signatories.{key_signed}
+use sidan_utils/inputs.{inputs_at}
 use sidan_utils/mints.{only_minted_token}
+use sidan_utils/outputs.{output_inline_datum, outputs_at}
 use sidan_utils/validity_range.{valid_before}
 
 pub fn emergency_token_logic(

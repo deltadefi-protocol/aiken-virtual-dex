@@ -9,7 +9,7 @@ use aiken_virtual_dex/placeholder.{
   mock_operation_key, mock_post_trade_account_output, mock_token_asset_class,
   mock_trade_input, mock_user_vkey_hex, script_hash_4_1, script_hash_5_1,
 }
-use aiken_virtual_dex/types.{AccountUserUnlock, TakeOrders, VirtualDexDatum}
+use aiken_virtual_dex/types.{AccountUserUnlock1, TakeOrders, VirtualDexDatum}
 use aiken_virtual_dex/validators/account/user_unlock.{account_user_unlock_logic}
 use aiken_virtual_dex/validators/virtual_dex/take_orders.{
   virtual_dex_take_orders_logic,
@@ -117,10 +117,10 @@ fn mass_account_utxo_processing(count: Int, tx: Transaction) {
     count_list,
     True,
     fn(index, acc) {
-      acc && account_process(index, tx, AccountUserUnlock) && account_process(
+      acc && account_process(index, tx, AccountUserUnlock1) && account_process(
         index + 50,
         tx,
-        AccountUserUnlock,
+        AccountUserUnlock1,
       )
     },
   )

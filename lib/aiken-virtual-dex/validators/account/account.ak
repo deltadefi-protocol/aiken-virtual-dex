@@ -5,13 +5,15 @@ use aiken/transaction/credential.{Inline, Script, ScriptCredential}
 use aiken_virtual_dex/types.{
   AccountAppUnlock, AccountDatum, AccountEmergencyActionPhase1Redeemer,
   AccountEmergencyActionPhase2Redeemer, AccountEmergencyUnlockPhase1,
-  AccountEmergencyUnlockPhase2, AccountRedeemer, AccountUserUnlock,
+  AccountEmergencyUnlockPhase2, AccountRedeemer, AccountUserUnlock1,
+  AccountUserUnlock2,
 }
 use sidan_utils/redeemers.{withdrawal_redeemer}
 
 pub fn account_logic(
   owner: ByteArray,
-  user_unlock: Hash<Blake2b_224, Script>,
+  user_unlock_1: Hash<Blake2b_224, Script>,
+  user_unlock_2: Hash<Blake2b_224, Script>,
   app_unlock: Hash<Blake2b_224, Script>,
   emergency_unlock_phase1: Hash<Blake2b_224, Script>,
   emergency_unlock_phase2: Hash<Blake2b_224, Script>,
@@ -21,10 +23,15 @@ pub fn account_logic(
 ) -> Bool {
   let ScriptContext { transaction, purpose } = context
   when redeemer is {
-    AccountUserUnlock ->
+    AccountUserUnlock1 ->
       pairs.has_key(
         transaction.withdrawals,
-        Inline(ScriptCredential(user_unlock)),
+        Inline(ScriptCredential(user_unlock_1)),
+      )
+    AccountUserUnlock2 ->
+      pairs.has_key(
+        transaction.withdrawals,
+        Inline(ScriptCredential(user_unlock_2)),
       )
     AccountAppUnlock ->
       pairs.has_key(

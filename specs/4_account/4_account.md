@@ -3,7 +3,8 @@
 ## Parameter
 
 - `owner`: The pub key hash of account owner
-- `user_unlock`: The script hash of `user_unlock` withdrawal script
+- `user_unlock_1`: The script hash of `user_unlock` withdrawal script with first key
+- `user_unlock_2`: The script hash of `user_unlock` withdrawal script with second key
 - `app_unlock`: The script hash of `app_unlock` withdrawal script
 - `emergency_unlock_phase1`: The script hash of `emergency_unlock_phase1` withdrawal script
 - `emergency_unlock_phase2`: The script hash of `emergency_unlock_phase2` withdrawal script
@@ -24,20 +25,24 @@
 
 ## User Action
 
-1. User Unlock - Redeemer `AccountUserUnlock`
+1. User Unlock - Redeemer `AccountUserUnlock1`
 
-   - Withdrawal script of `user_unlock` validating
+   - Withdrawal script of `user_unlock_1` validating
 
-2. App Unlock - Redeemer `AccountAppUnlock`
+2. User Unlock - Redeemer `AccountUserUnlock2`
+
+   - Withdrawal script of `user_unlock_2` validating
+
+3. App Unlock - Redeemer `AccountAppUnlock`
 
    - Withdrawal script of `app_unlock` validating
 
-3. Emergency operation phase 1 - Redeemer `AccountEmergencyUnlockPhase1 {owner, initiate_before}`
+4. Emergency operation phase 1 - Redeemer `AccountEmergencyUnlockPhase1 {owner, initiate_before}`
 
    - Supplying owner and own_input information for the withdrawal script
    - Withdrawal script of `emergency_unlock_phase1` validating
 
-4. Emergency operation phase 2 - Redeemer `AccountEmergencyUnlockPhase2 {owner, withdraw_output}`
+5. Emergency operation phase 2 - Redeemer `AccountEmergencyUnlockPhase2 {owner, withdraw_output}`
 
    - Supplying owner and own_input information for the withdrawal script
    - Withdrawal script of `emergency_unlock_phase2` validating

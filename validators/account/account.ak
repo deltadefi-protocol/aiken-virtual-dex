@@ -6,7 +6,8 @@ use aiken_virtual_dex/validators/account/account.{account_logic}
 
 validator(
   owner: ByteArray,
-  user_unlock: Hash<Blake2b_224, Script>,
+  user_unlock_1: Hash<Blake2b_224, Script>,
+  user_unlock_2: Hash<Blake2b_224, Script>,
   app_unlock: Hash<Blake2b_224, Script>,
   emergency_unlock_phase1: Hash<Blake2b_224, Script>,
   emergency_unlock_phase2: Hash<Blake2b_224, Script>,
@@ -18,7 +19,8 @@ validator(
   ) {
     account_logic(
       owner,
-      user_unlock,
+      user_unlock_1,
+      user_unlock_2,
       app_unlock,
       emergency_unlock_phase1,
       emergency_unlock_phase2,

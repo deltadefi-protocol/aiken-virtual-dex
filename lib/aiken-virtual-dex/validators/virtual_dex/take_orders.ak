@@ -5,12 +5,12 @@ use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{
   AssetName, PolicyId, Value, from_asset, from_lovelace, merge,
 }
-use aiken_virtual_dex/common.{
-  only_input_datum_with, output_inline_datum, value_geq,
-}
 use aiken_virtual_dex/types.{DexOracleDatum, VirtualDexDatum}
 use sidan_utils/address.{address_script_hash}
 use sidan_utils/extra_signatories.{key_signed}
+use sidan_utils/inputs.{only_input_datum_with}
+use sidan_utils/outputs.{output_inline_datum}
+use sidan_utils/value.{value_geq} as sidan_value
 
 pub fn accumulate_all_to_return_value(
   long_token: (PolicyId, AssetName),

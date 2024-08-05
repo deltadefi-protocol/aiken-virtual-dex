@@ -4,7 +4,7 @@ use aiken_virtual_dex/placeholder.{
   mock_account_oracle_policy_id, mock_account_oracle_ref_input,
   mock_operation_key, mock_user_vkey_hex, script_hash_4_1,
 }
-use aiken_virtual_dex/types.{AccountUserUnlock}
+use aiken_virtual_dex/types.{AccountUserUnlock1}
 use aiken_virtual_dex/validators/account/user_unlock.{account_user_unlock_logic}
 use sidan_placeholder/builder.{
   complete, new_tx_tester, required_signer_hash, script_withdrawal,
@@ -42,7 +42,7 @@ fn mock_test_case_4_1(test_case: TestCase41) {
 }
 
 test t4_1_success() {
-  let redeemer = AccountUserUnlock
+  let redeemer = AccountUserUnlock1
   let tx = mock_test_case_4_1(base_test_case_4_1())
   let withdrawal_ctx =
     ScriptContext {
@@ -58,7 +58,7 @@ test t4_1_success() {
 }
 
 test t4_1_success_mass() {
-  let redeemer = AccountUserUnlock
+  let redeemer = AccountUserUnlock1
 
   // TODO: add tx in according to index
   let tx = mock_test_case_4_1(base_test_case_4_1())
@@ -79,7 +79,7 @@ test t4_1_success_mass() {
 }
 
 test t4_1_fail_without_owner_signed() {
-  let redeemer = AccountUserUnlock
+  let redeemer = AccountUserUnlock1
   let tx =
     mock_test_case_4_1(
       TestCase41 { ..base_test_case_4_1(), is_owner_signed: False },
@@ -98,7 +98,7 @@ test t4_1_fail_without_owner_signed() {
 }
 
 test t4_1_fail_without_app_signed() {
-  let redeemer = AccountUserUnlock
+  let redeemer = AccountUserUnlock1
   let tx =
     mock_test_case_4_1(
       TestCase41 { ..base_test_case_4_1(), is_operation_key_signed: False },
@@ -117,7 +117,7 @@ test t4_1_fail_without_app_signed() {
 }
 
 test t4_1_fail_without_withdrawal_script_present() {
-  let redeemer = AccountUserUnlock
+  let redeemer = AccountUserUnlock1
   let tx =
     mock_test_case_4_1(
       TestCase41 { ..base_test_case_4_1(), is_withdrawal_script_present: False },

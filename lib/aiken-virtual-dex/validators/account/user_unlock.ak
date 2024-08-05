@@ -1,8 +1,8 @@
 use aiken/transaction.{ScriptContext, WithdrawFrom}
 use aiken/transaction/value.{PolicyId}
-use aiken_virtual_dex/common.{only_input_datum_with}
 use aiken_virtual_dex/types.{AccountOracleDatum}
 use sidan_utils/extra_signatories.{all_key_signed}
+use sidan_utils/inputs.{only_input_datum_with}
 
 pub fn account_user_unlock_logic(
   oracle_nft: PolicyId,
