@@ -12,7 +12,6 @@ pub fn get_emergency_token_name(trade_account_address: Address) -> ByteArray {
     Some(stake_cred) -> {
       expect Inline(credential) = stake_cred
       when credential is {
-        //TODO: See if we would fix the staking part, using script or vkey
         VerificationKeyCredential(stake_hash) ->
           bytearray.concat(script_hash, stake_hash) |> blake2b_256()
         ScriptCredential(stake_hash) ->

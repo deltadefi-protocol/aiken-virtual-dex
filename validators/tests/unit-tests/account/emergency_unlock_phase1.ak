@@ -1,3 +1,4 @@
+use account/emergency_unlock_phase1.{account_emergency_unlock_phase_1}
 use aiken/transaction.{Input, ScriptContext, WithdrawFrom}
 use aiken/transaction/credential.{Inline, ScriptCredential}
 use aiken_virtual_dex/placeholder.{
@@ -10,9 +11,6 @@ use aiken_virtual_dex/types.{
   AccountEmergencyActionPhase1Redeemer, AccountEmergencyUnlockPhase1,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
-use aiken_virtual_dex/validators/account/emergency_unlock_phase1.{
-  account_emergency_unlock_phase_1_logic,
-}
 use sidan_placeholder/builder.{
   complete, invalid_hereafter, mint, new_tx_tester, required_signer_hash,
   script_withdrawal,
@@ -104,7 +102,7 @@ test t4_3_success() {
       purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_3()))),
       transaction: tx,
     }
-  account_process(21, tx, AccountEmergencyUnlockPhase1) && account_emergency_unlock_phase_1_logic(
+  account_process(21, tx, AccountEmergencyUnlockPhase1) && account_emergency_unlock_phase_1(
     mock_emergency_token(),
     mock_redeemer(),
     ctx,
@@ -121,7 +119,7 @@ test t4_3_failed_initiate_emergency_without_owner_signature() {
       purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_3()))),
       transaction: tx,
     }
-  account_process(21, tx, AccountEmergencyUnlockPhase1) && !account_emergency_unlock_phase_1_logic(
+  account_process(21, tx, AccountEmergencyUnlockPhase1) && !account_emergency_unlock_phase_1(
     mock_emergency_token(),
     mock_redeemer(),
     ctx,
@@ -138,7 +136,7 @@ test t4_3_failed_initiate_emergency_without_emergency_token_minted() {
       purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_3()))),
       transaction: tx,
     }
-  account_process(21, tx, AccountEmergencyUnlockPhase1) && !account_emergency_unlock_phase_1_logic(
+  account_process(21, tx, AccountEmergencyUnlockPhase1) && !account_emergency_unlock_phase_1(
     mock_emergency_token(),
     mock_redeemer(),
     ctx,
@@ -155,7 +153,7 @@ test t4_3_failed_initiate_emergency_without_correct_input_datum() {
       purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_3()))),
       transaction: tx,
     }
-  account_process(21, tx, AccountEmergencyUnlockPhase1) && !account_emergency_unlock_phase_1_logic(
+  account_process(21, tx, AccountEmergencyUnlockPhase1) && !account_emergency_unlock_phase_1(
     mock_emergency_token(),
     mock_redeemer(),
     ctx,
@@ -172,7 +170,7 @@ test t4_3_failed_initiate_emergency_without_correct_output() {
       purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_3()))),
       transaction: tx,
     }
-  account_process(21, tx, AccountEmergencyUnlockPhase1) && !account_emergency_unlock_phase_1_logic(
+  account_process(21, tx, AccountEmergencyUnlockPhase1) && !account_emergency_unlock_phase_1(
     mock_emergency_token(),
     mock_redeemer(),
     ctx,
@@ -189,7 +187,7 @@ test t4_3_failed_initiate_emergency_with_invalid_time() {
       purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_3()))),
       transaction: tx,
     }
-  account_process(21, tx, AccountEmergencyUnlockPhase1) && !account_emergency_unlock_phase_1_logic(
+  account_process(21, tx, AccountEmergencyUnlockPhase1) && !account_emergency_unlock_phase_1(
     mock_emergency_token(),
     mock_redeemer(),
     ctx,
@@ -206,7 +204,7 @@ test t4_3_failed_initiate_emergency_without_withdrawal() {
       purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_3()))),
       transaction: tx,
     }
-  !account_process(21, tx, AccountEmergencyUnlockPhase1) && account_emergency_unlock_phase_1_logic(
+  !account_process(21, tx, AccountEmergencyUnlockPhase1) && account_emergency_unlock_phase_1(
     mock_emergency_token(),
     mock_redeemer(),
     ctx,

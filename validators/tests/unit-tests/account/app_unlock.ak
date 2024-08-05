@@ -1,3 +1,4 @@
+use account/app_unlock.{account_app_unlock}
 use aiken/transaction.{ScriptContext, WithdrawFrom}
 use aiken/transaction/credential.{Inline, ScriptCredential}
 use aiken/transaction/value.{from_lovelace}
@@ -7,7 +8,6 @@ use aiken_virtual_dex/placeholder.{
   mock_operation_key, script_hash_4_2,
 }
 use aiken_virtual_dex/types.{AccountAppUnlock, AccountNormalDatum}
-use aiken_virtual_dex/validators/account/app_unlock.{account_app_unlock_logic}
 use sidan_placeholder/builder.{
   TxTester, complete, new_tx_tester, required_signer_hash, script_withdrawal,
   tx_in, tx_in_inline_datum, tx_out, tx_out_inline_datum,
@@ -98,7 +98,7 @@ test t4_2_success() {
       purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_2()))),
       transaction: tx,
     }
-  account_process(0, tx, AccountAppUnlock) && account_app_unlock_logic(
+  account_process(0, tx, AccountAppUnlock) && account_app_unlock(
     mock_account_oracle_policy_id(),
     Void,
     withdrawal_ctx,
@@ -116,7 +116,7 @@ test t4_2_failed_without_operation_key_signed() {
       purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_2()))),
       transaction: tx,
     }
-  account_process(0, tx, AccountAppUnlock) && !account_app_unlock_logic(
+  account_process(0, tx, AccountAppUnlock) && !account_app_unlock(
     mock_account_oracle_policy_id(),
     Void,
     withdrawal_ctx,
@@ -137,7 +137,7 @@ test t4_2_failed_without_value_resepnt_into_account() {
       purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_2()))),
       transaction: tx,
     }
-  account_process(0, tx, AccountAppUnlock) && !account_app_unlock_logic(
+  account_process(0, tx, AccountAppUnlock) && !account_app_unlock(
     mock_account_oracle_policy_id(),
     Void,
     withdrawal_ctx,
@@ -155,7 +155,7 @@ test t4_2_failed_with_other_account_unlock_attempt() {
       purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_2()))),
       transaction: tx,
     }
-  account_process(0, tx, AccountAppUnlock) && !account_app_unlock_logic(
+  account_process(0, tx, AccountAppUnlock) && !account_app_unlock(
     mock_account_oracle_policy_id(),
     Void,
     withdrawal_ctx,
@@ -173,7 +173,7 @@ test t4_2_failed_without_withdrawal_script_present() {
       purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_2()))),
       transaction: tx,
     }
-  !account_process(0, tx, AccountAppUnlock) && account_app_unlock_logic(
+  !account_process(0, tx, AccountAppUnlock) && account_app_unlock(
     mock_account_oracle_policy_id(),
     Void,
     withdrawal_ctx,

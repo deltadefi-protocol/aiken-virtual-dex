@@ -1,13 +1,11 @@
-use aiken/transaction.{Input, Mint, ScriptContext, Transaction, placeholder}
-use aiken/transaction/value.{
-  PolicyId, add, from_asset, from_lovelace, to_minted_value,
-}
+use aiken/transaction.{Mint, ScriptContext, placeholder}
+use aiken/transaction/value.{PolicyId, from_lovelace}
 use aiken_virtual_dex/types.{RBurn, RMint}
-use aiken_virtual_dex/validators/oracle_nft.{oracle_nft_logic}
+use oracle_nft.{oracle_nft}
 use sidan_placeholder/address.{mock_pub_key_address}
+use sidan_placeholder/builder.{complete, mint, new_tx_tester, tx_in}
 use sidan_placeholder/key_hex.{mock_policy_id}
-use sidan_placeholder/output_reference.{mock_utxo_ref}
-use sidan_placeholder/outputs.{mock_pub_key_output}
+use sidan_placeholder/output_reference.{mock_tx_hash, mock_utxo_ref}
 
 test success_mint() {
   let redeemer = RMint
@@ -16,22 +14,20 @@ test success_mint() {
     #"1c1b7afe8affbee1505cf3ec5a58bd2734d4ffdfcc9b9f059625bd76"
 
   let tx =
-    Transaction {
-      ..placeholder(),
-      mint: to_minted_value(from_asset(policy_id, "", 1)),
-      inputs: [
-        Input {
-          output_reference: input_utxo,
-          output: mock_pub_key_output(
-            mock_pub_key_address(0, None),
-            from_lovelace(1000000),
-          ),
-        },
-      ],
-    }
+    new_tx_tester()
+      |> mint(True, policy_id, "", 1)
+      |> tx_in(
+          True,
+          mock_tx_hash(0),
+          1,
+          from_lovelace(1000000),
+          mock_pub_key_address(0, None),
+        )
+      |> complete()
+
   let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
 
-  oracle_nft_logic(input_utxo, redeemer, ctx)
+  oracle_nft(input_utxo, redeemer, ctx)
 }
 
 test fail_mint_no_utxo_ref_supply() {
@@ -41,7 +37,7 @@ test fail_mint_no_utxo_ref_supply() {
   let ctx =
     ScriptContext { purpose: Mint(policy_id), transaction: placeholder() }
 
-  !oracle_nft_logic(mock_utxo_ref(0, 0), redeemer, ctx)
+  !oracle_nft(mock_utxo_ref(0, 0), redeemer, ctx)
 }
 
 test success_burn() {
@@ -49,12 +45,12 @@ test success_burn() {
   let policy_id = mock_policy_id(0)
 
   let tx =
-    Transaction {
-      ..placeholder(),
-      mint: to_minted_value(from_asset(policy_id, "", -1)),
-    }
+    new_tx_tester()
+      |> mint(True, policy_id, "", -1)
+      |> complete()
+
   let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
-  oracle_nft_logic(mock_utxo_ref(0, 0), redeemer, ctx)
+  oracle_nft(mock_utxo_ref(0, 0), redeemer, ctx)
 }
 
 test success_burn_with_other_minting() {
@@ -62,14 +58,12 @@ test success_burn_with_other_minting() {
   let policy_id = mock_policy_id(0)
 
   let tx =
-    Transaction {
-      ..placeholder(),
-      mint: to_minted_value(
-        from_asset(policy_id, "", -1) |> add(mock_policy_id(1), "", 1),
-      ),
-    }
+    new_tx_tester()
+      |> mint(True, policy_id, "", -1)
+      |> mint(True, mock_policy_id(1), "", -1)
+      |> complete()
   let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
-  oracle_nft_logic(mock_utxo_ref(0, 0), redeemer, ctx)
+  oracle_nft(mock_utxo_ref(0, 0), redeemer, ctx)
 }
 
 test fail_burn_with_mint() {
@@ -77,12 +71,12 @@ test fail_burn_with_mint() {
   let policy_id = mock_policy_id(0)
 
   let tx =
-    Transaction {
-      ..placeholder(),
-      mint: to_minted_value(from_asset(policy_id, "", 1)),
-    }
+    new_tx_tester()
+      |> mint(True, policy_id, "", 1)
+      |> complete()
+
   let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
-  !oracle_nft_logic(mock_utxo_ref(0, 0), redeemer, ctx)
+  !oracle_nft(mock_utxo_ref(0, 0), redeemer, ctx)
 }
 
 test fail_burn_with_mix() {
@@ -90,12 +84,11 @@ test fail_burn_with_mix() {
   let policy_id = mock_policy_id(0)
 
   let tx =
-    Transaction {
-      ..placeholder(),
-      mint: to_minted_value(
-        from_asset(policy_id, "", -1) |> add(policy_id, "1", 1),
-      ),
-    }
+    new_tx_tester()
+      |> mint(True, policy_id, "", -1)
+      |> mint(True, policy_id, "1", 1)
+      |> complete()
+
   let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
-  !oracle_nft_logic(mock_utxo_ref(0, 0), redeemer, ctx)
+  !oracle_nft(mock_utxo_ref(0, 0), redeemer, ctx)
 }

@@ -27,7 +27,7 @@ pub type AccountOracleRedeemer {
   StopApp
 }
 
-// 3. Account
+// 4. Account
 pub type AccountRedeemer {
   AccountUserUnlock1
   AccountUserUnlock2

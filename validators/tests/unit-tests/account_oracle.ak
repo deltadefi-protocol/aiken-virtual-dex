@@ -1,3 +1,4 @@
+use account_oracle.{account_oracle}
 use aiken/list
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction, placeholder}
 use aiken/transaction/value.{from_asset, to_minted_value}
@@ -6,7 +7,6 @@ use aiken_virtual_dex/placeholder.{
   mock_account_oracle_policy_id, mock_operation_key, mock_stop_key,
 }
 use aiken_virtual_dex/types.{AccountOracleDatum, RotateKey, StopApp}
-use aiken_virtual_dex/validators/account_oracle.{account_oracle_logic}
 use sidan_placeholder/key_hex.{mock_pub_key_hex}
 use sidan_placeholder/output_reference.{mock_utxo_ref}
 
@@ -85,7 +85,7 @@ test t3_1_success_rotate_key() {
   let tx = mock_rotate_test_case(base_rotate_test_case())
   let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
 
-  account_oracle_logic(mock_account_oracle_datum(), redeemer, ctx)
+  account_oracle(mock_account_oracle_datum(), redeemer, ctx)
 }
 
 test t3_1_fail_rotate_key_without_old_stop_signature() {
@@ -105,7 +105,7 @@ test t3_1_fail_rotate_key_without_old_stop_signature() {
     )
   let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
 
-  !account_oracle_logic(mock_account_oracle_datum(), redeemer, ctx)
+  !account_oracle(mock_account_oracle_datum(), redeemer, ctx)
 }
 
 test t3_1_fail_rotate_key_without_new_stop_signature() {
@@ -125,7 +125,7 @@ test t3_1_fail_rotate_key_without_new_stop_signature() {
     )
   let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
 
-  !account_oracle_logic(mock_account_oracle_datum(), redeemer, ctx)
+  !account_oracle(mock_account_oracle_datum(), redeemer, ctx)
 }
 
 // test fail_
@@ -141,7 +141,7 @@ test t3_2_success_stop_app() {
   let ctx =
     ScriptContext { purpose: Spend(mock_utxo_ref(0, 0)), transaction: tx }
 
-  account_oracle_logic(mock_account_oracle_datum(), redeemer, ctx)
+  account_oracle(mock_account_oracle_datum(), redeemer, ctx)
 }
 
 test t3_2_fail_stop_app_without_stop_key() {
@@ -155,7 +155,7 @@ test t3_2_fail_stop_app_without_stop_key() {
   let ctx =
     ScriptContext { purpose: Spend(mock_utxo_ref(0, 0)), transaction: tx }
 
-  !account_oracle_logic(mock_account_oracle_datum(), redeemer, ctx)
+  !account_oracle(mock_account_oracle_datum(), redeemer, ctx)
 }
 
 test t3_2_success_stop_app_without_oracle_nft_burnt() {
@@ -171,5 +171,5 @@ test t3_2_success_stop_app_without_oracle_nft_burnt() {
   let ctx =
     ScriptContext { purpose: Spend(mock_utxo_ref(0, 0)), transaction: tx }
 
-  !account_oracle_logic(mock_account_oracle_datum(), redeemer, ctx)
+  !account_oracle(mock_account_oracle_datum(), redeemer, ctx)
 }

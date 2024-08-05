@@ -11,8 +11,8 @@ use aiken_virtual_dex/types.{
   CancelOrder, EmergencyCancel, VirtualDexDatum, VirtualDexRedeemer,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
-use aiken_virtual_dex/validators/virtual_dex/virtual_dex.{virtual_dex_logic}
 use sidan_placeholder/output_reference.{mock_utxo_ref}
+use virtual_dex/virtual_dex.{virtual_dex}
 
 pub fn virtual_dex_process(
   index: Int,
@@ -22,7 +22,7 @@ pub fn virtual_dex_process(
 ) {
   let output_reference = mock_utxo_ref(0, 50 + index)
   let ctx = ScriptContext { purpose: Spend(output_reference), transaction: tx }
-  virtual_dex_logic(
+  virtual_dex(
     mock_dex_oracle_policy_id(),
     mock_emergency_token(),
     script_hash_5_1(),

@@ -1,3 +1,4 @@
+use account/user_unlock.{account_user_unlock}
 use aiken/transaction.{ScriptContext, WithdrawFrom}
 use aiken/transaction/credential.{Inline, ScriptCredential}
 use aiken_virtual_dex/placeholder.{
@@ -5,7 +6,6 @@ use aiken_virtual_dex/placeholder.{
   mock_operation_key, mock_user_vkey_hex, script_hash_4_1,
 }
 use aiken_virtual_dex/types.{AccountUserUnlock1}
-use aiken_virtual_dex/validators/account/user_unlock.{account_user_unlock_logic}
 use sidan_placeholder/builder.{
   complete, new_tx_tester, required_signer_hash, script_withdrawal,
 }
@@ -49,7 +49,7 @@ test t4_1_success() {
       purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_1()))),
       transaction: tx,
     }
-  account_process(1, tx, redeemer) && account_user_unlock_logic(
+  account_process(1, tx, redeemer) && account_user_unlock(
     mock_account_oracle_policy_id(),
     mock_user_vkey_hex(),
     Void,
@@ -70,7 +70,7 @@ test t4_1_success_mass() {
     }
   let unlock_process =
     fn(index: Int) { account_process(index, tx, redeemer) }
-  unlock_process(0) && unlock_process(1) && unlock_process(2) && account_user_unlock_logic(
+  unlock_process(0) && unlock_process(1) && unlock_process(2) && account_user_unlock(
     mock_account_oracle_policy_id(),
     mock_user_vkey_hex(),
     Void,
@@ -89,7 +89,7 @@ test t4_1_fail_without_owner_signed() {
       purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_1()))),
       transaction: tx,
     }
-  account_process(1, tx, redeemer) && !account_user_unlock_logic(
+  account_process(1, tx, redeemer) && !account_user_unlock(
     mock_account_oracle_policy_id(),
     mock_user_vkey_hex(),
     Void,
@@ -108,7 +108,7 @@ test t4_1_fail_without_app_signed() {
       purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_1()))),
       transaction: tx,
     }
-  account_process(1, tx, redeemer) && !account_user_unlock_logic(
+  account_process(1, tx, redeemer) && !account_user_unlock(
     mock_account_oracle_policy_id(),
     mock_user_vkey_hex(),
     Void,
@@ -127,7 +127,7 @@ test t4_1_fail_without_withdrawal_script_present() {
       purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_1()))),
       transaction: tx,
     }
-  !account_process(1, tx, redeemer) && account_user_unlock_logic(
+  !account_process(1, tx, redeemer) && account_user_unlock(
     mock_account_oracle_policy_id(),
     mock_user_vkey_hex(),
     Void,

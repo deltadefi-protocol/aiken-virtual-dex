@@ -6,7 +6,7 @@ use aiken_virtual_dex/placeholder.{
 }
 use aiken_virtual_dex/types.{EBurn, EMint}
 use aiken_virtual_dex/utils.{get_emergency_token_name}
-use aiken_virtual_dex/validators/emergency_token.{emergency_token_logic}
+use emergency_token.{emergency_token}
 use sidan_placeholder/key_hex.{mock_policy_id}
 use sidan_placeholder/validity_range.{mock_interval}
 
@@ -92,7 +92,7 @@ test t2_1_success_mint() {
 
   let tx = mint_test_case(base_test_case())
   let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
-  emergency_token_logic(redeemer, ctx)
+  emergency_token(redeemer, ctx)
 }
 
 test t2_1_fail_mint_without_owner_signature() {
@@ -103,7 +103,7 @@ test t2_1_fail_mint_without_owner_signature() {
   let tx =
     mint_test_case(TestCase { ..base_test_case(), is_owner_signed: False })
   let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
-  !emergency_token_logic(redeemer, ctx)
+  !emergency_token(redeemer, ctx)
 }
 
 test t2_1_fail_mint_with_incorrect_emergency_token_name() {
@@ -116,7 +116,7 @@ test t2_1_fail_mint_with_incorrect_emergency_token_name() {
       TestCase { ..base_test_case(), is_emergency_token_name_correct: False },
     )
   let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
-  !emergency_token_logic(redeemer, ctx)
+  !emergency_token(redeemer, ctx)
 }
 
 test t2_1_fail_mint_without_correct_datum() {
@@ -127,7 +127,7 @@ test t2_1_fail_mint_without_correct_datum() {
   let tx =
     mint_test_case(TestCase { ..base_test_case(), is_datum_correct: False })
   let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
-  !emergency_token_logic(redeemer, ctx)
+  !emergency_token(redeemer, ctx)
 }
 
 test t2_1_fail_mint_with_invalid_time() {
@@ -137,7 +137,7 @@ test t2_1_fail_mint_with_invalid_time() {
 
   let tx = mint_test_case(TestCase { ..base_test_case(), is_time_valid: False })
   let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
-  !emergency_token_logic(redeemer, ctx)
+  !emergency_token(redeemer, ctx)
 }
 
 test t2_2_success_burn() {
@@ -150,7 +150,7 @@ test t2_2_success_burn() {
       mint: to_minted_value(from_asset(policy_id, "", -1)),
     }
   let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
-  emergency_token_logic(redeemer, ctx)
+  emergency_token(redeemer, ctx)
 }
 
 test t2_2_success_burn_with_other_minting() {
@@ -165,7 +165,7 @@ test t2_2_success_burn_with_other_minting() {
       ),
     }
   let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
-  emergency_token_logic(redeemer, ctx)
+  emergency_token(redeemer, ctx)
 }
 
 test t2_2_fail_burn_with_mint() {
@@ -178,7 +178,7 @@ test t2_2_fail_burn_with_mint() {
       mint: to_minted_value(from_asset(policy_id, "", 1)),
     }
   let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
-  !emergency_token_logic(redeemer, ctx)
+  !emergency_token(redeemer, ctx)
 }
 
 test t2_2_fail_burn_with_mix() {
@@ -193,5 +193,5 @@ test t2_2_fail_burn_with_mix() {
       ),
     }
   let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
-  !emergency_token_logic(redeemer, ctx)
+  !emergency_token(redeemer, ctx)
 }

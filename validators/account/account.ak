@@ -1,8 +1,14 @@
 use aiken/hash.{Blake2b_224, Hash}
-use aiken/transaction.{ScriptContext}
-use aiken/transaction/credential.{Script}
-use aiken_virtual_dex/types.{AccountDatum, AccountRedeemer}
-use aiken_virtual_dex/validators/account/account.{account_logic}
+use aiken/pairs
+use aiken/transaction.{ScriptContext, Spend, Transaction}
+use aiken/transaction/credential.{Inline, Script, ScriptCredential}
+use aiken_virtual_dex/types.{
+  AccountAppUnlock, AccountDatum, AccountEmergencyActionPhase1Redeemer,
+  AccountEmergencyActionPhase2Redeemer, AccountEmergencyUnlockPhase1,
+  AccountEmergencyUnlockPhase2, AccountRedeemer, AccountUserUnlock1,
+  AccountUserUnlock2,
+}
+use sidan_utils/redeemers.{withdrawal_redeemer}
 
 validator(
   owner: ByteArray,
@@ -12,21 +18,68 @@ validator(
   emergency_unlock_phase1: Hash<Blake2b_224, Script>,
   emergency_unlock_phase2: Hash<Blake2b_224, Script>,
 ) {
-  fn account(
-    datum: AccountDatum,
+  pub fn account(
+    _datum: AccountDatum,
     redeemer: AccountRedeemer,
     context: ScriptContext,
-  ) {
-    account_logic(
-      owner,
-      user_unlock_1,
-      user_unlock_2,
-      app_unlock,
-      emergency_unlock_phase1,
-      emergency_unlock_phase2,
-      datum,
-      redeemer,
-      context,
-    )
+  ) -> Bool {
+    let ScriptContext { transaction, purpose } = context
+    when redeemer is {
+      AccountUserUnlock1 ->
+        pairs.has_key(
+          transaction.withdrawals,
+          Inline(ScriptCredential(user_unlock_1)),
+        )
+      AccountUserUnlock2 ->
+        pairs.has_key(
+          transaction.withdrawals,
+          Inline(ScriptCredential(user_unlock_2)),
+        )
+      AccountAppUnlock ->
+        pairs.has_key(
+          transaction.withdrawals,
+          Inline(ScriptCredential(app_unlock)),
+        )
+      AccountEmergencyUnlockPhase1 ->
+        when transaction.withdrawals is {
+          [Pair(stake_cred, _)] -> {
+            expect Inline(ScriptCredential(stake_script_hash)) = stake_cred
+            expect Spend(own_utxo) = purpose
+            expect Some(withdrawal_script_redeemer) =
+              transaction.redeemers |> withdrawal_redeemer(stake_script_hash)
+            expect AccountEmergencyActionPhase1Redeemer {
+              owner: redeemer_owner,
+              own_input: redeemer_own_input,
+              ..
+            }: AccountEmergencyActionPhase1Redeemer = withdrawal_script_redeemer
+            let is_withdrawal_redeemer_correct =
+              redeemer_owner == owner && redeemer_own_input == own_utxo
+            let is_withdrawal_script_present =
+              stake_script_hash == emergency_unlock_phase1
+            is_withdrawal_redeemer_correct && is_withdrawal_script_present
+          }
+          _ -> False
+        }
+      AccountEmergencyUnlockPhase2 ->
+        when transaction.withdrawals is {
+          [Pair(stake_cred, _)] -> {
+            expect Inline(ScriptCredential(stake_script_hash)) = stake_cred
+            expect Spend(own_utxo) = purpose
+            expect Some(withdrawal_script_redeemer) =
+              transaction.redeemers |> withdrawal_redeemer(stake_script_hash)
+            expect AccountEmergencyActionPhase2Redeemer {
+              owner: redeemer_owner,
+              own_input: redeemer_own_input,
+              ..
+            }: AccountEmergencyActionPhase2Redeemer = withdrawal_script_redeemer
+            let is_withdrawal_redeemer_correct =
+              redeemer_owner == owner && redeemer_own_input == own_utxo
+            let is_withdrawal_script_present =
+              stake_script_hash == emergency_unlock_phase2
+            is_withdrawal_redeemer_correct && is_withdrawal_script_present
+          }
+          _ -> False
+        }
+    }
   }
 }

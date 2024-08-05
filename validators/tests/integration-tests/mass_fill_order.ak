@@ -1,3 +1,4 @@
+use account/user_unlock.{account_user_unlock}
 use aiken/list
 use aiken/transaction.{ScriptContext, Transaction, WithdrawFrom}
 use aiken/transaction/credential.{Inline, ScriptCredential}
@@ -10,10 +11,6 @@ use aiken_virtual_dex/placeholder.{
   mock_trade_input, mock_user_vkey_hex, script_hash_4_1, script_hash_5_1,
 }
 use aiken_virtual_dex/types.{AccountUserUnlock1, TakeOrders, VirtualDexDatum}
-use aiken_virtual_dex/validators/account/user_unlock.{account_user_unlock_logic}
-use aiken_virtual_dex/validators/virtual_dex/take_orders.{
-  virtual_dex_take_orders_logic,
-}
 use sidan_placeholder/builder.{
   complete, new_tx_tester, required_signer_hash, script_withdrawal,
 }
@@ -21,6 +18,7 @@ use sidan_placeholder/transaction.{add_input,
   add_output, add_reference_input} as sidan_transaction
 use tests/unit_tests/account/account.{account_process}
 use tests/unit_tests/virtual_dex/virtual_dex.{virtual_dex_process} as tvirtual_dex
+use virtual_dex/take_orders.{virtual_dex_take_orders}
 
 fn add_buy_ada_order_inputs(
   tx: Transaction,
@@ -152,13 +150,13 @@ test integration_test_mass_take_orders() {
     number_of_orders,
     tx,
     dat,
-  ) && virtual_dex_take_orders_logic(
+  ) && virtual_dex_take_orders(
     mock_dex_oracle_policy_id(),
     ada_asset_class(),
     mock_token_asset_class(),
     Void,
     dex_ctx,
-  ) && account_user_unlock_logic(
+  ) && account_user_unlock(
     mock_account_oracle_policy_id(),
     mock_user_vkey_hex(),
     Void,

@@ -8,15 +8,13 @@ use aiken_virtual_dex/placeholder.{
   script_hash_5_1,
 }
 use aiken_virtual_dex/types.{TakeOrders, VirtualDexDatum}
-use aiken_virtual_dex/validators/virtual_dex/take_orders.{
-  virtual_dex_take_orders_logic,
-}
 use sidan_placeholder/builder.{
   complete, new_tx_tester, required_signer_hash, script_withdrawal,
 }
 use sidan_placeholder/transaction.{add_input,
   add_output, add_reference_input} as sidan_transaction
 use tests/unit_tests/virtual_dex/virtual_dex.{virtual_dex_process} as tvirtual_dex
+use virtual_dex/take_orders.{virtual_dex_take_orders}
 
 type TestCase51 {
   is_token_paid_to_maker: Bool,
@@ -131,7 +129,7 @@ test t6_1_success_take_order() {
       purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_5_1()))),
       transaction: tx,
     }
-  virtual_dex_process(1, tx, dat, TakeOrders) && virtual_dex_take_orders_logic(
+  virtual_dex_process(1, tx, dat, TakeOrders) && virtual_dex_take_orders(
     mock_dex_oracle_policy_id(),
     ada_asset_class(),
     mock_token_asset_class(),
@@ -158,7 +156,7 @@ test t6_1_fail_take_order_without_extra_lovelace_returned() {
       purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_5_1()))),
       transaction: tx,
     }
-  virtual_dex_process(1, tx, dat, TakeOrders) && !virtual_dex_take_orders_logic(
+  virtual_dex_process(1, tx, dat, TakeOrders) && !virtual_dex_take_orders(
     mock_dex_oracle_policy_id(),
     ada_asset_class(),
     mock_token_asset_class(),
@@ -185,7 +183,7 @@ test t6_1_fail_take_order_without_token_paid_to_maker() {
       purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_5_1()))),
       transaction: tx,
     }
-  virtual_dex_process(1, tx, dat, TakeOrders) && !virtual_dex_take_orders_logic(
+  virtual_dex_process(1, tx, dat, TakeOrders) && !virtual_dex_take_orders(
     mock_dex_oracle_policy_id(),
     ada_asset_class(),
     mock_token_asset_class(),
@@ -212,7 +210,7 @@ test t6_1_fail_take_order_without_operation_key_signed() {
       purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_5_1()))),
       transaction: tx,
     }
-  virtual_dex_process(1, tx, dat, TakeOrders) && !virtual_dex_take_orders_logic(
+  virtual_dex_process(1, tx, dat, TakeOrders) && !virtual_dex_take_orders(
     mock_dex_oracle_policy_id(),
     ada_asset_class(),
     mock_token_asset_class(),
@@ -242,7 +240,7 @@ test t6_1_failed_without_withdrawal_script_present() {
       purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_5_1()))),
       transaction: tx,
     }
-  !virtual_dex_process(1, tx, dat, TakeOrders) && virtual_dex_take_orders_logic(
+  !virtual_dex_process(1, tx, dat, TakeOrders) && virtual_dex_take_orders(
     mock_dex_oracle_policy_id(),
     ada_asset_class(),
     mock_token_asset_class(),
