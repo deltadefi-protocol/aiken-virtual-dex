@@ -2,9 +2,9 @@ use aiken/transaction.{InlineDatum, Output, ScriptContext, Spend, Transaction}
 use aiken_virtual_dex/types.{
   AccountOracleDatum, AccountOracleRedeemer, RotateKey, StopApp,
 }
-use sidan_utils/extra_signatories.{all_key_signed, key_signed}
-use sidan_utils/mints.{only_minted_token}
-use sidan_utils/outputs.{outputs_at_with}
+use vodka_extra_signatories.{all_key_signed, key_signed}
+use vodka_mints.{only_minted_token}
+use vodka_outputs.{outputs_at_with}
 
 validator {
   pub fn account_oracle(

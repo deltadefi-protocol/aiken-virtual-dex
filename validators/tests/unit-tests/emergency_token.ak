@@ -7,8 +7,8 @@ use aiken_virtual_dex/placeholder.{
 use aiken_virtual_dex/types.{EBurn, EMint}
 use aiken_virtual_dex/utils.{get_emergency_token_name}
 use emergency_token.{emergency_token}
-use sidan_placeholder/key_hex.{mock_policy_id}
-use sidan_placeholder/validity_range.{mock_interval}
+use mocktail/virgin_key_hex.{mock_policy_id}
+use mocktail/virgin_validity_range.{mock_interval}
 
 type TestCase {
   is_owner_signed: Bool,

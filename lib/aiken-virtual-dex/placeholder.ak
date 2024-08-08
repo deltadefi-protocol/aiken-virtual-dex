@@ -7,11 +7,10 @@ use aiken_virtual_dex/types.{
   EmergencyUnlockPhase2, VirtualDexDatum,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
-use sidan_placeholder/address.{mock_pub_key_address, mock_script_address}
-use sidan_placeholder/key_hex.{
-  mock_policy_id, mock_pub_key_hex, mock_script_hash_hex,
-}
-use sidan_placeholder/output_reference.{mock_utxo_ref}
+use mocktail/virgin_address.{mock_pub_key_address, mock_script_address}
+use mocktail/virgin_key_hex.{mock_policy_id,
+  mock_pub_key_hash, mock_script_hash}
+use mocktail/virgin_output_reference.{mock_utxo_ref}
 
 // Smart contract specific placeholders
 pub fn mock_account_oracle_policy_id() -> PolicyId {
@@ -39,11 +38,11 @@ pub fn mock_fee_info_address() {
 }
 
 pub fn mock_operation_key() {
-  mock_pub_key_hex(1)
+  mock_pub_key_hash(1)
 }
 
 pub fn mock_stop_key() {
-  mock_pub_key_hex(2)
+  mock_pub_key_hash(2)
 }
 
 pub fn mock_emergency_token() {
@@ -51,7 +50,7 @@ pub fn mock_emergency_token() {
 }
 
 pub fn mock_user_vkey_hex() {
-  mock_pub_key_hex(3)
+  mock_pub_key_hash(3)
 }
 
 pub fn mock_user_address() {
@@ -225,31 +224,31 @@ pub fn mock_post_trade_account_output(value: Value) -> Output {
 // New placeholder
 
 pub fn script_hash_4_1() -> ByteArray {
-  bytearray.concat(mock_script_hash_hex(4), #"01")
+  bytearray.concat(mock_script_hash(4), #"01")
     |> blake2b_256()
     |> bytearray.take(28)
 }
 
 pub fn script_hash_4_2() -> ByteArray {
-  bytearray.concat(mock_script_hash_hex(4), #"02")
+  bytearray.concat(mock_script_hash(4), #"02")
     |> blake2b_256()
     |> bytearray.take(28)
 }
 
 pub fn script_hash_4_3() -> ByteArray {
-  bytearray.concat(mock_script_hash_hex(4), #"03")
+  bytearray.concat(mock_script_hash(4), #"03")
     |> blake2b_256()
     |> bytearray.take(28)
 }
 
 pub fn script_hash_4_4() -> ByteArray {
-  bytearray.concat(mock_script_hash_hex(4), #"04")
+  bytearray.concat(mock_script_hash(4), #"04")
     |> blake2b_256()
     |> bytearray.take(28)
 }
 
 pub fn script_hash_5_1() -> ByteArray {
-  bytearray.concat(mock_script_hash_hex(5), #"01")
+  bytearray.concat(mock_script_hash(5), #"01")
     |> blake2b_256()
     |> bytearray.take(28)
 }

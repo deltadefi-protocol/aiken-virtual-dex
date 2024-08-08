@@ -11,7 +11,7 @@ use aiken_virtual_dex/types.{
   CancelOrder, EmergencyCancel, VirtualDexDatum, VirtualDexRedeemer,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
-use sidan_placeholder/output_reference.{mock_utxo_ref}
+use mocktail/virgin_output_reference.{mock_utxo_ref}
 use virtual_dex/virtual_dex.{virtual_dex}
 
 pub fn virtual_dex_process(

@@ -6,10 +6,10 @@ use aiken_virtual_dex/placeholder.{
   mock_operation_key, mock_user_vkey_hex, script_hash_4_1,
 }
 use aiken_virtual_dex/types.{AccountUserUnlock1}
-use sidan_placeholder/builder.{
-  complete, new_tx_tester, required_signer_hash, script_withdrawal,
+use mocktail.{
+  add_reference_input, complete, mocktail_tx, required_signer_hash,
+  script_withdrawal,
 }
-use sidan_placeholder/transaction.{add_reference_input} as sidan_transaction
 use tests/unit_tests/account/account.{account_process} as taccount
 
 type TestCase41 {
@@ -33,7 +33,7 @@ fn mock_test_case_4_1(test_case: TestCase41) {
     is_withdrawal_script_present,
   } = test_case
 
-  new_tx_tester()
+  mocktail_tx()
     |> required_signer_hash(is_owner_signed, mock_user_vkey_hex())
     |> required_signer_hash(is_operation_key_signed, mock_operation_key())
     |> script_withdrawal(is_withdrawal_script_present, script_hash_4_1(), 0)

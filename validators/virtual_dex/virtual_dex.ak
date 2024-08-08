@@ -10,10 +10,10 @@ use aiken_virtual_dex/types.{
   VirtualDexRedeemer,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
-use sidan_utils/extra_signatories.{key_signed}
-use sidan_utils/inputs.{inputs_at, only_input_datum_with}
-use sidan_utils/mints.{only_minted_token}
-use sidan_utils/outputs.{outputs_at}
+use vodka_extra_signatories.{key_signed}
+use vodka_inputs.{inputs_at, only_input_datum_with}
+use vodka_mints.{only_minted_token}
+use vodka_outputs.{outputs_at}
 
 validator(
   oracle_nft: PolicyId,

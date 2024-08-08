@@ -1,7 +1,7 @@
 use aiken/list
 use aiken/transaction.{Input, Mint, OutputReference, ScriptContext, Transaction}
 use aiken_virtual_dex/types.{MintPolarity, RBurn, RMint}
-use sidan_utils/mints.{check_policy_only_burn}
+use vodka_mints.{check_policy_only_burn}
 
 validator(utxo_ref: OutputReference) {
   pub fn oracle_nft(redeemer: MintPolarity, context: ScriptContext) -> Bool {

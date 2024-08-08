@@ -6,11 +6,11 @@ use aiken/transaction/value.{
   AssetName, PolicyId, Value, from_asset, from_lovelace, merge,
 }
 use aiken_virtual_dex/types.{DexOracleDatum, VirtualDexDatum}
-use sidan_utils/address.{address_script_hash}
-use sidan_utils/extra_signatories.{key_signed}
-use sidan_utils/inputs.{only_input_datum_with}
-use sidan_utils/outputs.{output_inline_datum}
-use sidan_utils/value.{value_geq} as sidan_value
+use vodka_address.{address_script_hash}
+use vodka_extra_signatories.{key_signed}
+use vodka_inputs.{only_input_datum_with}
+use vodka_outputs.{output_inline_datum}
+use vodka_value.{value_geq} as sidan_value
 
 validator(
   oracle_nft: PolicyId,

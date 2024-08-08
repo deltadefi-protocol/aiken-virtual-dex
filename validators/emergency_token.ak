@@ -4,11 +4,11 @@ use aiken_virtual_dex/types.{
   EmergencyUnlockPhase1, EmergencyUnlockPhase2,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
-use sidan_utils/extra_signatories.{key_signed}
-use sidan_utils/inputs.{inputs_at}
-use sidan_utils/mints.{check_policy_only_burn, only_minted_token}
-use sidan_utils/outputs.{output_inline_datum, outputs_at}
-use sidan_utils/validity_range.{valid_before}
+use vodka_extra_signatories.{key_signed}
+use vodka_inputs.{inputs_at}
+use vodka_mints.{check_policy_only_burn, only_minted_token}
+use vodka_outputs.{output_inline_datum, outputs_at}
+use vodka_validity_range.{valid_before}
 
 validator {
   pub fn emergency_token(

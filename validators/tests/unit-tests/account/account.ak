@@ -5,7 +5,7 @@ use aiken_virtual_dex/placeholder.{
   script_hash_4_4,
 }
 use aiken_virtual_dex/types.{AccountNormalDatum, AccountRedeemer}
-use sidan_placeholder/output_reference.{mock_utxo_ref}
+use mocktail/virgin_output_reference.{mock_utxo_ref}
 
 pub fn account_process(index: Int, tx: Transaction, redeemer: AccountRedeemer) {
   let output_reference = mock_utxo_ref(0, index)

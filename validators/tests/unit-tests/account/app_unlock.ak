@@ -8,12 +8,11 @@ use aiken_virtual_dex/placeholder.{
   mock_operation_key, script_hash_4_2,
 }
 use aiken_virtual_dex/types.{AccountAppUnlock, AccountNormalDatum}
-use sidan_placeholder/builder.{
-  TxTester, complete, new_tx_tester, required_signer_hash, script_withdrawal,
-  tx_in, tx_in_inline_datum, tx_out, tx_out_inline_datum,
+use mocktail.{
+  MocktailTx, add_reference_input, complete, mocktail_tx, required_signer_hash,
+  script_withdrawal, tx_in, tx_in_inline_datum, tx_out, tx_out_inline_datum,
 }
-use sidan_placeholder/output_reference.{mock_tx_hash}
-use sidan_placeholder/transaction.{add_reference_input} as sidan_transaction
+use mocktail/virgin_output_reference.{mock_tx_hash}
 use tests/unit_tests/account/account.{account_process} as taccount
 
 type TestCase42 {
@@ -41,7 +40,7 @@ fn mock_test_case_4_2(number_of_inputs: Int, test_case: TestCase42) {
   } = test_case
 
   let add_trade_account_input =
-    fn(tx_tester: TxTester, index: Int) {
+    fn(tx_tester: MocktailTx, index: Int) {
       tx_tester
         |> tx_in(
             index < number_of_inputs,
@@ -53,7 +52,7 @@ fn mock_test_case_4_2(number_of_inputs: Int, test_case: TestCase42) {
         |> tx_in_inline_datum(index < number_of_inputs, AccountNormalDatum)
     }
 
-  new_tx_tester()
+  mocktail_tx()
     |> add_trade_account_input(0)
     |> add_trade_account_input(1)
     |> add_trade_account_input(2)

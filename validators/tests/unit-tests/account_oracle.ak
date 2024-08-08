@@ -7,8 +7,8 @@ use aiken_virtual_dex/placeholder.{
   mock_account_oracle_policy_id, mock_operation_key, mock_stop_key,
 }
 use aiken_virtual_dex/types.{AccountOracleDatum, RotateKey, StopApp}
-use sidan_placeholder/key_hex.{mock_pub_key_hex}
-use sidan_placeholder/output_reference.{mock_utxo_ref}
+use mocktail/virgin_key_hex.{mock_pub_key_hash}
+use mocktail/virgin_output_reference.{mock_utxo_ref}
 
 type RotateTestCase {
   is_old_stop_key_signed: Bool,
@@ -31,7 +31,7 @@ fn mock_rotate_test_case(test_case: RotateTestCase) {
     is_datum_updated,
   } = test_case
   let input_utxo = mock_utxo_ref(0, 0)
-  let new_stop_key = mock_pub_key_hex(3)
+  let new_stop_key = mock_pub_key_hash(3)
 
   let extra_signatories =
     []
@@ -78,7 +78,7 @@ test t3_1_success_rotate_key() {
   let redeemer =
     RotateKey {
       new_operation_key: mock_stop_key(),
-      new_stop_key: mock_pub_key_hex(3),
+      new_stop_key: mock_pub_key_hash(3),
     }
   let input_utxo = mock_utxo_ref(0, 0)
 
@@ -92,7 +92,7 @@ test t3_1_fail_rotate_key_without_old_stop_signature() {
   let redeemer =
     RotateKey {
       new_operation_key: mock_stop_key(),
-      new_stop_key: mock_pub_key_hex(3),
+      new_stop_key: mock_pub_key_hash(3),
     }
   let input_utxo = mock_utxo_ref(0, 0)
 
@@ -112,7 +112,7 @@ test t3_1_fail_rotate_key_without_new_stop_signature() {
   let redeemer =
     RotateKey {
       new_operation_key: mock_stop_key(),
-      new_stop_key: mock_pub_key_hex(3),
+      new_stop_key: mock_pub_key_hash(3),
     }
   let input_utxo = mock_utxo_ref(0, 0)
 
@@ -136,7 +136,7 @@ test t3_2_success_stop_app() {
     Transaction {
       ..placeholder(),
       mint: to_minted_value(from_asset(mock_account_oracle_policy_id(), "", -1)),
-      extra_signatories: [mock_pub_key_hex(2)],
+      extra_signatories: [mock_pub_key_hash(2)],
     }
   let ctx =
     ScriptContext { purpose: Spend(mock_utxo_ref(0, 0)), transaction: tx }

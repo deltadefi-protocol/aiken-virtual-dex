@@ -11,11 +11,10 @@ use aiken_virtual_dex/placeholder.{
   mock_trade_input, mock_user_vkey_hex, script_hash_4_1, script_hash_5_1,
 }
 use aiken_virtual_dex/types.{AccountUserUnlock1, TakeOrders, VirtualDexDatum}
-use sidan_placeholder/builder.{
-  complete, new_tx_tester, required_signer_hash, script_withdrawal,
+use mocktail.{
+  add_input, add_output, add_reference_input, complete, mocktail_tx,
+  required_signer_hash, script_withdrawal,
 }
-use sidan_placeholder/transaction.{add_input,
-  add_output, add_reference_input} as sidan_transaction
 use tests/unit_tests/account/account.{account_process}
 use tests/unit_tests/virtual_dex/virtual_dex.{virtual_dex_process} as tvirtual_dex
 use virtual_dex/take_orders.{virtual_dex_take_orders}
@@ -62,7 +61,7 @@ fn take_order_test(buy_count: Int) -> Transaction {
   let count_list = list.range(1, buy_count)
 
   let tx =
-    new_tx_tester()
+    mocktail_tx()
       |> required_signer_hash(True, mock_user_vkey_hex())
       |> script_withdrawal(True, script_hash_4_1(), 0)
       |> script_withdrawal(True, script_hash_5_1(), 0)

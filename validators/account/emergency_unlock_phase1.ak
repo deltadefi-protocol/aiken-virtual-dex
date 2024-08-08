@@ -7,10 +7,10 @@ use aiken_virtual_dex/types.{
   EmergencyUnlockPhase2,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
-use sidan_utils/extra_signatories.{key_signed}
-use sidan_utils/mints.{only_minted_token}
-use sidan_utils/outputs.{outputs_at_with}
-use sidan_utils/validity_range.{valid_before}
+use vodka_extra_signatories.{key_signed}
+use vodka_mints.{only_minted_token}
+use vodka_outputs.{outputs_at_with}
+use vodka_validity_range.{valid_before}
 
 validator(emergency_token: PolicyId) {
   pub fn account_emergency_unlock_phase_1(

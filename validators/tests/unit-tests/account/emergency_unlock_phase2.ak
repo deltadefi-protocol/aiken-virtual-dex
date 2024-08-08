@@ -10,12 +10,11 @@ use aiken_virtual_dex/types.{
   AccountEmergencyActionPhase2Redeemer, AccountEmergencyUnlockPhase2,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
-use sidan_placeholder/builder.{
-  complete, invalid_before, mint, new_tx_tester, required_signer_hash,
-  script_withdrawal,
+use mocktail.{
+  add_input, add_redeemer, complete, invalid_before, mint, mocktail_tx,
+  required_signer_hash, script_withdrawal,
 }
-use sidan_placeholder/output_reference.{mock_utxo_ref}
-use sidan_placeholder/transaction.{add_input, add_redeemer} as sidan_tx
+use mocktail/virgin_output_reference.{mock_utxo_ref}
 use tests/unit_tests/account/account.{account_process}
 
 type TestCase44 {
@@ -55,7 +54,7 @@ fn mock_emergency_action_test_case(test_case: TestCase44) {
 
   let redeemer: Data = mock_redeemer()
 
-  new_tx_tester()
+  mocktail_tx()
     |> required_signer_hash(is_owner_signed, mock_user_vkey_hex())
     |> mint(
         is_emergency_token_burnt,

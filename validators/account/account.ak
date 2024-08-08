@@ -8,7 +8,7 @@ use aiken_virtual_dex/types.{
   AccountEmergencyUnlockPhase2, AccountRedeemer, AccountUserUnlock1,
   AccountUserUnlock2,
 }
-use sidan_utils/redeemers.{withdrawal_redeemer}
+use vodka_redeemers.{withdrawal_redeemer}
 
 validator(
   owner: ByteArray,

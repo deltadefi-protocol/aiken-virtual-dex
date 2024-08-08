@@ -8,11 +8,10 @@ use aiken_virtual_dex/placeholder.{
   script_hash_5_1,
 }
 use aiken_virtual_dex/types.{TakeOrders, VirtualDexDatum}
-use sidan_placeholder/builder.{
-  complete, new_tx_tester, required_signer_hash, script_withdrawal,
+use mocktail.{
+  add_input, add_output, add_reference_input, complete, mocktail_tx,
+  required_signer_hash, script_withdrawal,
 }
-use sidan_placeholder/transaction.{add_input,
-  add_output, add_reference_input} as sidan_transaction
 use tests/unit_tests/virtual_dex/virtual_dex.{virtual_dex_process} as tvirtual_dex
 use virtual_dex/take_orders.{virtual_dex_take_orders}
 
@@ -45,7 +44,7 @@ fn take_order_test(test_case: TestCase51) {
   let list_price_times_1mil = ada_lot_size * 1000000 / token_lot_size
   let percentage_fee_times_10k = 5
 
-  new_tx_tester()
+  mocktail_tx()
     |> script_withdrawal(is_withdrawal_script_present, script_hash_5_1(), 0)
     |> required_signer_hash(is_operation_key_signed, mock_operation_key())
     |> complete()
