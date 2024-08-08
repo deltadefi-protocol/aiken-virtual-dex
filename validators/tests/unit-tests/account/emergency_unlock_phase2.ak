@@ -59,9 +59,9 @@ fn mock_emergency_action_test_case(test_case: TestCase44) {
     |> required_signer_hash(is_owner_signed, mock_user_vkey_hex())
     |> mint(
         is_emergency_token_burnt,
+        -1,
         mock_emergency_token(),
         get_emergency_token_name(mock_account_address()),
-        -1,
       )
     |> invalid_before(is_time_valid, 101)
     |> invalid_before(!is_time_valid, 99)

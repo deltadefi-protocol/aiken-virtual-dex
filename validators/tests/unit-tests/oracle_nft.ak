@@ -15,7 +15,7 @@ test success_mint() {
 
   let tx =
     new_tx_tester()
-      |> mint(True, policy_id, "", 1)
+      |> mint(True, 1, policy_id, "")
       |> tx_in(
           True,
           mock_tx_hash(0),
@@ -46,7 +46,7 @@ test success_burn() {
 
   let tx =
     new_tx_tester()
-      |> mint(True, policy_id, "", -1)
+      |> mint(True, -1, policy_id, "")
       |> complete()
 
   let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
@@ -59,8 +59,8 @@ test success_burn_with_other_minting() {
 
   let tx =
     new_tx_tester()
-      |> mint(True, policy_id, "", -1)
-      |> mint(True, mock_policy_id(1), "", -1)
+      |> mint(True, -1, policy_id, "")
+      |> mint(True, -1, mock_policy_id(1), "")
       |> complete()
   let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
   oracle_nft(mock_utxo_ref(0, 0), redeemer, ctx)
@@ -72,7 +72,7 @@ test fail_burn_with_mint() {
 
   let tx =
     new_tx_tester()
-      |> mint(True, policy_id, "", 1)
+      |> mint(True, 1, policy_id, "")
       |> complete()
 
   let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
@@ -85,8 +85,8 @@ test fail_burn_with_mix() {
 
   let tx =
     new_tx_tester()
-      |> mint(True, policy_id, "", -1)
-      |> mint(True, policy_id, "1", 1)
+      |> mint(True, -1, policy_id, "")
+      |> mint(True, 1, policy_id, "1")
       |> complete()
 
   let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }

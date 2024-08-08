@@ -64,9 +64,9 @@ fn mock_initiate_emergency_test_case(test_case: TestCase43) {
     |> required_signer_hash(is_owner_signed, mock_user_vkey_hex())
     |> mint(
         is_emergency_token_minted,
+        1,
         mock_emergency_token(),
         get_emergency_token_name(mock_account_address()),
-        1,
       )
     |> invalid_hereafter(is_time_valid, 99)
     |> invalid_hereafter(!is_time_valid, 101)
