@@ -1,6 +1,6 @@
 use aiken/list
 use aiken/pairs
-use aiken/transaction.{Input, Output, ScriptContext, Transaction, WithdrawFrom}
+use aiken/transaction.{Input, Output, ScriptContext, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{
   AssetName, PolicyId, Value, from_asset, from_lovelace, merge,
@@ -21,8 +21,7 @@ validator(
     _redeemer: Data,
     context: ScriptContext,
   ) -> Bool {
-    let ScriptContext { purpose, transaction } = context
-    expect WithdrawFrom(_) = purpose
+    let transaction = context.transaction
 
     let Transaction { reference_inputs, inputs, outputs, .. } = transaction
     expect DexOracleDatum { operation_key, dex_address, .. }: DexOracleDatum =

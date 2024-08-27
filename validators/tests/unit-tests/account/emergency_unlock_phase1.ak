@@ -1,15 +1,11 @@
-use account/emergency_unlock_phase1.{account_emergency_unlock_phase_1}
 use aiken/transaction.{Input, ScriptContext, WithdrawFrom}
 use aiken/transaction/credential.{Inline, ScriptCredential}
 use aiken_virtual_dex/placeholder.{
-  mock_account_address, mock_emergency_token, mock_emergency_unlock_phase1_input,
-  mock_emergency_unlock_phase1_output, mock_emergency_unlock_phase1_utxo,
+  mock_account_address, mock_emergency_token, mock_emergency_unlock_phase1_utxo,
   mock_emergency_unlock_phase2_output, mock_operation_key, mock_user_vkey_hex,
   script_hash_4_3,
 }
-use aiken_virtual_dex/types.{
-  AccountEmergencyActionPhase1Redeemer, AccountEmergencyUnlockPhase1,
-}
+use aiken_virtual_dex/types.{EmergencyUnlockDatum}
 use aiken_virtual_dex/utils.{get_emergency_token_name}
 use mocktail.{
   add_input, add_output, add_redeemer, complete, invalid_hereafter, mint,

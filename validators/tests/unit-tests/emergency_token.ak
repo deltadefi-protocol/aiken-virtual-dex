@@ -1,8 +1,8 @@
 use aiken/transaction.{Mint, ScriptContext, Transaction, placeholder}
 use aiken/transaction/value.{add, from_asset, to_minted_value}
 use aiken_virtual_dex/placeholder.{
-  mock_account_address, mock_emergency_action_output,
-  mock_emergency_initiation_input, mock_emergency_token, mock_user_vkey_hex,
+  mock_account_address, mock_emergency_action_output, mock_emergency_token,
+  mock_user_vkey_hex,
 }
 use aiken_virtual_dex/types.{EBurn, EMint}
 use aiken_virtual_dex/utils.{get_emergency_token_name}

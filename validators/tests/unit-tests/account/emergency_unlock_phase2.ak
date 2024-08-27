@@ -36,11 +36,7 @@ fn base_emergency_action_test_case() {
 }
 
 fn mock_redeemer() {
-  AccountEmergencyActionPhase2Redeemer {
-    owner: mock_user_vkey_hex(),
-    own_input: mock_emergency_unlock_phase2_utxo(1),
-    withdraw_output: mock_utxo_ref(0, 31),
-  }
+  AccountEmergencyActionPhase2Redeemer { owner: mock_user_vkey_hex() }
 }
 
 fn mock_emergency_action_test_case(test_case: TestCase44) {

@@ -3,8 +3,8 @@ use aiken/hash.{blake2b_256}
 use aiken/transaction.{InlineDatum, Input, NoDatum, Output, OutputReference}
 use aiken/transaction/value.{PolicyId, Value, add, from_asset}
 use aiken_virtual_dex/types.{
-  AccountNormalDatum, AccountOracleDatum, DexOracleDatum, EmergencyUnlockPhase1,
-  EmergencyUnlockPhase2, VirtualDexDatum,
+  AccountNormalDatum, AccountOracleDatum, DexOracleDatum, EmergencyUnlockPhase2,
+  VirtualDexDatum,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
 use mocktail/virgin_address.{mock_pub_key_address, mock_script_address}
@@ -70,6 +70,7 @@ pub fn mock_account_oracle_datum() {
     oracle_nft: mock_account_oracle_policy_id(),
     oracle_address: mock_account_oracle_address(),
     operation_key: mock_operation_key(),
+    emergency_token: mock_emergency_token(),
     stop_key: mock_stop_key(),
   }
 }
@@ -261,24 +262,8 @@ pub fn mock_another_account_address() {
   mock_script_address(4, None)
 }
 
-pub fn mock_emergency_unlock_phase1_output(owner: ByteArray) -> Output {
-  Output {
-    address: mock_account_address(),
-    value: from_asset("", "", 2_000_000),
-    datum: InlineDatum(EmergencyUnlockPhase1 { owner }),
-    reference_script: None,
-  }
-}
-
 pub fn mock_emergency_unlock_phase1_utxo(variation: Int) -> OutputReference {
   mock_utxo_ref(0, 20 + variation)
-}
-
-pub fn mock_emergency_unlock_phase1_input(variation: Int) -> Input {
-  Input {
-    output_reference: mock_emergency_unlock_phase1_utxo(variation),
-    output: mock_emergency_unlock_phase1_output(mock_user_vkey_hex()),
-  }
 }
 
 pub fn mock_emergency_unlock_phase2_output(valid_since: Int, minter: ByteArray) {
@@ -330,22 +315,6 @@ pub fn mock_trade_input(variation: Int) -> Input {
   Input {
     output_reference: mock_utxo_ref(0, 10 + variation),
     output: mock_trade_output(500_000_000),
-  }
-}
-
-pub fn mock_emergency_initiation_output(owner: ByteArray) -> Output {
-  Output {
-    address: mock_account_address(),
-    value: from_asset("", "", 2_000_000),
-    datum: InlineDatum(EmergencyUnlockPhase1 { owner }),
-    reference_script: None,
-  }
-}
-
-pub fn mock_emergency_initiation_input(variation: Int) -> Input {
-  Input {
-    output_reference: mock_utxo_ref(0, 20 + variation),
-    output: mock_emergency_initiation_output(mock_user_vkey_hex()),
   }
 }
 
