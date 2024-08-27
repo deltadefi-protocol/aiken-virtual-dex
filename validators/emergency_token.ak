@@ -38,16 +38,22 @@ validator(emergency_unlock_address: Address) {
         is_owner_signed && is_emergency_token_name_correct && is_datum_correct && is_time_valid
       }
       EBurn -> {
-        let Transaction { inputs, validity_range, .. } = transaction
+        let Transaction { inputs, validity_range, extra_signatories, .. } =
+          transaction
         expect [initiation_input] =
           inputs_at_with(inputs, emergency_unlock_address, current_policy, #"")
-        expect EmergencyUnlockDatum { minted_at, .. } =
+        expect EmergencyUnlockDatum { minted_at, minter } =
           output_inline_datum(initiation_input.output)
+        let is_owner_signed = key_signed(extra_signatories, minter)
         // Ensure that the token can only be burned one day after the minting timestamp
-        check_policy_only_burn(transaction.mint, current_policy) && valid_after(
-          validity_range,
-          minted_at + 86400,
-        )
+        if valid_after(validity_range, minted_at + 172800) {
+          // Allow anyone to burn after emergency unlock expiry
+          True
+        } else if valid_after(validity_range, minted_at + 86400) {
+          is_owner_signed
+        } else {
+          False
+        }
       }
     }
   }
