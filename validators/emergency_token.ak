@@ -5,7 +5,7 @@ use aiken_virtual_dex/types.{
 }
 use vodka_extra_signatories.{key_signed}
 use vodka_inputs.{inputs_at_with}
-use vodka_mints.{check_policy_only_burn, only_minted_token}
+use vodka_mints.{only_minted_token}
 use vodka_outputs.{output_inline_datum, outputs_at_with}
 use vodka_validity_range.{valid_after}
 
@@ -38,7 +38,7 @@ validator(emergency_unlock_address: Address) {
         is_owner_signed && is_emergency_token_name_correct && is_datum_correct && is_time_valid
       }
       EBurn -> {
-        let Transaction { inputs, validity_range, extra_signatories, .. } =
+        let Transaction { inputs, validity_range, extra_signatories, mint, .. } =
           transaction
         expect [initiation_input] =
           inputs_at_with(inputs, emergency_unlock_address, current_policy, #"")
@@ -46,14 +46,17 @@ validator(emergency_unlock_address: Address) {
           output_inline_datum(initiation_input.output)
         let is_owner_signed = key_signed(extra_signatories, minter)
         // Ensure that the token can only be burned one day after the minting timestamp
-        if valid_after(validity_range, minted_at + 172800) {
-          // Allow anyone to burn after emergency unlock expiry
-          True
-        } else if valid_after(validity_range, minted_at + 86400) {
-          is_owner_signed
-        } else {
-          False
-        }
+        let is_time_valid =
+          if valid_after(validity_range, minted_at + 172800) {
+            // Allow anyone to burn after emergency unlock expiry
+            True
+          } else if valid_after(validity_range, minted_at + 86400) {
+            is_owner_signed
+          } else {
+            False
+          }
+        let is_only_burned = only_minted_token(mint, current_policy, #"", -1)
+        is_time_valid && is_only_burned
       }
     }
   }
