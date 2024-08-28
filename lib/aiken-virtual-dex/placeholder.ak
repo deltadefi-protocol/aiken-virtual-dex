@@ -1,12 +1,12 @@
 use aiken/bytearray
 use aiken/hash.{blake2b_256}
 use aiken/transaction.{InlineDatum, Input, NoDatum, Output, OutputReference}
+use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{PolicyId, Value, add, from_asset}
 use aiken_virtual_dex/types.{
-  AccountNormalDatum, AccountOracleDatum, DexOracleDatum, EmergencyUnlockPhase2,
-  VirtualDexDatum,
+  AccountNormalDatum, AccountOracleDatum, DexOracleDatum, EmergencyUnlockDatum,
+  EmergencyUnlockPhase2, VirtualDexDatum,
 }
-use aiken_virtual_dex/utils.{get_emergency_token_name}
 use mocktail/virgin_address.{mock_pub_key_address, mock_script_address}
 use mocktail/virgin_key_hex.{mock_policy_id,
   mock_pub_key_hash, mock_script_hash}
@@ -270,11 +270,7 @@ pub fn mock_emergency_unlock_phase2_output(valid_since: Int, minter: ByteArray) 
   Output {
     address: mock_account_address(),
     value: from_asset("", "", 2_000_000)
-      |> add(
-          mock_emergency_token(),
-          get_emergency_token_name(mock_account_address()),
-          1,
-        ),
+      |> add(mock_emergency_token(), #"", 1),
     datum: InlineDatum(EmergencyUnlockPhase2 { valid_since, minter }),
     reference_script: None,
   }
@@ -282,6 +278,10 @@ pub fn mock_emergency_unlock_phase2_output(valid_since: Int, minter: ByteArray) 
 
 pub fn mock_emergency_unlock_phase2_utxo(variation: Int) -> OutputReference {
   mock_utxo_ref(0, 30 + variation)
+}
+
+pub fn mock_emergency_unlock_address() {
+  mock_script_address(7, None)
 }
 
 pub fn mock_emergency_unlock_phase2_input(
@@ -318,27 +318,31 @@ pub fn mock_trade_input(variation: Int) -> Input {
   }
 }
 
-pub fn mock_emergency_action_output(valid_since: Int, minter: ByteArray) {
+pub fn mock_emergency_action_output(
+  minted_at: Int,
+  emergency_unlock_address: Address,
+  minter: ByteArray,
+) {
   Output {
-    address: mock_account_address(),
+    address: emergency_unlock_address,
     value: from_asset("", "", 2_000_000)
-      |> add(
-          mock_emergency_token(),
-          get_emergency_token_name(mock_account_address()),
-          1,
-        ),
-    datum: InlineDatum(EmergencyUnlockPhase2 { valid_since, minter }),
+      |> add(mock_emergency_token(), #"", 1),
+    datum: InlineDatum(EmergencyUnlockDatum { minted_at, minter }),
     reference_script: None,
   }
 }
 
 pub fn mock_emergency_action_input(
   variation: Int,
-  valid_since: Int,
+  minted_at: Int,
   minter: ByteArray,
 ) -> Input {
   Input {
     output_reference: mock_utxo_ref(0, 30 + variation),
-    output: mock_emergency_action_output(valid_since, minter),
+    output: mock_emergency_action_output(
+      minted_at,
+      mock_emergency_unlock_address(),
+      minter,
+    ),
   }
 }

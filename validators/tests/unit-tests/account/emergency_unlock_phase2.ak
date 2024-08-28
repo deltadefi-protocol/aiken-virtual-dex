@@ -3,8 +3,8 @@ use aiken/transaction.{ScriptContext, WithdrawFrom}
 use aiken/transaction/credential.{Inline, ScriptCredential}
 use aiken_virtual_dex/placeholder.{
   mock_account_address, mock_account_input, mock_emergency_token,
-  mock_emergency_unlock_phase2_input, mock_emergency_unlock_phase2_utxo,
-  mock_operation_key, mock_user_vkey_hex, script_hash_4_4,
+  mock_emergency_unlock_phase2_input, mock_operation_key, mock_user_vkey_hex,
+  script_hash_4_4,
 }
 use aiken_virtual_dex/types.{
   AccountEmergencyActionPhase2Redeemer, AccountEmergencyUnlockPhase2,
@@ -14,7 +14,6 @@ use mocktail.{
   add_input, add_redeemer, complete, invalid_before, mint, mocktail_tx,
   required_signer_hash, script_withdrawal,
 }
-use mocktail/virgin_output_reference.{mock_utxo_ref}
 use tests/unit_tests/account/account.{account_process}
 
 type TestCase44 {

@@ -35,7 +35,7 @@ validator(emergency_unlock_address: Address) {
         let is_owner_signed = key_signed(extra_signatories, minter)
         // It should be that the token is guaranteed to be minted after the current timestamp
         let is_time_valid = valid_after(validity_range, current_timestamp)
-        is_owner_signed && is_emergency_token_name_correct && is_datum_correct && is_time_valid
+        is_owner_signed? && is_emergency_token_name_correct? && is_datum_correct? && is_time_valid?
       }
       EBurn -> {
         let Transaction { inputs, validity_range, extra_signatories, mint, .. } =
@@ -56,7 +56,7 @@ validator(emergency_unlock_address: Address) {
             False
           }
         let is_only_burned = only_minted_token(mint, current_policy, #"", -1)
-        is_time_valid && is_only_burned
+        is_time_valid? && is_only_burned?
       }
     }
   }
