@@ -5,7 +5,7 @@ use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{PolicyId, Value, add, from_asset}
 use aiken_virtual_dex/types.{
   AccountNormalDatum, AccountOracleDatum, DexOracleDatum, EmergencyUnlockDatum,
-  EmergencyUnlockPhase2, VirtualDexDatum,
+  VirtualDexDatum,
 }
 use mocktail/virgin_address.{mock_pub_key_address, mock_script_address}
 use mocktail/virgin_key_hex.{mock_policy_id,
@@ -266,12 +266,12 @@ pub fn mock_emergency_unlock_phase1_utxo(variation: Int) -> OutputReference {
   mock_utxo_ref(0, 20 + variation)
 }
 
-pub fn mock_emergency_unlock_phase2_output(valid_since: Int, minter: ByteArray) {
+pub fn mock_emergency_unlock_phase2_output(minted_at: Int, minter: ByteArray) {
   Output {
     address: mock_account_address(),
     value: from_asset("", "", 2_000_000)
       |> add(mock_emergency_token(), #"", 1),
-    datum: InlineDatum(EmergencyUnlockPhase2 { valid_since, minter }),
+    datum: InlineDatum(EmergencyUnlockDatum { minter, minted_at }),
     reference_script: None,
   }
 }
@@ -286,12 +286,12 @@ pub fn mock_emergency_unlock_address() {
 
 pub fn mock_emergency_unlock_phase2_input(
   variation: Int,
-  valid_since: Int,
+  minted_at: Int,
   minter: ByteArray,
 ) -> Input {
   Input {
     output_reference: mock_emergency_unlock_phase2_utxo(variation),
-    output: mock_emergency_unlock_phase2_output(valid_since, minter),
+    output: mock_emergency_unlock_phase2_output(minted_at, minter),
   }
 }
 

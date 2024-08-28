@@ -24,9 +24,11 @@ validator(emergency_token: PolicyId) {
     let is_owner_signed = key_signed(transaction.extra_signatories, owner)
     let is_emergency_token_burnt =
       only_minted_token(transaction.mint, emergency_token, #"", -1)
-    is_minted_info_correct? && is_owner_signed? && is_emergency_token_burnt? && valid_before(
-      transaction.validity_range,
-      minted_at + 172800,
-    )
+    let is_time_valid =
+      valid_before(transaction.validity_range, minted_at + 172800)
+    is_minted_info_correct? && is_owner_signed? && is_emergency_token_burnt? && is_time_valid?
+    // The assertion for valid_before essentially makes the emergency unlock able to expire after 2 days
+    // Since the emergency token can only be burned 1 day after minted_at, the window for the unlock is between 1 and 2 days
+    // after minted_at. It is still possible to burn the emergency token, making clean up possible, but unlocking impossible.
   }
 }

@@ -51,7 +51,7 @@ validator(
             let is_withdrawal_redeemer_correct = redeemer_owner == owner
             let is_withdrawal_script_present =
               stake_script_hash == emergency_unlock_phase2
-            is_withdrawal_redeemer_correct && is_withdrawal_script_present
+            is_withdrawal_redeemer_correct? && is_withdrawal_script_present?
           }
           _ -> False
         }
