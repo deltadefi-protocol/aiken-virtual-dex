@@ -45,14 +45,14 @@ fn mint_test_case(test_case: TestCase) {
     }
   let validity_range =
     mock_interval(
+      None,
       Some(
         if is_time_valid {
-          101
-        } else {
           99
+        } else {
+          101
         },
       ),
-      None,
     )
   let outputs =
     [

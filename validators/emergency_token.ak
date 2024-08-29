@@ -7,7 +7,7 @@ use vodka_extra_signatories.{key_signed}
 use vodka_inputs.{inputs_at_with}
 use vodka_mints.{only_minted_token}
 use vodka_outputs.{output_inline_datum, outputs_at_with}
-use vodka_validity_range.{valid_after}
+use vodka_validity_range.{valid_after, valid_before}
 
 validator(emergency_unlock_address: Address) {
   pub fn emergency_token(
@@ -33,8 +33,8 @@ validator(emergency_unlock_address: Address) {
           only_minted_token(mint, current_policy, #"", 1)
         let is_datum_correct = minted_at == current_timestamp
         let is_owner_signed = key_signed(extra_signatories, minter)
-        // It should be that the token is guaranteed to be minted after the current timestamp
-        let is_time_valid = valid_after(validity_range, current_timestamp)
+        // It should be that the token is guaranteed to be minted before the current timestamp
+        let is_time_valid = valid_before(validity_range, current_timestamp)
         is_owner_signed? && is_emergency_token_name_correct? && is_datum_correct? && is_time_valid?
       }
       EBurn -> {
