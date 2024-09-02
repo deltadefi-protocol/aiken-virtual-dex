@@ -39,16 +39,20 @@ There are in total 6 scripts for the DeltaDeFi virtual dex to work. Below provid
 
 1. First layer
 
-   - 1.1 `EmergencyToken` (no param)
-   - 1.2 `OracleNFT` (param: `utxo_ref`)
-   - 1.3 `OracleValidator` (no param)
+   - 1.1 `OracleNFT` (param: `utxo_ref`)
+   - 1.2 `OracleValidator` (no param)
 
 2. Second layer
 
    - 2.1 All account actions (param: `owner`, 1.1, 1.2)
    - 2.2 All dex actions (param: 1.1, 1.2)
+   - 2.3 `EmergencyUnlock` (param 1.2)
 
 3. Third layer
 
-   - 3.1 `Account` (param: 2.1)
-   - 3.2 `VirtualDEX` (param: 2.2)
+   - 3.1 `EmergencyToken` (no param)
+
+4. Fourth layer
+
+   - 4.1 `Account` (param: 2.1, 3.1)
+   - 4.2 `VirtualDEX` (param: 2.2, 3.1)
