@@ -7,6 +7,7 @@
 - `oracle_nft`: The policy id of `OracleNFT`
 - `oracle_address`: The address of the current oracle validator
 - `operation_key`: The key for operation use. E.g. processing orders
+- `emergency_token`: The token for emergency unlocks
 - `stop_key`: The key for stopping the services
 
 ## User Action

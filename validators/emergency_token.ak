@@ -1,16 +1,15 @@
 use aiken/transaction.{Mint, ScriptContext, Transaction}
+use aiken/transaction/credential.{Address}
 use aiken_virtual_dex/types.{
-  AccountDatum, EBurn, EMint, EmergencyTokenMintingPolarity,
-  EmergencyUnlockPhase1, EmergencyUnlockPhase2,
+  EBurn, EMint, EmergencyTokenMintingPolarity, EmergencyUnlockDatum,
 }
-use aiken_virtual_dex/utils.{get_emergency_token_name}
 use vodka_extra_signatories.{key_signed}
-use vodka_inputs.{inputs_at}
-use vodka_mints.{check_policy_only_burn, only_minted_token}
-use vodka_outputs.{output_inline_datum, outputs_at}
-use vodka_validity_range.{valid_before}
+use vodka_inputs.{inputs_at_with}
+use vodka_mints.{only_minted_token}
+use vodka_outputs.{output_inline_datum, outputs_at_with}
+use vodka_validity_range.{valid_after, valid_before}
 
-validator {
+validator(emergency_unlock_address: Address) {
   pub fn emergency_token(
     redeemer: EmergencyTokenMintingPolarity,
     context: ScriptContext,
@@ -18,35 +17,47 @@ validator {
     let ScriptContext { purpose, transaction } = context
     expect Mint(current_policy) = purpose
     when redeemer is {
-      EMint { current_timestamp, account_address } -> {
-        let Transaction {
-          inputs,
-          outputs,
-          mint,
-          extra_signatories,
-          validity_range,
-          ..
-        } = transaction
-        expect [initiation_input] = inputs_at(inputs, account_address)
-        expect EmergencyUnlockPhase1 { owner }: AccountDatum =
-          output_inline_datum(initiation_input.output)
-        expect [emergency_output] = outputs_at(outputs, account_address)
-        expect EmergencyUnlockPhase2 { valid_since, minter }: AccountDatum =
+      EMint { current_timestamp } -> {
+        let Transaction { outputs, mint, extra_signatories, validity_range, .. } =
+          transaction
+        expect [emergency_output] =
+          outputs_at_with(
+            outputs,
+            emergency_unlock_address,
+            current_policy,
+            #"",
+          )
+        expect EmergencyUnlockDatum { minter, minted_at } =
           output_inline_datum(emergency_output)
         let is_emergency_token_name_correct =
-          only_minted_token(
-            mint,
-            current_policy,
-            get_emergency_token_name(account_address),
-            1,
-          )
-        let is_datum_correct =
-          owner == minter && valid_since == current_timestamp
-        let is_owner_signed = key_signed(extra_signatories, owner)
+          only_minted_token(mint, current_policy, #"", 1)
+        let is_datum_correct = minted_at == current_timestamp
+        let is_owner_signed = key_signed(extra_signatories, minter)
+        // It should be that the token is guaranteed to be minted before the current timestamp
         let is_time_valid = valid_before(validity_range, current_timestamp)
-        is_owner_signed && is_emergency_token_name_correct && is_datum_correct && is_time_valid
+        is_owner_signed? && is_emergency_token_name_correct? && is_datum_correct? && is_time_valid?
       }
-      EBurn -> check_policy_only_burn(transaction.mint, current_policy)
+      EBurn -> {
+        let Transaction { inputs, validity_range, extra_signatories, mint, .. } =
+          transaction
+        expect [initiation_input] =
+          inputs_at_with(inputs, emergency_unlock_address, current_policy, #"")
+        expect EmergencyUnlockDatum { minted_at, minter } =
+          output_inline_datum(initiation_input.output)
+        let is_owner_signed = key_signed(extra_signatories, minter)
+        // Ensure that the token can only be burned one day after the minting timestamp
+        let is_time_valid =
+          if valid_after(validity_range, minted_at + 172800) {
+            // Allow anyone to burn after emergency unlock expiry
+            True
+          } else if valid_after(validity_range, minted_at + 86400) {
+            is_owner_signed
+          } else {
+            False
+          }
+        let is_only_burned = only_minted_token(mint, current_policy, #"", -1)
+        is_time_valid? && is_only_burned?
+      }
     }
   }
 }

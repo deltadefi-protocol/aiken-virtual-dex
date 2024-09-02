@@ -1,4 +1,3 @@
-use aiken/transaction.{OutputReference}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{PolicyId}
 
@@ -10,8 +9,13 @@ pub type MintPolarity {
 
 // 2. EmergencyToken
 pub type EmergencyTokenMintingPolarity {
-  EMint { current_timestamp: Int, account_address: Address }
+  EMint { current_timestamp: Int }
   EBurn
+}
+
+pub type EmergencyUnlockDatum {
+  minter: ByteArray,
+  minted_at: Int,
 }
 
 // 3. AccountOracle
@@ -19,6 +23,7 @@ pub type AccountOracleDatum {
   oracle_nft: PolicyId,
   oracle_address: Address,
   operation_key: ByteArray,
+  emergency_token: PolicyId,
   stop_key: ByteArray,
 }
 
@@ -32,26 +37,16 @@ pub type AccountRedeemer {
   AccountUserUnlock1
   AccountUserUnlock2
   AccountAppUnlock
-  AccountEmergencyUnlockPhase1
   AccountEmergencyUnlockPhase2
 }
 
 pub type AccountDatum {
   AccountNormalDatum
-  EmergencyUnlockPhase1 { owner: ByteArray }
   EmergencyUnlockPhase2 { valid_since: Int, minter: ByteArray }
-}
-
-pub type AccountEmergencyActionPhase1Redeemer {
-  owner: ByteArray,
-  own_input: OutputReference,
-  initiate_before: Int,
 }
 
 pub type AccountEmergencyActionPhase2Redeemer {
   owner: ByteArray,
-  own_input: OutputReference,
-  withdraw_output: OutputReference,
 }
 
 // 5. DexOracle

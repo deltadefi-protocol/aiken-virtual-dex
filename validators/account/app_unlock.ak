@@ -1,5 +1,5 @@
 use aiken/list
-use aiken/transaction.{ScriptContext, Transaction, WithdrawFrom}
+use aiken/transaction.{ScriptContext, Transaction}
 use aiken/transaction/value.{PolicyId, merge, zero}
 use aiken_virtual_dex/types.{AccountOracleDatum}
 use vodka_address.{address_script_hash}
@@ -9,9 +9,8 @@ use vodka_value.{get_all_value_to, value_geq} as sidan_value
 
 validator(oracle_nft: PolicyId) {
   pub fn account_app_unlock(_redeemer: Data, context: ScriptContext) -> Bool {
-    let ScriptContext { purpose, transaction } = context
+    let transaction = context.transaction
     let Transaction { inputs, outputs, extra_signatories, .. } = transaction
-    expect WithdrawFrom(_) = purpose
     expect AccountOracleDatum { operation_key, .. }: AccountOracleDatum =
       only_input_datum_with(transaction.reference_inputs, oracle_nft, "")
 
