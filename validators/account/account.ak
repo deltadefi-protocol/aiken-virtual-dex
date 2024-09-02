@@ -1,27 +1,30 @@
 use aiken/hash.{Blake2b_224, Hash}
 use aiken/pairs
-use aiken/transaction.{ScriptContext, Spend, Transaction}
+use aiken/transaction.{ScriptContext, Transaction}
 use aiken/transaction/credential.{Inline, Script, ScriptCredential}
+use aiken/transaction/value.{AssetName}
 use aiken_virtual_dex/types.{
-  AccountAppUnlock, AccountDatum, AccountEmergencyActionPhase2Redeemer,
-  AccountEmergencyUnlockPhase2, AccountRedeemer, AccountUserUnlock1,
-  AccountUserUnlock2,
+  AccountAppUnlock, AccountDatum, AccountEmergencyUnlock, AccountRedeemer,
+  AccountUserUnlock1, AccountUserUnlock2, EmergencyUnlockDatum,
 }
-use vodka_redeemers.{withdrawal_redeemer}
+use vodka_extra_signatories.{key_signed}
+use vodka_inputs.{inputs_with}
+use vodka_mints.{only_minted_token}
+use vodka_outputs.{output_inline_datum}
 
 validator(
   owner: ByteArray,
   user_unlock_1: Hash<Blake2b_224, Script>,
   user_unlock_2: Hash<Blake2b_224, Script>,
   app_unlock: Hash<Blake2b_224, Script>,
-  emergency_unlock_phase2: Hash<Blake2b_224, Script>,
+  emergency_token: AssetName,
 ) {
   pub fn account(
     _datum: AccountDatum,
     redeemer: AccountRedeemer,
     context: ScriptContext,
   ) -> Bool {
-    let ScriptContext { transaction, purpose } = context
+    let ScriptContext { transaction, .. } = context
     when redeemer is {
       AccountUserUnlock1 ->
         pairs.has_key(
@@ -38,23 +41,22 @@ validator(
           transaction.withdrawals,
           Inline(ScriptCredential(app_unlock)),
         )
-      AccountEmergencyUnlockPhase2 ->
-        when transaction.withdrawals is {
-          [Pair(stake_cred, _)] -> {
-            expect Inline(ScriptCredential(stake_script_hash)) = stake_cred
-            expect Spend(_) = purpose
-            expect Some(withdrawal_script_redeemer) =
-              transaction.redeemers |> withdrawal_redeemer(stake_script_hash)
-            expect AccountEmergencyActionPhase2Redeemer {
-              owner: redeemer_owner,
-            }: AccountEmergencyActionPhase2Redeemer = withdrawal_script_redeemer
-            let is_withdrawal_redeemer_correct = redeemer_owner == owner
-            let is_withdrawal_script_present =
-              stake_script_hash == emergency_unlock_phase2
-            is_withdrawal_redeemer_correct? && is_withdrawal_script_present?
+      AccountEmergencyUnlock -> {
+        let Transaction { extra_signatories, mint, inputs, .. } = transaction
+        let is_owner_signed = key_signed(extra_signatories, owner)
+        let is_emergency_token_burnt =
+          only_minted_token(mint, emergency_token, #"", -1)
+        let emergency_input = inputs_with(inputs, emergency_token, #"")
+        when emergency_input is {
+          [only_input] -> {
+            expect emergency_datum: EmergencyUnlockDatum =
+              output_inline_datum(only_input.output)
+            let is_emergency_owner_correct = emergency_datum.minter == owner
+            is_owner_signed? && is_emergency_token_burnt? && is_emergency_owner_correct?
           }
           _ -> False
         }
+      }
     }
   }
 }

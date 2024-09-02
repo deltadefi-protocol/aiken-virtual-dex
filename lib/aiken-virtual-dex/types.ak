@@ -13,12 +13,14 @@ pub type EmergencyTokenMintingPolarity {
   EBurn
 }
 
+// 3. EmergencyUnlock Validator
+
 pub type EmergencyUnlockDatum {
   minter: ByteArray,
   minted_at: Int,
 }
 
-// 3. AccountOracle
+// 4. AccountOracle
 pub type AccountOracleDatum {
   oracle_nft: PolicyId,
   oracle_address: Address,
@@ -29,27 +31,21 @@ pub type AccountOracleDatum {
 
 pub type AccountOracleRedeemer {
   RotateKey { new_operation_key: ByteArray, new_stop_key: ByteArray }
-  StopApp
 }
 
-// 4. Account
+// 5. Account
 pub type AccountRedeemer {
   AccountUserUnlock1
   AccountUserUnlock2
   AccountAppUnlock
-  AccountEmergencyUnlockPhase2
+  AccountEmergencyUnlock
 }
 
 pub type AccountDatum {
-  AccountNormalDatum
-  EmergencyUnlockPhase2 { valid_since: Int, minter: ByteArray }
+  AccountDatum
 }
 
-pub type AccountEmergencyActionPhase2Redeemer {
-  owner: ByteArray,
-}
-
-// 5. DexOracle
+// 6. DexOracle
 
 pub type DexOracleDatum {
   oracle_nft: PolicyId,
@@ -64,7 +60,7 @@ pub type DexOracleRedeemer {
   StopDex
 }
 
-// 6. VirtualDex
+// 7. VirtualDex
 pub type VirtualDexDatum {
   account_address: Address,
   is_long: Bool,

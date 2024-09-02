@@ -18,7 +18,7 @@
    - The only 1 output datum is updated with new operation key and stop key
    - Required signers include both original and the new stop key
 
-2. Stop the oracle validator - Redeemer `StopApp`
+<!-- 2. Stop the oracle validator - Redeemer `StopApp`
 
    - The transaction is signed by stop key
-   - The `OracleNFT` is burnt
+   - The `OracleNFT` is burnt -->

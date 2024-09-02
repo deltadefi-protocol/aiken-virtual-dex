@@ -2,23 +2,18 @@
 
 ## Parameter
 
+- `oracle_nft`: The policy id of account's `OracleNFT`
+
 ## Datum
 
-- `oracle_nft`: The policy id of `OracleNFT`
-- `oracle_address`: The address of the current oracle validator
-- `operation_key`: The key for operation use. E.g. processing orders
-- `emergency_token`: The token for emergency unlocks
-- `stop_key`: The key for stopping the services
+- `minter`: The owner address of the emergency withdraw
+- `minted_at`: The timestamp where the emergency withdraw buffer period start counting
 
 ## User Action
 
-1. Rotate operation and stop keys - Redeemer `RotateKey {new_operation_key, new_stop_key}`
+1. Unlock the emergency utxo
 
-   - Only 1 input from oracle address
-   - The only 1 output datum is updated with new operation key and stop key
-   - Required signers include both original and the new stop key
-
-2. Stop the oracle validator - Redeemer `StopApp`
-
-   - The transaction is signed by stop key
-   - The `OracleNFT` is burnt
+   - Only 1 reference utxo with `oracle_nft` with account oracle datum
+   - If only 1 input with emergency_token & datum is in correct format
+     - Yes: required signer of `minter`
+     - No: required `operation_key` signature

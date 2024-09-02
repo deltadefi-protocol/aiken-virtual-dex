@@ -7,7 +7,7 @@ use aiken_virtual_dex/placeholder.{
   mock_account_oracle_ref_input, mock_another_account_address,
   mock_operation_key, script_hash_4_2,
 }
-use aiken_virtual_dex/types.{AccountAppUnlock, AccountNormalDatum}
+use aiken_virtual_dex/types.{AccountAppUnlock, AccountDatum}
 use mocktail.{
   MocktailTx, add_reference_input, complete, mocktail_tx, required_signer_hash,
   script_withdrawal, tx_in, tx_in_inline_datum, tx_out, tx_out_inline_datum,
@@ -49,7 +49,7 @@ fn mock_test_case_4_2(number_of_inputs: Int, test_case: TestCase42) {
             from_lovelace(5_000_000),
             mock_account_address(),
           )
-        |> tx_in_inline_datum(index < number_of_inputs, AccountNormalDatum)
+        |> tx_in_inline_datum(index < number_of_inputs, AccountDatum)
     }
 
   mocktail_tx()
@@ -71,19 +71,19 @@ fn mock_test_case_4_2(number_of_inputs: Int, test_case: TestCase42) {
         from_lovelace(5_000_000),
         mock_another_account_address(),
       )
-    |> tx_in_inline_datum(!is_only_single_account, AccountNormalDatum)
+    |> tx_in_inline_datum(!is_only_single_account, AccountDatum)
     |> tx_out(
         True,
         mock_account_address(),
         from_lovelace(5_000_000 * ( number_of_inputs - 1 )),
       )
-    |> tx_out_inline_datum(True, AccountNormalDatum)
+    |> tx_out_inline_datum(True, AccountDatum)
     |> tx_out(
         is_value_resepnt_into_account,
         mock_account_address(),
         from_lovelace(5_000_000 * ( number_of_inputs - 1 )),
       )
-    |> tx_out_inline_datum(is_value_resepnt_into_account, AccountNormalDatum)
+    |> tx_out_inline_datum(is_value_resepnt_into_account, AccountDatum)
     |> required_signer_hash(is_operation_key_signed, mock_operation_key())
     |> script_withdrawal(is_withdrawal_script_present, script_hash_4_2(), 0)
     |> complete()

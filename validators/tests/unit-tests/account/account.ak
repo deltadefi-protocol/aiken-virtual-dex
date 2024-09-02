@@ -3,7 +3,7 @@ use aiken/transaction.{ScriptContext, Spend, Transaction}
 use aiken_virtual_dex/placeholder.{
   mock_user_vkey_hex, script_hash_4_1, script_hash_4_2, script_hash_4_3,
 }
-use aiken_virtual_dex/types.{AccountNormalDatum, AccountRedeemer}
+use aiken_virtual_dex/types.{AccountDatum, AccountRedeemer}
 use mocktail/virgin_output_reference.{mock_utxo_ref}
 
 pub fn account_process(index: Int, tx: Transaction, redeemer: AccountRedeemer) {
@@ -16,7 +16,7 @@ pub fn account_process(index: Int, tx: Transaction, redeemer: AccountRedeemer) {
     script_hash_4_1(),
     script_hash_4_2(),
     script_hash_4_3(),
-    AccountNormalDatum,
+    AccountDatum,
     redeemer,
     spend_ctx,
   )

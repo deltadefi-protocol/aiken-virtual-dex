@@ -22,9 +22,8 @@ There are in total 6 scripts for the DeltaDeFi virtual dex to work. Below provid
 
    - The script to be compiled into different addresses according to account number, storing the UTxO ready for place order.
    - Action specification:
-     - 4.1: User Unlock - [specification](./5_account/5.1_user_unlock.md)
-     - 4.2: App Unlock - [specification](./5_account/5.2_app_unlock.md)
-     - 4.3: Emergency Unlock Phase 2- [specification](./5_account/5.3_emergency_unlock_phase2.md)
+     - 5.1: User Unlock - [specification](./5_account/5.1_user_unlock.md)
+     - 5.2: App Unlock - [specification](./5_account/5.2_app_unlock.md)
 
 6. DexOracle - [specification](./6_account_oracle.md)
 

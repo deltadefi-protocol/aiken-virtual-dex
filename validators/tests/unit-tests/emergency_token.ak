@@ -135,7 +135,7 @@ test t2_2_success_burn() {
       ..placeholder(),
       inputs: [mock_emergency_action_input(10, 100, mock_user_vkey_hex())],
       extra_signatories: [mock_user_vkey_hex()],
-      validity_range: mock_interval(Some(100 + 86401), None),
+      validity_range: mock_interval(Some(100 + 86400001), None),
       mint: to_minted_value(from_asset(policy_id, #"", -1)),
     }
   let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
@@ -151,7 +151,7 @@ test t2_2_fail_burn_with_mint() {
       ..placeholder(),
       inputs: [mock_emergency_action_input(10, 100, mock_user_vkey_hex())],
       extra_signatories: [mock_user_vkey_hex()],
-      validity_range: mock_interval(Some(100 + 86401), None),
+      validity_range: mock_interval(Some(100 + 86400001), None),
       mint: to_minted_value(from_asset(policy_id, "", 1)),
     }
   let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
@@ -167,7 +167,7 @@ test t2_2_fail_burn_with_mix() {
       ..placeholder(),
       inputs: [mock_emergency_action_input(10, 100, mock_user_vkey_hex())],
       extra_signatories: [mock_user_vkey_hex()],
-      validity_range: mock_interval(Some(100 + 86401), None),
+      validity_range: mock_interval(Some(100 + 86400001), None),
       mint: to_minted_value(
         from_asset(policy_id, "", -1) |> add(policy_id, "1", 1),
       ),

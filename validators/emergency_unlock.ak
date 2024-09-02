@@ -7,7 +7,11 @@ use vodka_outputs.{output_inline_datum}
 use vodka_validity_range.{valid_after}
 
 validator(oracle_nft: PolicyId) {
-  pub fn emergency_unlock(_datum: Data, _redeemer: Data, context: ScriptContext) -> Bool {
+  pub fn emergency_unlock(
+    _datum: Data,
+    _redeemer: Data,
+    context: ScriptContext,
+  ) -> Bool {
     let Transaction {
       reference_inputs,
       inputs,
@@ -33,7 +37,7 @@ validator(oracle_nft: PolicyId) {
           key_signed(extra_signatories, operation_key)
         }
       }
-      _other -> key_signed(extra_signatories, operation_key)
+      _ -> key_signed(extra_signatories, operation_key)
     }
   }
 }

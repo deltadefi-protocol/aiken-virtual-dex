@@ -4,7 +4,7 @@ use aiken/transaction.{InlineDatum, Input, NoDatum, Output, OutputReference}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{PolicyId, Value, add, from_asset}
 use aiken_virtual_dex/types.{
-  AccountNormalDatum, AccountOracleDatum, DexOracleDatum, EmergencyUnlockDatum,
+  AccountDatum, AccountOracleDatum, DexOracleDatum, EmergencyUnlockDatum,
   VirtualDexDatum,
 }
 use mocktail/virgin_address.{mock_pub_key_address, mock_script_address}
@@ -217,7 +217,7 @@ pub fn mock_post_trade_account_output(value: Value) -> Output {
   Output {
     address: mock_account_address(),
     value,
-    datum: InlineDatum(AccountNormalDatum),
+    datum: InlineDatum(AccountDatum),
     reference_script: None,
   }
 }
@@ -306,7 +306,7 @@ pub fn mock_trade_output(lovelace: Int) -> Output {
   Output {
     address: mock_account_address(),
     value: from_asset("", "", lovelace),
-    datum: InlineDatum(AccountNormalDatum),
+    datum: InlineDatum(AccountDatum),
     reference_script: None,
   }
 }
