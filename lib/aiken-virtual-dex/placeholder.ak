@@ -271,8 +271,8 @@ pub fn mock_emergency_unlock_phase2_output(minted_at: Int, minter: ByteArray) {
   Output {
     address: mock_account_address(),
     value: from_asset("", "", 2_000_000)
-      |> add(mock_emergency_token(), #"", 1),
-    datum: InlineDatum(EmergencyUnlockDatum { minter, minted_at }),
+      |> add(mock_emergency_token(), minter, 1),
+    datum: InlineDatum(EmergencyUnlockDatum { minted_at }),
     reference_script: None,
   }
 }
@@ -327,8 +327,8 @@ pub fn mock_emergency_action_output(
   Output {
     address: emergency_unlock_address,
     value: from_asset("", "", 2_000_000)
-      |> add(mock_emergency_token(), #"", 1),
-    datum: InlineDatum(EmergencyUnlockDatum { minted_at, minter }),
+      |> add(mock_emergency_token(), minter, 1),
+    datum: InlineDatum(EmergencyUnlockDatum { minted_at }),
     reference_script: None,
   }
 }

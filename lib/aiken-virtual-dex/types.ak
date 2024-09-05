@@ -9,14 +9,13 @@ pub type MintPolarity {
 
 // 2. EmergencyToken
 pub type EmergencyTokenMintingPolarity {
-  EMint { current_timestamp: Int }
+  EMint { minter: ByteArray }
   EBurn
 }
 
 // 3. EmergencyUnlock Validator
 
 pub type EmergencyUnlockDatum {
-  minter: ByteArray,
   minted_at: Int,
 }
 

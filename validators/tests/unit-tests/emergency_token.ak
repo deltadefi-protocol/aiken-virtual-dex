@@ -60,7 +60,7 @@ fn mint_test_case(test_case: TestCase) {
         if is_datum_correct {
           100
         } else {
-          200
+          50
         },
         mock_emergency_unlock_address(),
         mock_user_vkey_hex(),
@@ -76,7 +76,7 @@ fn mint_test_case(test_case: TestCase) {
 }
 
 test t2_1_success_mint() {
-  let redeemer = EMint { current_timestamp: 100 }
+  let redeemer = EMint { minter: mock_user_vkey_hex() }
   let policy_id = mock_emergency_token()
 
   let tx = mint_test_case(base_test_case())
@@ -89,7 +89,7 @@ test t2_1_success_mint() {
 }
 
 test t2_1_fail_mint_without_owner_signature() {
-  let redeemer = EMint { current_timestamp: 100 }
+  let redeemer = EMint { minter: mock_user_vkey_hex() }
   let policy_id = mock_emergency_token()
 
   let tx =
@@ -103,7 +103,7 @@ test t2_1_fail_mint_without_owner_signature() {
 }
 
 test t2_1_fail_mint_with_incorrect_emergency_token_name() {
-  let redeemer = EMint { current_timestamp: 100 }
+  let redeemer = EMint { minter: mock_user_vkey_hex() }
   let policy_id = mock_emergency_token()
 
   let tx =
@@ -119,7 +119,7 @@ test t2_1_fail_mint_with_incorrect_emergency_token_name() {
 }
 
 test t2_1_fail_mint_without_correct_datum() {
-  let redeemer = EMint { current_timestamp: 100 }
+  let redeemer = EMint { minter: mock_user_vkey_hex() }
   let policy_id = mock_emergency_token()
 
   let tx =
@@ -133,7 +133,7 @@ test t2_1_fail_mint_without_correct_datum() {
 }
 
 test t2_1_fail_mint_with_invalid_time() {
-  let redeemer = EMint { current_timestamp: 100 }
+  let redeemer = EMint { minter: mock_user_vkey_hex() }
   let policy_id = mock_emergency_token()
 
   let tx = mint_test_case(TestCase { ..base_test_case(), is_time_valid: False })
