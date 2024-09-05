@@ -12,7 +12,15 @@
 
 1. Unlock the emergency utxo
 
-   - Only 1 reference utxo with `oracle_nft` with account oracle datum
-   - If only 1 input with `emergency_token` & datum is in correct format
-     - Yes: check if the `emergency_token` is burnt
-     - No: required `operation_key` signature
+   - User Unlock Case
+
+     - Only 1 reference utxo with `oracle_nft` with account oracle datum
+     - Only 1 input with `emergency_token` & datum is in correct format
+     - The current signing interval has `validity_interval_start` with `86400` slots after `minted_at`
+
+   - Admin Unlock Case
+
+     - Required `operation_key` signature plus anyone of below situation
+       a. Request is expired (The current signing interval has `validity_interval_start` with `172800` slots after `minted_at`)
+       b. No input (i.e. no current input containing `emergency_token`)
+       c. The own input containing invalid datum

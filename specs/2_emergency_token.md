@@ -16,6 +16,4 @@
 
 2. Burn - Redeemer `EBurn`
 
-   - Only 1 input from `emergency_unlock_address`, with current policy token and with token name encoded owner
-   - The current policy id only has negative minting value in transaction body.
-   - The current signing interval has `validity_interval_start` with `86400` slots after `valid_since` plus owner signature. Or The current signing interval has `validity_interval_start` with `172800` slots after `valid_since`.
+   - Check the current policy only containing burning

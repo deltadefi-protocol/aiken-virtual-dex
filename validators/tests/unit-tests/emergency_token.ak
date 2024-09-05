@@ -1,6 +1,6 @@
 use aiken_virtual_dex/placeholder.{
-  mock_emergency_action_input, mock_emergency_action_output,
-  mock_emergency_token, mock_emergency_unlock_address, mock_user_vkey_hex,
+  mock_emergency_action_output, mock_emergency_token,
+  mock_emergency_unlock_address, mock_user_vkey_hex,
 } as dex_placeholder
 use aiken_virtual_dex/types.{EBurn, EMint}
 use cardano/assets.{add, from_asset}
@@ -39,7 +39,7 @@ fn mint_test_case(test_case: TestCase) {
     }
   let mint =
     if is_emergency_token_name_correct {
-      from_asset(mock_emergency_token(), #"", 1)
+      from_asset(mock_emergency_token(), mock_user_vkey_hex(), 1)
     } else {
       from_asset(mock_emergency_token(), "Incorrect name", 1)
     }
@@ -149,14 +149,7 @@ test t2_2_success_burn() {
   let redeemer = EBurn
   let policy_id = mock_emergency_token()
 
-  let tx =
-    Transaction {
-      ..placeholder,
-      inputs: [mock_emergency_action_input(10, 100, mock_user_vkey_hex())],
-      extra_signatories: [mock_user_vkey_hex()],
-      validity_range: mock_interval(Some(100 + 86400001), None),
-      mint: from_asset(policy_id, #"", -1),
-    }
+  let tx = Transaction { ..placeholder, mint: from_asset(policy_id, #"", -1) }
   emergency_token.emergency_token.mint(
     mock_emergency_unlock_address(),
     redeemer,
@@ -169,14 +162,7 @@ test t2_2_fail_burn_with_mint() {
   let redeemer = EBurn
   let policy_id = mock_emergency_token()
 
-  let tx =
-    Transaction {
-      ..placeholder,
-      inputs: [mock_emergency_action_input(10, 100, mock_user_vkey_hex())],
-      extra_signatories: [mock_user_vkey_hex()],
-      validity_range: mock_interval(Some(100 + 86400001), None),
-      mint: from_asset(policy_id, "", 1),
-    }
+  let tx = Transaction { ..placeholder, mint: from_asset(policy_id, "", 1) }
   !emergency_token.emergency_token.mint(
     mock_emergency_unlock_address(),
     redeemer,
@@ -192,9 +178,6 @@ test t2_2_fail_burn_with_mix() {
   let tx =
     Transaction {
       ..placeholder,
-      inputs: [mock_emergency_action_input(10, 100, mock_user_vkey_hex())],
-      extra_signatories: [mock_user_vkey_hex()],
-      validity_range: mock_interval(Some(100 + 86400001), None),
       mint: from_asset(policy_id, "", -1) |> add(policy_id, "1", 1),
     }
   !emergency_token.emergency_token.mint(
