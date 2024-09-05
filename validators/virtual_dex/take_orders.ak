@@ -87,6 +87,7 @@ pub fn accumulate_all_to_return_value(
               list_price_times_1mil,
               lot_size,
               extra_lovelace,
+              ..
             }: VirtualDexDatum = output_inline_datum(input.output)
             let current_item = pairs.get_first(acc.1st, account_address)
             let to_return_value =

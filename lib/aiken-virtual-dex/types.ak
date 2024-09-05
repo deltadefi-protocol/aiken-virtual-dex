@@ -66,6 +66,7 @@ pub type VirtualDexDatum {
   list_price_times_1mil: Int,
   lot_size: Int,
   extra_lovelace: Int,
+  owner: ByteArray,
 }
 
 pub type VirtualDexRedeemer {
