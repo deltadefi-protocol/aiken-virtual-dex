@@ -62,7 +62,6 @@ fn mint_test_case(test_case: TestCase) {
         } else {
           50
         },
-        mock_emergency_unlock_address(),
         mock_user_vkey_hex(),
       ),
     ]

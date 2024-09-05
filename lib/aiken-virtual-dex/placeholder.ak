@@ -4,9 +4,8 @@ use aiken_virtual_dex/types.{
   AccountDatum, AccountOracleDatum, DexOracleDatum, EmergencyUnlockDatum,
   VirtualDexDatum,
 }
-use cardano/address.{Address}
 use cardano/assets.{PolicyId, Value, add, from_asset}
-use cardano/transaction.{InlineDatum, Input, NoDatum, Output, OutputReference}
+use cardano/transaction.{InlineDatum, Input, NoDatum, Output}
 use mocktail/virgin_address.{mock_pub_key_address, mock_script_address}
 use mocktail/virgin_key_hash.{
   mock_policy_id, mock_pub_key_hash, mock_script_hash,
@@ -265,37 +264,8 @@ pub fn mock_another_account_address() {
   mock_script_address(4, None)
 }
 
-pub fn mock_emergency_unlock_phase1_utxo(variation: Int) -> OutputReference {
-  mock_utxo_ref(0, 20 + variation)
-}
-
-pub fn mock_emergency_unlock_phase2_output(minted_at: Int, minter: ByteArray) {
-  Output {
-    address: mock_account_address(),
-    value: from_asset("", "", 2_000_000)
-      |> add(mock_emergency_token(), minter, 1),
-    datum: InlineDatum(EmergencyUnlockDatum { minted_at }),
-    reference_script: None,
-  }
-}
-
-pub fn mock_emergency_unlock_phase2_utxo(variation: Int) -> OutputReference {
-  mock_utxo_ref(0, 30 + variation)
-}
-
 pub fn mock_emergency_unlock_address() {
   mock_script_address(7, None)
-}
-
-pub fn mock_emergency_unlock_phase2_input(
-  variation: Int,
-  minted_at: Int,
-  minter: ByteArray,
-) -> Input {
-  Input {
-    output_reference: mock_emergency_unlock_phase2_utxo(variation),
-    output: mock_emergency_unlock_phase2_output(minted_at, minter),
-  }
 }
 
 pub fn mock_account_input(variation: Int) -> Input {
@@ -321,13 +291,9 @@ pub fn mock_trade_input(variation: Int) -> Input {
   }
 }
 
-pub fn mock_emergency_action_output(
-  minted_at: Int,
-  emergency_unlock_address: Address,
-  minter: ByteArray,
-) {
+pub fn mock_emergency_action_output(minted_at: Int, minter: ByteArray) {
   Output {
-    address: emergency_unlock_address,
+    address: mock_emergency_unlock_address(),
     value: from_asset("", "", 2_000_000)
       |> add(mock_emergency_token(), minter, 1),
     datum: InlineDatum(EmergencyUnlockDatum { minted_at }),
@@ -342,10 +308,6 @@ pub fn mock_emergency_action_input(
 ) -> Input {
   Input {
     output_reference: mock_utxo_ref(0, 30 + variation),
-    output: mock_emergency_action_output(
-      minted_at,
-      mock_emergency_unlock_address(),
-      minter,
-    ),
+    output: mock_emergency_action_output(minted_at, minter),
   }
 }
