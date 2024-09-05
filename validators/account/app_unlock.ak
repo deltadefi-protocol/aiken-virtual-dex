@@ -53,6 +53,13 @@ validator account_app_unlock(oracle_nft: PolicyId) {
     }
   }
 
+  publish(_redeemer: Data, _credential: Credential, tx: Transaction) {
+    let Transaction { reference_inputs, .. } = tx
+    expect AccountOracleDatum { operation_key, .. }: AccountOracleDatum =
+      only_input_datum_with(reference_inputs, oracle_nft, "")
+    key_signed(tx.extra_signatories, operation_key)
+  }
+
   else(_) {
     fail
   }

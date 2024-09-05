@@ -12,6 +12,10 @@ validator account_user_unlock(oracle_nft: PolicyId, owner: ByteArray) {
     all_key_signed(tx.extra_signatories, [owner, operation_key])
   }
 
+  publish(redeemer: Data, credential: Credential, tx: Transaction) {
+    account_user_unlock.withdraw(oracle_nft, owner, redeemer, credential, tx)
+  }
+
   else(_) {
     fail
   }
