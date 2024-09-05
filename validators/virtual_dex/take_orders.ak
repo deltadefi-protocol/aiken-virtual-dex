@@ -1,29 +1,23 @@
-use aiken/list
-use aiken/pairs
-use aiken/transaction.{Input, Output, ScriptContext, Transaction}
-use aiken/transaction/credential.{Address}
-use aiken/transaction/value.{
-  AssetName, PolicyId, Value, from_asset, from_lovelace, merge,
-}
+use aiken/collection/list
+use aiken/collection/pairs
 use aiken_virtual_dex/types.{DexOracleDatum, VirtualDexDatum}
+use cardano/address.{Address, Credential}
+use cardano/assets.{AssetName,
+  PolicyId, Value, from_asset, from_lovelace, merge}
+use cardano/transaction.{Input, Output, Transaction}
 use vodka_address.{address_script_hash}
 use vodka_extra_signatories.{key_signed}
 use vodka_inputs.{only_input_datum_with}
 use vodka_outputs.{output_inline_datum}
 use vodka_value.{value_geq} as sidan_value
 
-validator(
+validator virtual_dex_take_orders(
   oracle_nft: PolicyId,
   param_long_token: (PolicyId, AssetName),
   param_short_token: (PolicyId, AssetName),
 ) {
-  pub fn virtual_dex_take_orders(
-    _redeemer: Data,
-    context: ScriptContext,
-  ) -> Bool {
-    let transaction = context.transaction
-
-    let Transaction { reference_inputs, inputs, outputs, .. } = transaction
+  withdraw(_redeemer: Data, _credential: Credential, tx: Transaction) {
+    let Transaction { reference_inputs, inputs, outputs, .. } = tx
     expect DexOracleDatum { operation_key, dex_address, .. }: DexOracleDatum =
       only_input_datum_with(reference_inputs, oracle_nft, "")
     let (trade_payment_map, _long_token_quantity) =
@@ -35,7 +29,7 @@ validator(
       )
     let payment_values = accumuate_all_payment_value(outputs)
     let is_operation_key_signed =
-      key_signed(transaction.extra_signatories, operation_key)
+      key_signed(tx.extra_signatories, operation_key)
     // - Accumulate proceeds supposed send to order creators, check output value to them
     // 1. Look throught all inputs ->
     //       if from same address -> get (account_address, change_account_address, receive_value)
@@ -56,6 +50,17 @@ validator(
       trade_payment_map
         |> list.all(is_token_paid_to_inidividual_maker)
     is_operation_key_signed && is_token_paid_to_makers
+  }
+
+  publish(_redeemer: Data, _credential: Credential, tx: Transaction) {
+    let Transaction { reference_inputs, .. } = tx
+    expect DexOracleDatum { operation_key, .. }: DexOracleDatum =
+      only_input_datum_with(reference_inputs, oracle_nft, "")
+    key_signed(tx.extra_signatories, operation_key)
+  }
+
+  else(_) {
+    fail
   }
 }
 

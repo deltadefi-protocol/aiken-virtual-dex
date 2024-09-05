@@ -1,30 +1,30 @@
-use aiken/list
-use aiken/transaction.{Input, Mint, OutputReference, ScriptContext, Transaction}
+use aiken/collection/list
 use aiken_virtual_dex/types.{MintPolarity, RBurn, RMint}
+use cardano/assets.{PolicyId}
+use cardano/transaction.{Input, OutputReference, Transaction}
 use vodka_mints.{check_policy_only_burn}
 
-validator(utxo_ref: OutputReference) {
-  pub fn oracle_nft(redeemer: MintPolarity, context: ScriptContext) -> Bool {
-    let ScriptContext { purpose, transaction } = context
-    when purpose is {
-      Mint(current_policy) ->
-        when redeemer is {
-          RMint -> {
-            let Transaction { inputs, .. } = transaction
-            let hash_equal =
-              fn(input: Input) {
-                let hash = input.output_reference
-                utxo_ref == hash
-              }
-            let target_input_exist = list.find(inputs, hash_equal)
-            when target_input_exist is {
-              Some(_) -> True
-              None -> False
-            }
+validator oracle_nft(utxo_ref: OutputReference) {
+  mint(redeemer: MintPolarity, policy_id: PolicyId, tx: Transaction) {
+    when redeemer is {
+      RMint -> {
+        let Transaction { inputs, .. } = tx
+        let hash_equal =
+          fn(input: Input) {
+            let hash = input.output_reference
+            utxo_ref == hash
           }
-          RBurn -> check_policy_only_burn(transaction.mint, current_policy)
+        let target_input_exist = list.find(inputs, hash_equal)
+        when target_input_exist is {
+          Some(_) -> True
+          None -> False
         }
-      _ -> False
+      }
+      RBurn -> check_policy_only_burn(tx.mint, policy_id)
     }
+  }
+
+  else(_) {
+    fail
   }
 }

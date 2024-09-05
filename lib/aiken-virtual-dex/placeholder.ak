@@ -1,15 +1,16 @@
-use aiken/bytearray
-use aiken/hash.{blake2b_256}
-use aiken/transaction.{InlineDatum, Input, NoDatum, Output, OutputReference}
-use aiken/transaction/credential.{Address}
-use aiken/transaction/value.{PolicyId, Value, add, from_asset}
+use aiken/crypto.{blake2b_256}
+use aiken/primitive/bytearray
 use aiken_virtual_dex/types.{
   AccountDatum, AccountOracleDatum, DexOracleDatum, EmergencyUnlockDatum,
   VirtualDexDatum,
 }
+use cardano/address.{Address}
+use cardano/assets.{PolicyId, Value, add, from_asset}
+use cardano/transaction.{InlineDatum, Input, NoDatum, Output, OutputReference}
 use mocktail/virgin_address.{mock_pub_key_address, mock_script_address}
-use mocktail/virgin_key_hex.{mock_policy_id,
-  mock_pub_key_hash, mock_script_hash}
+use mocktail/virgin_key_hash.{
+  mock_policy_id, mock_pub_key_hash, mock_script_hash,
+}
 use mocktail/virgin_output_reference.{mock_utxo_ref}
 
 // Smart contract specific placeholders
@@ -224,32 +225,32 @@ pub fn mock_post_trade_account_output(value: Value) -> Output {
 
 // New placeholder
 
-pub fn script_hash_4_1() -> ByteArray {
-  bytearray.concat(mock_script_hash(4), #"01")
-    |> blake2b_256()
-    |> bytearray.take(28)
-}
-
-pub fn script_hash_4_2() -> ByteArray {
-  bytearray.concat(mock_script_hash(4), #"02")
-    |> blake2b_256()
-    |> bytearray.take(28)
-}
-
-pub fn script_hash_4_3() -> ByteArray {
-  bytearray.concat(mock_script_hash(4), #"03")
-    |> blake2b_256()
-    |> bytearray.take(28)
-}
-
-pub fn script_hash_4_4() -> ByteArray {
-  bytearray.concat(mock_script_hash(4), #"04")
-    |> blake2b_256()
-    |> bytearray.take(28)
-}
-
 pub fn script_hash_5_1() -> ByteArray {
   bytearray.concat(mock_script_hash(5), #"01")
+    |> blake2b_256()
+    |> bytearray.take(28)
+}
+
+pub fn script_hash_5_2() -> ByteArray {
+  bytearray.concat(mock_script_hash(5), #"02")
+    |> blake2b_256()
+    |> bytearray.take(28)
+}
+
+pub fn script_hash_5_3() -> ByteArray {
+  bytearray.concat(mock_script_hash(5), #"03")
+    |> blake2b_256()
+    |> bytearray.take(28)
+}
+
+pub fn script_hash_5_4() -> ByteArray {
+  bytearray.concat(mock_script_hash(5), #"04")
+    |> blake2b_256()
+    |> bytearray.take(28)
+}
+
+pub fn script_hash_6_1() -> ByteArray {
+  bytearray.concat(mock_script_hash(6), #"01")
     |> blake2b_256()
     |> bytearray.take(28)
 }
@@ -270,8 +271,8 @@ pub fn mock_emergency_unlock_phase2_output(minted_at: Int, minter: ByteArray) {
   Output {
     address: mock_account_address(),
     value: from_asset("", "", 2_000_000)
-      |> add(mock_emergency_token(), #"", 1),
-    datum: InlineDatum(EmergencyUnlockDatum { minter, minted_at }),
+      |> add(mock_emergency_token(), minter, 1),
+    datum: InlineDatum(EmergencyUnlockDatum { minted_at }),
     reference_script: None,
   }
 }
@@ -326,8 +327,8 @@ pub fn mock_emergency_action_output(
   Output {
     address: emergency_unlock_address,
     value: from_asset("", "", 2_000_000)
-      |> add(mock_emergency_token(), #"", 1),
-    datum: InlineDatum(EmergencyUnlockDatum { minted_at, minter }),
+      |> add(mock_emergency_token(), minter, 1),
+    datum: InlineDatum(EmergencyUnlockDatum { minted_at }),
     reference_script: None,
   }
 }

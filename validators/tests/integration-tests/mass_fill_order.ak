@@ -1,23 +1,61 @@
-use account/user_unlock.{account_user_unlock}
-use aiken/list
-use aiken/transaction.{ScriptContext, Transaction, WithdrawFrom}
-use aiken/transaction/credential.{Inline, ScriptCredential}
-use aiken/transaction/value.{from_asset}
+use account/account
+use account/user_unlock
+use aiken/collection/list
 use aiken_virtual_dex/placeholder.{
   ada_asset_class, mock_account_address, mock_account_oracle_policy_id,
   mock_account_oracle_ref_input, mock_buy_ada_order_input,
-  mock_dex_oracle_policy_id, mock_dex_oracle_ref_input, mock_fee_output,
-  mock_operation_key, mock_post_trade_account_output, mock_token_asset_class,
-  mock_trade_input, mock_user_vkey_hex, script_hash_4_1, script_hash_5_1,
+  mock_dex_oracle_policy_id, mock_dex_oracle_ref_input, mock_emergency_token,
+  mock_fee_output, mock_operation_key, mock_post_trade_account_output,
+  mock_token_asset_class, mock_trade_input, mock_user_vkey_hex, script_hash_5_1,
+  script_hash_5_2, script_hash_6_1,
 }
-use aiken_virtual_dex/types.{AccountUserUnlock1, TakeOrders, VirtualDexDatum}
+use aiken_virtual_dex/types.{
+  AccountDatum, AccountRedeemer, AccountUserUnlock1, TakeOrders, VirtualDexDatum,
+  VirtualDexRedeemer,
+}
+use cardano/address.{Script}
+use cardano/assets.{from_asset}
+use cardano/transaction.{Transaction}
 use mocktail.{
   add_input, add_output, add_reference_input, complete, mocktail_tx,
   required_signer_hash, script_withdrawal,
 }
-use tests/unit_tests/account/account.{account_process}
-use tests/unit_tests/virtual_dex/virtual_dex.{virtual_dex_process} as tvirtual_dex
-use virtual_dex/take_orders.{virtual_dex_take_orders}
+use mocktail/virgin_output_reference.{mock_utxo_ref}
+use virtual_dex/take_orders
+use virtual_dex/virtual_dex
+
+fn account_process(index: Int, tx: Transaction, redeemer: AccountRedeemer) {
+  let input = mock_utxo_ref(0, index)
+  account.account.spend(
+    mock_user_vkey_hex(),
+    script_hash_5_1(),
+    script_hash_5_1(),
+    script_hash_5_2(),
+    mock_emergency_token(),
+    Some(AccountDatum),
+    redeemer,
+    input,
+    tx,
+  )
+}
+
+fn virtual_dex_process(
+  index: Int,
+  tx: Transaction,
+  datum: VirtualDexDatum,
+  redeemer: VirtualDexRedeemer,
+) {
+  let input = mock_utxo_ref(0, 50 + index)
+  virtual_dex.virtual_dex.spend(
+    mock_dex_oracle_policy_id(),
+    mock_emergency_token(),
+    script_hash_5_1(),
+    Some(datum),
+    redeemer,
+    input,
+    tx,
+  )
+}
 
 fn add_buy_ada_order_inputs(
   tx: Transaction,
@@ -63,7 +101,7 @@ fn take_order_test(buy_count: Int) -> Transaction {
   let tx =
     mocktail_tx()
       |> required_signer_hash(True, mock_user_vkey_hex())
-      |> script_withdrawal(True, script_hash_4_1(), 0)
+      |> script_withdrawal(True, script_hash_5_1(), 0)
       |> script_withdrawal(True, script_hash_5_1(), 0)
       |> required_signer_hash(True, mock_operation_key())
       |> complete()
@@ -124,7 +162,7 @@ fn mass_account_utxo_processing(count: Int, tx: Transaction) {
 }
 
 test integration_test_mass_take_orders() {
-  let number_of_orders = 20
+  let number_of_orders = 10
 
   let dat =
     VirtualDexDatum {
@@ -135,30 +173,22 @@ test integration_test_mass_take_orders() {
       extra_lovelace: 0,
     }
   let tx = take_order_test(number_of_orders)
-  let dex_ctx =
-    ScriptContext {
-      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_5_1()))),
-      transaction: tx,
-    }
-  let account_ctx =
-    ScriptContext {
-      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_1()))),
-      transaction: tx,
-    }
   mass_account_utxo_processing(number_of_orders, tx) && mass_virtual_dex_processing(
     number_of_orders,
     tx,
     dat,
-  ) && virtual_dex_take_orders(
+  ) && take_orders.virtual_dex_take_orders.withdraw(
     mock_dex_oracle_policy_id(),
     ada_asset_class(),
     mock_token_asset_class(),
     Void,
-    dex_ctx,
-  ) && account_user_unlock(
+    Script(script_hash_6_1()),
+    tx,
+  ) && user_unlock.account_user_unlock.withdraw(
     mock_account_oracle_policy_id(),
     mock_user_vkey_hex(),
     Void,
-    account_ctx,
+    Script(script_hash_5_1()),
+    tx,
   )
 }

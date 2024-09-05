@@ -1,5 +1,5 @@
-use aiken/transaction/credential.{Address}
-use aiken/transaction/value.{PolicyId}
+use cardano/address.{Address}
+use cardano/assets.{PolicyId}
 
 // 1. OracleNFT
 pub type MintPolarity {
@@ -9,14 +9,13 @@ pub type MintPolarity {
 
 // 2. EmergencyToken
 pub type EmergencyTokenMintingPolarity {
-  EMint { current_timestamp: Int }
+  EMint { minter: ByteArray }
   EBurn
 }
 
 // 3. EmergencyUnlock Validator
 
 pub type EmergencyUnlockDatum {
-  minter: ByteArray,
   minted_at: Int,
 }
 

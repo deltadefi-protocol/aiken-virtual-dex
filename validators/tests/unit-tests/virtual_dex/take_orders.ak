@@ -1,21 +1,40 @@
-use aiken/transaction.{ScriptContext, WithdrawFrom}
-use aiken/transaction/credential.{Inline, ScriptCredential}
-use aiken/transaction/value.{from_asset}
 use aiken_virtual_dex/placeholder.{
   ada_asset_class, mock_account_address, mock_buy_ada_order_input,
-  mock_dex_oracle_policy_id, mock_dex_oracle_ref_input, mock_fee_output,
-  mock_operation_key, mock_post_trade_account_output, mock_token_asset_class,
-  script_hash_5_1,
+  mock_dex_oracle_policy_id, mock_dex_oracle_ref_input, mock_emergency_token,
+  mock_fee_output, mock_operation_key, mock_post_trade_account_output,
+  mock_token_asset_class, script_hash_5_1,
 }
-use aiken_virtual_dex/types.{TakeOrders, VirtualDexDatum}
+use aiken_virtual_dex/types.{TakeOrders, VirtualDexDatum, VirtualDexRedeemer}
+use cardano/address.{Script}
+use cardano/assets.{from_asset}
+use cardano/transaction.{Transaction}
 use mocktail.{
   add_input, add_output, add_reference_input, complete, mocktail_tx,
   required_signer_hash, script_withdrawal,
 }
-use tests/unit_tests/virtual_dex/virtual_dex.{virtual_dex_process} as tvirtual_dex
-use virtual_dex/take_orders.{virtual_dex_take_orders}
+use mocktail/virgin_output_reference.{mock_utxo_ref}
+use virtual_dex/take_orders
+use virtual_dex/virtual_dex
 
-type TestCase51 {
+fn virtual_dex_process(
+  index: Int,
+  tx: Transaction,
+  datum: VirtualDexDatum,
+  redeemer: VirtualDexRedeemer,
+) {
+  let input = mock_utxo_ref(0, 50 + index)
+  virtual_dex.virtual_dex.spend(
+    mock_dex_oracle_policy_id(),
+    mock_emergency_token(),
+    script_hash_5_1(),
+    Some(datum),
+    redeemer,
+    input,
+    tx,
+  )
+}
+
+type TestCase71 {
   is_token_paid_to_maker: Bool,
   is_extra_lovelace_returned: Bool,
   is_operation_key_signed: Bool,
@@ -23,7 +42,7 @@ type TestCase51 {
 }
 
 fn take_order_base_case() {
-  TestCase51 {
+  TestCase71 {
     is_token_paid_to_maker: True,
     is_extra_lovelace_returned: True,
     is_operation_key_signed: True,
@@ -31,8 +50,8 @@ fn take_order_base_case() {
   }
 }
 
-fn take_order_test(test_case: TestCase51) {
-  let TestCase51 {
+fn take_order_test(test_case: TestCase71) {
+  let TestCase71 {
     is_token_paid_to_maker,
     is_extra_lovelace_returned,
     is_operation_key_signed,
@@ -113,7 +132,7 @@ fn take_order_test(test_case: TestCase51) {
       )
 }
 
-test t6_1_success_take_order() {
+test t7_1_success_take_order() {
   let dat =
     VirtualDexDatum {
       account_address: mock_account_address(),
@@ -123,21 +142,17 @@ test t6_1_success_take_order() {
       extra_lovelace: 0,
     }
   let tx = take_order_test(take_order_base_case())
-  let withdrawal_ctx =
-    ScriptContext {
-      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_5_1()))),
-      transaction: tx,
-    }
-  virtual_dex_process(1, tx, dat, TakeOrders) && virtual_dex_take_orders(
+  virtual_dex_process(1, tx, dat, TakeOrders) && take_orders.virtual_dex_take_orders.withdraw(
     mock_dex_oracle_policy_id(),
     ada_asset_class(),
     mock_token_asset_class(),
     Void,
-    withdrawal_ctx,
+    Script(script_hash_5_1()),
+    tx,
   )
 }
 
-test t6_1_fail_take_order_without_extra_lovelace_returned() {
+test t7_1_fail_take_order_without_extra_lovelace_returned() {
   let dat =
     VirtualDexDatum {
       account_address: mock_account_address(),
@@ -148,23 +163,19 @@ test t6_1_fail_take_order_without_extra_lovelace_returned() {
     }
   let tx =
     take_order_test(
-      TestCase51 { ..take_order_base_case(), is_extra_lovelace_returned: False },
+      TestCase71 { ..take_order_base_case(), is_extra_lovelace_returned: False },
     )
-  let withdrawal_ctx =
-    ScriptContext {
-      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_5_1()))),
-      transaction: tx,
-    }
-  virtual_dex_process(1, tx, dat, TakeOrders) && !virtual_dex_take_orders(
+  virtual_dex_process(1, tx, dat, TakeOrders) && !take_orders.virtual_dex_take_orders.withdraw(
     mock_dex_oracle_policy_id(),
     ada_asset_class(),
     mock_token_asset_class(),
     Void,
-    withdrawal_ctx,
+    Script(script_hash_5_1()),
+    tx,
   )
 }
 
-test t6_1_fail_take_order_without_token_paid_to_maker() {
+test t7_1_fail_take_order_without_token_paid_to_maker() {
   let dat =
     VirtualDexDatum {
       account_address: mock_account_address(),
@@ -175,23 +186,19 @@ test t6_1_fail_take_order_without_token_paid_to_maker() {
     }
   let tx =
     take_order_test(
-      TestCase51 { ..take_order_base_case(), is_token_paid_to_maker: False },
+      TestCase71 { ..take_order_base_case(), is_token_paid_to_maker: False },
     )
-  let withdrawal_ctx =
-    ScriptContext {
-      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_5_1()))),
-      transaction: tx,
-    }
-  virtual_dex_process(1, tx, dat, TakeOrders) && !virtual_dex_take_orders(
+  virtual_dex_process(1, tx, dat, TakeOrders) && !take_orders.virtual_dex_take_orders.withdraw(
     mock_dex_oracle_policy_id(),
     ada_asset_class(),
     mock_token_asset_class(),
     Void,
-    withdrawal_ctx,
+    Script(script_hash_5_1()),
+    tx,
   )
 }
 
-test t6_1_fail_take_order_without_operation_key_signed() {
+test t7_1_fail_take_order_without_operation_key_signed() {
   let dat =
     VirtualDexDatum {
       account_address: mock_account_address(),
@@ -202,23 +209,19 @@ test t6_1_fail_take_order_without_operation_key_signed() {
     }
   let tx =
     take_order_test(
-      TestCase51 { ..take_order_base_case(), is_operation_key_signed: False },
+      TestCase71 { ..take_order_base_case(), is_operation_key_signed: False },
     )
-  let withdrawal_ctx =
-    ScriptContext {
-      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_5_1()))),
-      transaction: tx,
-    }
-  virtual_dex_process(1, tx, dat, TakeOrders) && !virtual_dex_take_orders(
+  virtual_dex_process(1, tx, dat, TakeOrders) && !take_orders.virtual_dex_take_orders.withdraw(
     mock_dex_oracle_policy_id(),
     ada_asset_class(),
     mock_token_asset_class(),
     Void,
-    withdrawal_ctx,
+    Script(script_hash_5_1()),
+    tx,
   )
 }
 
-test t6_1_failed_without_withdrawal_script_present() {
+test t7_1_failed_without_withdrawal_script_present() {
   let dat =
     VirtualDexDatum {
       account_address: mock_account_address(),
@@ -229,21 +232,17 @@ test t6_1_failed_without_withdrawal_script_present() {
     }
   let tx =
     take_order_test(
-      TestCase51 {
+      TestCase71 {
         ..take_order_base_case(),
         is_withdrawal_script_present: False,
       },
     )
-  let withdrawal_ctx =
-    ScriptContext {
-      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_5_1()))),
-      transaction: tx,
-    }
-  !virtual_dex_process(1, tx, dat, TakeOrders) && virtual_dex_take_orders(
+  !virtual_dex_process(1, tx, dat, TakeOrders) && take_orders.virtual_dex_take_orders.withdraw(
     mock_dex_oracle_policy_id(),
     ada_asset_class(),
     mock_token_asset_class(),
     Void,
-    withdrawal_ctx,
+    Script(script_hash_5_1()),
+    tx,
   )
 }

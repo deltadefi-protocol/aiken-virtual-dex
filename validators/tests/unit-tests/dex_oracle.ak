@@ -1,13 +1,13 @@
-use aiken/list
-use aiken/transaction.{Input, ScriptContext, Spend, Transaction, placeholder}
-use aiken/transaction/value.{from_asset, to_minted_value}
+use aiken/collection/list
 use aiken_virtual_dex/placeholder.{
   mock_dex_oracle_datum, mock_dex_oracle_output, mock_dex_oracle_policy_id,
   mock_operation_key, mock_stop_key,
-}
+} as dex_placeholder
 use aiken_virtual_dex/types.{DexOracleDatum, DexRotateKey, StopDex}
-use dex_oracle.{dex_oracle}
-use mocktail/virgin_key_hex.{mock_pub_key_hash}
+use cardano/assets.{from_asset}
+use cardano/transaction.{Input, Transaction, placeholder}
+use dex_oracle
+use mocktail/virgin_key_hash.{mock_pub_key_hash}
 use mocktail/virgin_output_reference.{mock_utxo_ref}
 
 type RotateTestCase {
@@ -67,14 +67,14 @@ fn mock_rotate_test_case(test_case: RotateTestCase) {
     }
   let output = mock_dex_oracle_output(new_datum)
   Transaction {
-    ..placeholder(),
+    ..placeholder,
     inputs: [input],
     outputs: [output],
     extra_signatories: extra_signatories,
   }
 }
 
-test t5_1_success_rotate_key() {
+test t6_1_success_rotate_key() {
   let redeemer =
     DexRotateKey {
       new_operation_key: mock_stop_key(),
@@ -83,12 +83,16 @@ test t5_1_success_rotate_key() {
   let input_utxo = mock_utxo_ref(0, 0)
 
   let tx = mock_rotate_test_case(base_rotate_test_case())
-  let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
 
-  dex_oracle(mock_dex_oracle_datum(), redeemer, ctx)
+  dex_oracle.dex_oracle.spend(
+    Some(mock_dex_oracle_datum()),
+    redeemer,
+    input_utxo,
+    tx,
+  )
 }
 
-test t5_1_fail_rotate_key_without_old_stop_signature() {
+test t6_1_fail_rotate_key_without_old_stop_signature() {
   let redeemer =
     DexRotateKey {
       new_operation_key: mock_stop_key(),
@@ -103,12 +107,15 @@ test t5_1_fail_rotate_key_without_old_stop_signature() {
         is_old_stop_key_signed: False,
       },
     )
-  let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
-
-  !dex_oracle(mock_dex_oracle_datum(), redeemer, ctx)
+  !dex_oracle.dex_oracle.spend(
+    Some(mock_dex_oracle_datum()),
+    redeemer,
+    input_utxo,
+    tx,
+  )
 }
 
-test t5_1_fail_rotate_key_without_new_stop_signature() {
+test t6_1_fail_rotate_key_without_new_stop_signature() {
   let redeemer =
     DexRotateKey {
       new_operation_key: mock_stop_key(),
@@ -123,9 +130,12 @@ test t5_1_fail_rotate_key_without_new_stop_signature() {
         is_new_stop_key_signed: False,
       },
     )
-  let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
-
-  !dex_oracle(mock_dex_oracle_datum(), redeemer, ctx)
+  !dex_oracle.dex_oracle.spend(
+    Some(mock_dex_oracle_datum()),
+    redeemer,
+    input_utxo,
+    tx,
+  )
 }
 
 // test fail_
@@ -134,42 +144,48 @@ test t5_2_success_stop_app() {
   let redeemer = StopDex
   let tx =
     Transaction {
-      ..placeholder(),
-      mint: to_minted_value(from_asset(mock_dex_oracle_policy_id(), "", -1)),
+      ..placeholder,
+      mint: from_asset(mock_dex_oracle_policy_id(), "", -1),
       extra_signatories: [mock_pub_key_hash(2)],
     }
-  let ctx =
-    ScriptContext { purpose: Spend(mock_utxo_ref(0, 0)), transaction: tx }
-
-  dex_oracle(mock_dex_oracle_datum(), redeemer, ctx)
+  dex_oracle.dex_oracle.spend(
+    Some(mock_dex_oracle_datum()),
+    redeemer,
+    mock_utxo_ref(0, 0),
+    tx,
+  )
 }
 
 test t5_2_fail_stop_app_without_stop_key() {
   let redeemer = StopDex
   let tx =
     Transaction {
-      ..placeholder(),
-      mint: to_minted_value(from_asset(mock_dex_oracle_policy_id(), "", -1)),
+      ..placeholder,
+      mint: from_asset(mock_dex_oracle_policy_id(), "", -1),
       extra_signatories: [mock_operation_key()],
     }
-  let ctx =
-    ScriptContext { purpose: Spend(mock_utxo_ref(0, 0)), transaction: tx }
 
-  !dex_oracle(mock_dex_oracle_datum(), redeemer, ctx)
+  !dex_oracle.dex_oracle.spend(
+    Some(mock_dex_oracle_datum()),
+    redeemer,
+    mock_utxo_ref(0, 0),
+    tx,
+  )
 }
 
 test t5_2_success_stop_app_without_oracle_nft_burnt() {
   let redeemer = StopDex
   let tx =
     Transaction {
-      ..placeholder(),
-      mint: to_minted_value(
-        from_asset(mock_dex_oracle_policy_id(), "not oracle nft", -1),
-      ),
+      ..placeholder,
+      mint: from_asset(mock_dex_oracle_policy_id(), "not oracle nft", -1),
       extra_signatories: [mock_stop_key()],
     }
-  let ctx =
-    ScriptContext { purpose: Spend(mock_utxo_ref(0, 0)), transaction: tx }
 
-  !dex_oracle(mock_dex_oracle_datum(), redeemer, ctx)
+  !dex_oracle.dex_oracle.spend(
+    Some(mock_dex_oracle_datum()),
+    redeemer,
+    mock_utxo_ref(0, 0),
+    tx,
+  )
 }
