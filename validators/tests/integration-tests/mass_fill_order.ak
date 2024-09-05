@@ -6,8 +6,8 @@ use aiken_virtual_dex/placeholder.{
   mock_account_oracle_ref_input, mock_buy_ada_order_input,
   mock_dex_oracle_policy_id, mock_dex_oracle_ref_input, mock_emergency_token,
   mock_fee_output, mock_operation_key, mock_post_trade_account_output,
-  mock_token_asset_class, mock_trade_input, mock_user_vkey_hex, script_hash_4_1,
-  script_hash_4_2, script_hash_5_1,
+  mock_token_asset_class, mock_trade_input, mock_user_vkey_hex, script_hash_5_1,
+  script_hash_5_2, script_hash_6_1,
 }
 use aiken_virtual_dex/types.{
   AccountDatum, AccountRedeemer, AccountUserUnlock1, TakeOrders, VirtualDexDatum,
@@ -28,9 +28,9 @@ fn account_process(index: Int, tx: Transaction, redeemer: AccountRedeemer) {
   let input = mock_utxo_ref(0, index)
   account.account.spend(
     mock_user_vkey_hex(),
-    script_hash_4_1(),
-    script_hash_4_1(),
-    script_hash_4_2(),
+    script_hash_5_1(),
+    script_hash_5_1(),
+    script_hash_5_2(),
     mock_emergency_token(),
     Some(AccountDatum),
     redeemer,
@@ -101,7 +101,7 @@ fn take_order_test(buy_count: Int) -> Transaction {
   let tx =
     mocktail_tx()
       |> required_signer_hash(True, mock_user_vkey_hex())
-      |> script_withdrawal(True, script_hash_4_1(), 0)
+      |> script_withdrawal(True, script_hash_5_1(), 0)
       |> script_withdrawal(True, script_hash_5_1(), 0)
       |> required_signer_hash(True, mock_operation_key())
       |> complete()
@@ -182,13 +182,13 @@ test integration_test_mass_take_orders() {
     ada_asset_class(),
     mock_token_asset_class(),
     Void,
-    Script(script_hash_5_1()),
+    Script(script_hash_6_1()),
     tx,
   ) && user_unlock.account_user_unlock.withdraw(
     mock_account_oracle_policy_id(),
     mock_user_vkey_hex(),
     Void,
-    Script(script_hash_4_1()),
+    Script(script_hash_5_1()),
     tx,
   )
 }

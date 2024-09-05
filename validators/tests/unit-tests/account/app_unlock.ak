@@ -3,8 +3,8 @@ use account/app_unlock
 use aiken_virtual_dex/placeholder.{
   mock_account_address, mock_account_oracle_policy_id,
   mock_account_oracle_ref_input, mock_another_account_address,
-  mock_emergency_token, mock_operation_key, mock_user_vkey_hex, script_hash_4_1,
-  script_hash_4_2,
+  mock_emergency_token, mock_operation_key, mock_user_vkey_hex, script_hash_5_1,
+  script_hash_5_2,
 }
 use aiken_virtual_dex/types.{AccountAppUnlock, AccountDatum, AccountRedeemer}
 use cardano/address.{Script}
@@ -20,9 +20,9 @@ fn account_process(index: Int, tx: Transaction, redeemer: AccountRedeemer) {
   let input = mock_utxo_ref(0, index)
   account.account.spend(
     mock_user_vkey_hex(),
-    script_hash_4_1(),
-    script_hash_4_1(),
-    script_hash_4_2(),
+    script_hash_5_1(),
+    script_hash_5_1(),
+    script_hash_5_2(),
     mock_emergency_token(),
     Some(AccountDatum),
     redeemer,
@@ -31,15 +31,15 @@ fn account_process(index: Int, tx: Transaction, redeemer: AccountRedeemer) {
   )
 }
 
-type TestCase42 {
+type TestCase52 {
   is_operation_key_signed: Bool,
   is_value_resepnt_into_account: Bool,
   is_only_single_account: Bool,
   is_withdrawal_script_present: Bool,
 }
 
-fn base_test_case_4_2() {
-  TestCase42 {
+fn base_test_case_5_2() {
+  TestCase52 {
     is_operation_key_signed: True,
     is_value_resepnt_into_account: True,
     is_only_single_account: True,
@@ -47,8 +47,8 @@ fn base_test_case_4_2() {
   }
 }
 
-fn mock_test_case_4_2(number_of_inputs: Int, test_case: TestCase42) {
-  let TestCase42 {
+fn mock_test_case_5_2(number_of_inputs: Int, test_case: TestCase52) {
+  let TestCase52 {
     is_operation_key_signed,
     is_value_resepnt_into_account,
     is_only_single_account,
@@ -101,76 +101,76 @@ fn mock_test_case_4_2(number_of_inputs: Int, test_case: TestCase42) {
       )
     |> tx_out_inline_datum(is_value_resepnt_into_account, AccountDatum)
     |> required_signer_hash(is_operation_key_signed, mock_operation_key())
-    |> script_withdrawal(is_withdrawal_script_present, script_hash_4_2(), 0)
+    |> script_withdrawal(is_withdrawal_script_present, script_hash_5_2(), 0)
     |> complete()
     |> add_reference_input(True, mock_account_oracle_ref_input())
 }
 
-test t4_2_success() {
-  let tx = mock_test_case_4_2(10, base_test_case_4_2())
+test t5_2_success() {
+  let tx = mock_test_case_5_2(10, base_test_case_5_2())
   account_process(0, tx, AccountAppUnlock) && app_unlock.account_app_unlock.withdraw(
     mock_account_oracle_policy_id(),
     Void,
-    Script(script_hash_4_2()),
+    Script(script_hash_5_2()),
     tx,
   )
 }
 
-test t4_2_failed_without_operation_key_signed() {
+test t5_2_failed_without_operation_key_signed() {
   let tx =
-    mock_test_case_4_2(
+    mock_test_case_5_2(
       10,
-      TestCase42 { ..base_test_case_4_2(), is_operation_key_signed: False },
+      TestCase52 { ..base_test_case_5_2(), is_operation_key_signed: False },
     )
   account_process(0, tx, AccountAppUnlock) && !app_unlock.account_app_unlock.withdraw(
     mock_account_oracle_policy_id(),
     Void,
-    Script(script_hash_4_2()),
+    Script(script_hash_5_2()),
     tx,
   )
 }
 
-test t4_2_failed_without_value_resepnt_into_account() {
+test t5_2_failed_without_value_resepnt_into_account() {
   let tx =
-    mock_test_case_4_2(
+    mock_test_case_5_2(
       10,
-      TestCase42 {
-        ..base_test_case_4_2(),
+      TestCase52 {
+        ..base_test_case_5_2(),
         is_value_resepnt_into_account: False,
       },
     )
   account_process(0, tx, AccountAppUnlock) && !app_unlock.account_app_unlock.withdraw(
     mock_account_oracle_policy_id(),
     Void,
-    Script(script_hash_4_2()),
+    Script(script_hash_5_2()),
     tx,
   )
 }
 
-test t4_2_failed_with_other_account_unlock_attempt() {
+test t5_2_failed_with_other_account_unlock_attempt() {
   let tx =
-    mock_test_case_4_2(
+    mock_test_case_5_2(
       10,
-      TestCase42 { ..base_test_case_4_2(), is_only_single_account: False },
+      TestCase52 { ..base_test_case_5_2(), is_only_single_account: False },
     )
   account_process(0, tx, AccountAppUnlock) && !app_unlock.account_app_unlock.withdraw(
     mock_account_oracle_policy_id(),
     Void,
-    Script(script_hash_4_2()),
+    Script(script_hash_5_2()),
     tx,
   )
 }
 
-test t4_2_failed_without_withdrawal_script_present() {
+test t5_2_failed_without_withdrawal_script_present() {
   let tx =
-    mock_test_case_4_2(
+    mock_test_case_5_2(
       10,
-      TestCase42 { ..base_test_case_4_2(), is_withdrawal_script_present: False },
+      TestCase52 { ..base_test_case_5_2(), is_withdrawal_script_present: False },
     )
   !account_process(0, tx, AccountAppUnlock) && app_unlock.account_app_unlock.withdraw(
     mock_account_oracle_policy_id(),
     Void,
-    Script(script_hash_4_2()),
+    Script(script_hash_5_2()),
     tx,
   )
 }

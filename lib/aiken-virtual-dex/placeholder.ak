@@ -225,32 +225,32 @@ pub fn mock_post_trade_account_output(value: Value) -> Output {
 
 // New placeholder
 
-pub fn script_hash_4_1() -> ByteArray {
-  bytearray.concat(mock_script_hash(4), #"01")
-    |> blake2b_256()
-    |> bytearray.take(28)
-}
-
-pub fn script_hash_4_2() -> ByteArray {
-  bytearray.concat(mock_script_hash(4), #"02")
-    |> blake2b_256()
-    |> bytearray.take(28)
-}
-
-pub fn script_hash_4_3() -> ByteArray {
-  bytearray.concat(mock_script_hash(4), #"03")
-    |> blake2b_256()
-    |> bytearray.take(28)
-}
-
-pub fn script_hash_4_4() -> ByteArray {
-  bytearray.concat(mock_script_hash(4), #"04")
-    |> blake2b_256()
-    |> bytearray.take(28)
-}
-
 pub fn script_hash_5_1() -> ByteArray {
   bytearray.concat(mock_script_hash(5), #"01")
+    |> blake2b_256()
+    |> bytearray.take(28)
+}
+
+pub fn script_hash_5_2() -> ByteArray {
+  bytearray.concat(mock_script_hash(5), #"02")
+    |> blake2b_256()
+    |> bytearray.take(28)
+}
+
+pub fn script_hash_5_3() -> ByteArray {
+  bytearray.concat(mock_script_hash(5), #"03")
+    |> blake2b_256()
+    |> bytearray.take(28)
+}
+
+pub fn script_hash_5_4() -> ByteArray {
+  bytearray.concat(mock_script_hash(5), #"04")
+    |> blake2b_256()
+    |> bytearray.take(28)
+}
+
+pub fn script_hash_6_1() -> ByteArray {
+  bytearray.concat(mock_script_hash(6), #"01")
     |> blake2b_256()
     |> bytearray.take(28)
 }

@@ -74,7 +74,7 @@ fn mock_rotate_test_case(test_case: RotateTestCase) {
   }
 }
 
-test t5_1_success_rotate_key() {
+test t6_1_success_rotate_key() {
   let redeemer =
     DexRotateKey {
       new_operation_key: mock_stop_key(),
@@ -92,7 +92,7 @@ test t5_1_success_rotate_key() {
   )
 }
 
-test t5_1_fail_rotate_key_without_old_stop_signature() {
+test t6_1_fail_rotate_key_without_old_stop_signature() {
   let redeemer =
     DexRotateKey {
       new_operation_key: mock_stop_key(),
@@ -115,7 +115,7 @@ test t5_1_fail_rotate_key_without_old_stop_signature() {
   )
 }
 
-test t5_1_fail_rotate_key_without_new_stop_signature() {
+test t6_1_fail_rotate_key_without_new_stop_signature() {
   let redeemer =
     DexRotateKey {
       new_operation_key: mock_stop_key(),

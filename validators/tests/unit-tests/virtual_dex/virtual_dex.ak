@@ -30,17 +30,17 @@ fn virtual_dex_process(
   )
 }
 
-type TestCase52 {
+type TestCase72 {
   is_order_value_returned: Bool,
   is_operation_key_signed: Bool,
 }
 
 fn cancel_order_base_case() {
-  TestCase52 { is_order_value_returned: True, is_operation_key_signed: True }
+  TestCase72 { is_order_value_returned: True, is_operation_key_signed: True }
 }
 
-fn cancel_order_test(test_case: TestCase52) {
-  let TestCase52 { is_order_value_returned, is_operation_key_signed } =
+fn cancel_order_test(test_case: TestCase72) {
+  let TestCase72 { is_order_value_returned, is_operation_key_signed } =
     test_case
   let inputs =
     [mock_buy_ada_order_input(1, 1612000, 310_000_000, 0, 0)]
@@ -72,7 +72,7 @@ fn cancel_order_test(test_case: TestCase52) {
   }
 }
 
-test t6_2_success_cancel_order() {
+test t7_2_success_cancel_order() {
   let dat =
     VirtualDexDatum {
       account_address: mock_account_address(),
@@ -86,7 +86,7 @@ test t6_2_success_cancel_order() {
   virtual_dex_process(1, tx, dat, red)
 }
 
-test t6_2_fail_cancel_order_without_value_returned() {
+test t7_2_fail_cancel_order_without_value_returned() {
   let dat =
     VirtualDexDatum {
       account_address: mock_account_address(),
@@ -98,12 +98,12 @@ test t6_2_fail_cancel_order_without_value_returned() {
   let red = CancelOrder
   let tx =
     cancel_order_test(
-      TestCase52 { ..cancel_order_base_case(), is_order_value_returned: False },
+      TestCase72 { ..cancel_order_base_case(), is_order_value_returned: False },
     )
   !virtual_dex_process(1, tx, dat, red)
 }
 
-test t6_2_fail_cancel_order_without_operation_key_signed() {
+test t7_2_fail_cancel_order_without_operation_key_signed() {
   let dat =
     VirtualDexDatum {
       account_address: mock_account_address(),
@@ -115,7 +115,7 @@ test t6_2_fail_cancel_order_without_operation_key_signed() {
   let red = CancelOrder
   let tx =
     cancel_order_test(
-      TestCase52 { ..cancel_order_base_case(), is_operation_key_signed: False },
+      TestCase72 { ..cancel_order_base_case(), is_operation_key_signed: False },
     )
   !virtual_dex_process(1, tx, dat, red)
 }

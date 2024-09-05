@@ -34,7 +34,7 @@ fn virtual_dex_process(
   )
 }
 
-type TestCase51 {
+type TestCase71 {
   is_token_paid_to_maker: Bool,
   is_extra_lovelace_returned: Bool,
   is_operation_key_signed: Bool,
@@ -42,7 +42,7 @@ type TestCase51 {
 }
 
 fn take_order_base_case() {
-  TestCase51 {
+  TestCase71 {
     is_token_paid_to_maker: True,
     is_extra_lovelace_returned: True,
     is_operation_key_signed: True,
@@ -50,8 +50,8 @@ fn take_order_base_case() {
   }
 }
 
-fn take_order_test(test_case: TestCase51) {
-  let TestCase51 {
+fn take_order_test(test_case: TestCase71) {
+  let TestCase71 {
     is_token_paid_to_maker,
     is_extra_lovelace_returned,
     is_operation_key_signed,
@@ -132,7 +132,7 @@ fn take_order_test(test_case: TestCase51) {
       )
 }
 
-test t6_1_success_take_order() {
+test t7_1_success_take_order() {
   let dat =
     VirtualDexDatum {
       account_address: mock_account_address(),
@@ -152,7 +152,7 @@ test t6_1_success_take_order() {
   )
 }
 
-test t6_1_fail_take_order_without_extra_lovelace_returned() {
+test t7_1_fail_take_order_without_extra_lovelace_returned() {
   let dat =
     VirtualDexDatum {
       account_address: mock_account_address(),
@@ -163,7 +163,7 @@ test t6_1_fail_take_order_without_extra_lovelace_returned() {
     }
   let tx =
     take_order_test(
-      TestCase51 { ..take_order_base_case(), is_extra_lovelace_returned: False },
+      TestCase71 { ..take_order_base_case(), is_extra_lovelace_returned: False },
     )
   virtual_dex_process(1, tx, dat, TakeOrders) && !take_orders.virtual_dex_take_orders.withdraw(
     mock_dex_oracle_policy_id(),
@@ -175,7 +175,7 @@ test t6_1_fail_take_order_without_extra_lovelace_returned() {
   )
 }
 
-test t6_1_fail_take_order_without_token_paid_to_maker() {
+test t7_1_fail_take_order_without_token_paid_to_maker() {
   let dat =
     VirtualDexDatum {
       account_address: mock_account_address(),
@@ -186,7 +186,7 @@ test t6_1_fail_take_order_without_token_paid_to_maker() {
     }
   let tx =
     take_order_test(
-      TestCase51 { ..take_order_base_case(), is_token_paid_to_maker: False },
+      TestCase71 { ..take_order_base_case(), is_token_paid_to_maker: False },
     )
   virtual_dex_process(1, tx, dat, TakeOrders) && !take_orders.virtual_dex_take_orders.withdraw(
     mock_dex_oracle_policy_id(),
@@ -198,7 +198,7 @@ test t6_1_fail_take_order_without_token_paid_to_maker() {
   )
 }
 
-test t6_1_fail_take_order_without_operation_key_signed() {
+test t7_1_fail_take_order_without_operation_key_signed() {
   let dat =
     VirtualDexDatum {
       account_address: mock_account_address(),
@@ -209,7 +209,7 @@ test t6_1_fail_take_order_without_operation_key_signed() {
     }
   let tx =
     take_order_test(
-      TestCase51 { ..take_order_base_case(), is_operation_key_signed: False },
+      TestCase71 { ..take_order_base_case(), is_operation_key_signed: False },
     )
   virtual_dex_process(1, tx, dat, TakeOrders) && !take_orders.virtual_dex_take_orders.withdraw(
     mock_dex_oracle_policy_id(),
@@ -221,7 +221,7 @@ test t6_1_fail_take_order_without_operation_key_signed() {
   )
 }
 
-test t6_1_failed_without_withdrawal_script_present() {
+test t7_1_failed_without_withdrawal_script_present() {
   let dat =
     VirtualDexDatum {
       account_address: mock_account_address(),
@@ -232,7 +232,7 @@ test t6_1_failed_without_withdrawal_script_present() {
     }
   let tx =
     take_order_test(
-      TestCase51 {
+      TestCase71 {
         ..take_order_base_case(),
         is_withdrawal_script_present: False,
       },

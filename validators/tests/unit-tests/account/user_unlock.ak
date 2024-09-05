@@ -2,8 +2,8 @@ use account/account
 use account/user_unlock
 use aiken_virtual_dex/placeholder.{
   mock_account_oracle_policy_id, mock_account_oracle_ref_input,
-  mock_emergency_token, mock_operation_key, mock_user_vkey_hex, script_hash_4_1,
-  script_hash_4_2,
+  mock_emergency_token, mock_operation_key, mock_user_vkey_hex, script_hash_5_1,
+  script_hash_5_2,
 }
 use aiken_virtual_dex/types.{AccountDatum, AccountRedeemer, AccountUserUnlock1}
 use cardano/address.{Script}
@@ -18,9 +18,9 @@ fn account_process(index: Int, tx: Transaction, redeemer: AccountRedeemer) {
   let input = mock_utxo_ref(0, index)
   account.account.spend(
     mock_user_vkey_hex(),
-    script_hash_4_1(),
-    script_hash_4_1(),
-    script_hash_4_2(),
+    script_hash_5_1(),
+    script_hash_5_1(),
+    script_hash_5_2(),
     mock_emergency_token(),
     Some(AccountDatum),
     redeemer,
@@ -29,22 +29,22 @@ fn account_process(index: Int, tx: Transaction, redeemer: AccountRedeemer) {
   )
 }
 
-type TestCase41 {
+type TestCase51 {
   is_owner_signed: Bool,
   is_operation_key_signed: Bool,
   is_withdrawal_script_present: Bool,
 }
 
-fn base_test_case_4_1() {
-  TestCase41 {
+fn base_test_case_5_1() {
+  TestCase51 {
     is_owner_signed: True,
     is_operation_key_signed: True,
     is_withdrawal_script_present: True,
   }
 }
 
-fn mock_test_case_4_1(test_case: TestCase41) {
-  let TestCase41 {
+fn mock_test_case_5_1(test_case: TestCase51) {
+  let TestCase51 {
     is_owner_signed,
     is_operation_key_signed,
     is_withdrawal_script_present,
@@ -53,27 +53,27 @@ fn mock_test_case_4_1(test_case: TestCase41) {
   mocktail_tx()
     |> required_signer_hash(is_owner_signed, mock_user_vkey_hex())
     |> required_signer_hash(is_operation_key_signed, mock_operation_key())
-    |> script_withdrawal(is_withdrawal_script_present, script_hash_4_1(), 0)
+    |> script_withdrawal(is_withdrawal_script_present, script_hash_5_1(), 0)
     |> complete()
     |> add_reference_input(True, mock_account_oracle_ref_input())
 }
 
-test t4_1_success() {
+test t5_1_success() {
   let redeemer = AccountUserUnlock1
-  let tx = mock_test_case_4_1(base_test_case_4_1())
+  let tx = mock_test_case_5_1(base_test_case_5_1())
   account_process(1, tx, redeemer) && user_unlock.account_user_unlock.withdraw(
     mock_account_oracle_policy_id(),
     mock_user_vkey_hex(),
     Void,
-    Script(script_hash_4_1()),
+    Script(script_hash_5_1()),
     tx,
   )
 }
 
-test t4_1_success_mass() {
+test t5_1_success_mass() {
   let redeemer = AccountUserUnlock1
   // TODO: add tx in according to index
-  let tx = mock_test_case_4_1(base_test_case_4_1())
+  let tx = mock_test_case_5_1(base_test_case_5_1())
 
   let unlock_process =
     fn(index: Int) { account_process(index, tx, redeemer) }
@@ -81,52 +81,52 @@ test t4_1_success_mass() {
     mock_account_oracle_policy_id(),
     mock_user_vkey_hex(),
     Void,
-    Script(script_hash_4_1()),
+    Script(script_hash_5_1()),
     tx,
   )
 }
 
-test t4_1_fail_without_owner_signed() {
+test t5_1_fail_without_owner_signed() {
   let redeemer = AccountUserUnlock1
   let tx =
-    mock_test_case_4_1(
-      TestCase41 { ..base_test_case_4_1(), is_owner_signed: False },
+    mock_test_case_5_1(
+      TestCase51 { ..base_test_case_5_1(), is_owner_signed: False },
     )
   account_process(1, tx, redeemer) && !user_unlock.account_user_unlock.withdraw(
     mock_account_oracle_policy_id(),
     mock_user_vkey_hex(),
     Void,
-    Script(script_hash_4_1()),
+    Script(script_hash_5_1()),
     tx,
   )
 }
 
-test t4_1_fail_without_app_signed() {
+test t5_1_fail_without_app_signed() {
   let redeemer = AccountUserUnlock1
   let tx =
-    mock_test_case_4_1(
-      TestCase41 { ..base_test_case_4_1(), is_operation_key_signed: False },
+    mock_test_case_5_1(
+      TestCase51 { ..base_test_case_5_1(), is_operation_key_signed: False },
     )
   account_process(1, tx, redeemer) && !user_unlock.account_user_unlock.withdraw(
     mock_account_oracle_policy_id(),
     mock_user_vkey_hex(),
     Void,
-    Script(script_hash_4_1()),
+    Script(script_hash_5_1()),
     tx,
   )
 }
 
-test t4_1_fail_without_withdrawal_script_present() {
+test t5_1_fail_without_withdrawal_script_present() {
   let redeemer = AccountUserUnlock1
   let tx =
-    mock_test_case_4_1(
-      TestCase41 { ..base_test_case_4_1(), is_withdrawal_script_present: False },
+    mock_test_case_5_1(
+      TestCase51 { ..base_test_case_5_1(), is_withdrawal_script_present: False },
     )
   !account_process(1, tx, redeemer) && user_unlock.account_user_unlock.withdraw(
     mock_account_oracle_policy_id(),
     mock_user_vkey_hex(),
     Void,
-    Script(script_hash_4_1()),
+    Script(script_hash_5_1()),
     tx,
   )
 }
