@@ -1,34 +1,32 @@
-use aiken/transaction.{
-  Input, Output, ScriptContext, Spend, Transaction, placeholder,
-}
-use aiken/transaction/value.{add, from_asset, to_minted_value}
 use aiken_virtual_dex/placeholder.{
   mock_account_address, mock_another_account_address, mock_buy_ada_order_input,
   mock_dex_oracle_policy_id, mock_dex_oracle_ref_input, mock_emergency_token,
   mock_operation_key, mock_post_trade_account_output, script_hash_5_1,
-}
+} as dex_placeholder
 use aiken_virtual_dex/types.{
   CancelOrder, EmergencyCancel, VirtualDexDatum, VirtualDexRedeemer,
 }
 use aiken_virtual_dex/utils.{get_emergency_token_name}
+use cardano/assets.{add, from_asset}
+use cardano/transaction.{Input, Output, Transaction, placeholder}
 use mocktail/virgin_output_reference.{mock_utxo_ref}
-use virtual_dex/virtual_dex.{virtual_dex}
+use virtual_dex/virtual_dex
 
-pub fn virtual_dex_process(
+fn virtual_dex_process(
   index: Int,
   tx: Transaction,
   datum: VirtualDexDatum,
   redeemer: VirtualDexRedeemer,
 ) {
-  let output_reference = mock_utxo_ref(0, 50 + index)
-  let ctx = ScriptContext { purpose: Spend(output_reference), transaction: tx }
-  virtual_dex(
+  let input = mock_utxo_ref(0, 50 + index)
+  virtual_dex.virtual_dex.spend(
     mock_dex_oracle_policy_id(),
     mock_emergency_token(),
     script_hash_5_1(),
-    datum,
+    Some(datum),
     redeemer,
-    ctx,
+    input,
+    tx,
   )
 }
 
@@ -66,7 +64,7 @@ fn cancel_order_test(test_case: TestCase52) {
   let reference_inputs =
     [mock_dex_oracle_ref_input()]
   Transaction {
-    ..placeholder(),
+    ..placeholder,
     inputs: inputs,
     outputs: outputs,
     reference_inputs: reference_inputs,
@@ -139,13 +137,11 @@ test t6_3_success_emergency_cancel() {
   let red = EmergencyCancel
   let tx =
     Transaction {
-      ..placeholder(),
-      mint: to_minted_value(
-        from_asset(
-          mock_emergency_token(),
-          get_emergency_token_name(mock_account_address()),
-          -1,
-        ),
+      ..placeholder,
+      mint: from_asset(
+        mock_emergency_token(),
+        get_emergency_token_name(mock_account_address()),
+        -1,
       ),
     }
   virtual_dex_process(1, tx, dat, red)
@@ -164,13 +160,11 @@ test t6_3_fail_emergency_cancel_without_emergency_token_burnt() {
   let red = EmergencyCancel
   let tx =
     Transaction {
-      ..placeholder(),
-      mint: to_minted_value(
-        from_asset(
-          mock_emergency_token(),
-          get_emergency_token_name(mock_another_account_address()),
-          -1,
-        ),
+      ..placeholder,
+      mint: from_asset(
+        mock_emergency_token(),
+        get_emergency_token_name(mock_another_account_address()),
+        -1,
       ),
     }
   !virtual_dex_process(1, tx, dat, red)

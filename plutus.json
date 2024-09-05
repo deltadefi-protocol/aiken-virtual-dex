@@ -298,7 +298,7 @@
     "Int": {
       "dataType": "integer"
     },
-    "Option$aiken/transaction/credential/Referenced$aiken/transaction/credential/Credential": {
+    "Option$cardano/address/Referenced$cardano/address/Credential": {
       "title": "Optional",
       "anyOf": [
         {
@@ -333,7 +333,7 @@
         }
       ]
     },
-    "aiken/transaction/OutputReference": {
+    "cardano/transaction/OutputReference": {
       "title": "OutputReference",
       "description": "An `OutputReference` is a unique reference to an output on-chain. The `output_index`\n corresponds to the position in the output list of the transaction (identified by its id)\n that produced that output",
       "anyOf": [
@@ -354,7 +354,7 @@
         }
       ]
     },
-    "aiken/transaction/TransactionId": {
+    "cardano/transaction/TransactionId": {
       "title": "TransactionId",
       "description": "A unique transaction identifier, as the hash of a transaction body. Note that the transaction id\n isn't a direct hash of the `Transaction` as visible on-chain. Rather, they correspond to hash\n digests of transaction body as they are serialized on the network.",
       "anyOf": [
@@ -371,7 +371,7 @@
         }
       ]
     },
-    "aiken/transaction/credential/Address": {
+    "cardano/address/Address": {
       "title": "Address",
       "description": "A Cardano `Address` typically holding one or two credential references.\n\n Note that legacy bootstrap addresses (a.k.a. 'Byron addresses') are\n completely excluded from Plutus contexts. Thus, from an on-chain\n perspective only exists addresses of type 00, 01, ..., 07 as detailed\n in [CIP-0019 :: Shelley Addresses](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0019/#shelley-addresses).",
       "anyOf": [
@@ -392,7 +392,7 @@
         }
       ]
     },
-    "aiken/transaction/credential/Credential": {
+    "cardano/address/Credential": {
       "title": "Credential",
       "description": "A general structure for representing an on-chain `Credential`.\n\n Credentials are always one of two kinds: a direct public/private key\n pair, or a script (native or Plutus).",
       "anyOf": [
@@ -418,7 +418,7 @@
         }
       ]
     },
-    "aiken/transaction/credential/Referenced$aiken/transaction/credential/Credential": {
+    "cardano/address/Referenced$cardano/address/Credential": {
       "title": "Referenced",
       "description": "Represent a type of object that can be represented either inline (by hash)\n or via a reference (i.e. a pointer to an on-chain location).\n\n This is mainly use for capturing pointers to a stake credential\n registration certificate in the case of so-called pointer addresses.",
       "anyOf": [

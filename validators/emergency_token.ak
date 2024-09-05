@@ -1,36 +1,31 @@
-use aiken/transaction.{Mint, ScriptContext, Transaction}
-use aiken/transaction/credential.{Address}
 use aiken_virtual_dex/types.{
   EBurn, EMint, EmergencyTokenMintingPolarity, EmergencyUnlockDatum,
 }
+use cardano/address.{Address}
+use cardano/assets.{PolicyId}
+use cardano/transaction.{Transaction}
 use vodka_extra_signatories.{key_signed}
 use vodka_inputs.{inputs_at_with}
 use vodka_mints.{only_minted_token}
 use vodka_outputs.{output_inline_datum, outputs_at_with}
 use vodka_validity_range.{valid_after, valid_before}
 
-validator(emergency_unlock_address: Address) {
-  pub fn emergency_token(
+validator emergency_token(emergency_unlock_address: Address) {
+  mint(
     redeemer: EmergencyTokenMintingPolarity,
-    context: ScriptContext,
-  ) -> Bool {
-    let ScriptContext { purpose, transaction } = context
-    expect Mint(current_policy) = purpose
+    policy_id: PolicyId,
+    tx: Transaction,
+  ) {
     when redeemer is {
       EMint { current_timestamp } -> {
         let Transaction { outputs, mint, extra_signatories, validity_range, .. } =
-          transaction
+          tx
         expect [emergency_output] =
-          outputs_at_with(
-            outputs,
-            emergency_unlock_address,
-            current_policy,
-            #"",
-          )
+          outputs_at_with(outputs, emergency_unlock_address, policy_id, #"")
         expect EmergencyUnlockDatum { minter, minted_at } =
           output_inline_datum(emergency_output)
         let is_emergency_token_minted =
-          only_minted_token(mint, current_policy, #"", 1)
+          only_minted_token(mint, policy_id, #"", 1)
         let is_datum_correct = minted_at == current_timestamp
         let is_owner_signed = key_signed(extra_signatories, minter)
         // It should be that the token is guaranteed to be minted before the current timestamp
@@ -39,9 +34,9 @@ validator(emergency_unlock_address: Address) {
       }
       EBurn -> {
         let Transaction { inputs, validity_range, extra_signatories, mint, .. } =
-          transaction
+          tx
         expect [initiation_input] =
-          inputs_at_with(inputs, emergency_unlock_address, current_policy, #"")
+          inputs_at_with(inputs, emergency_unlock_address, policy_id, #"")
         expect EmergencyUnlockDatum { minted_at, minter } =
           output_inline_datum(initiation_input.output)
         let is_owner_signed = key_signed(extra_signatories, minter)
@@ -55,9 +50,13 @@ validator(emergency_unlock_address: Address) {
           } else {
             False
           }
-        let is_only_burned = only_minted_token(mint, current_policy, #"", -1)
+        let is_only_burned = only_minted_token(mint, policy_id, #"", -1)
         is_time_valid? && is_only_burned?
       }
     }
+  }
+
+  else(_) {
+    fail
   }
 }

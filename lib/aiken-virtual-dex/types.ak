@@ -1,5 +1,5 @@
-use aiken/transaction/credential.{Address}
-use aiken/transaction/value.{PolicyId}
+use cardano/address.{Address}
+use cardano/assets.{PolicyId}
 
 // 1. OracleNFT
 pub type MintPolarity {

@@ -1,15 +1,16 @@
-use aiken/bytearray
-use aiken/hash.{blake2b_256}
-use aiken/transaction.{InlineDatum, Input, NoDatum, Output, OutputReference}
-use aiken/transaction/credential.{Address}
-use aiken/transaction/value.{PolicyId, Value, add, from_asset}
+use aiken/crypto.{blake2b_256}
+use aiken/primitive/bytearray
 use aiken_virtual_dex/types.{
   AccountDatum, AccountOracleDatum, DexOracleDatum, EmergencyUnlockDatum,
   VirtualDexDatum,
 }
+use cardano/address.{Address}
+use cardano/assets.{PolicyId, Value, add, from_asset}
+use cardano/transaction.{InlineDatum, Input, NoDatum, Output, OutputReference}
 use mocktail/virgin_address.{mock_pub_key_address, mock_script_address}
-use mocktail/virgin_key_hex.{mock_policy_id,
-  mock_pub_key_hash, mock_script_hash}
+use mocktail/virgin_key_hash.{
+  mock_policy_id, mock_pub_key_hash, mock_script_hash,
+}
 use mocktail/virgin_output_reference.{mock_utxo_ref}
 
 // Smart contract specific placeholders

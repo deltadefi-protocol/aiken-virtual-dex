@@ -1,11 +1,11 @@
-use aiken/transaction.{Mint, ScriptContext, placeholder}
-use aiken/transaction/value.{PolicyId, from_lovelace}
 use aiken_virtual_dex/types.{RBurn, RMint}
+use cardano/assets.{PolicyId, from_lovelace}
+use cardano/transaction.{placeholder}
 use mocktail.{complete, mint, mocktail_tx, tx_in}
 use mocktail/virgin_address.{mock_pub_key_address}
-use mocktail/virgin_key_hex.{mock_policy_id}
+use mocktail/virgin_key_hash.{mock_policy_id}
 use mocktail/virgin_output_reference.{mock_tx_hash, mock_utxo_ref}
-use oracle_nft.{oracle_nft}
+use oracle_nft
 
 test success_mint() {
   let redeemer = RMint
@@ -25,19 +25,19 @@ test success_mint() {
         )
       |> complete()
 
-  let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
-
-  oracle_nft(input_utxo, redeemer, ctx)
+  oracle_nft.oracle_nft.mint(input_utxo, redeemer, policy_id, tx)
 }
 
 test fail_mint_no_utxo_ref_supply() {
   let redeemer = RMint
   let policy_id = mock_policy_id(0)
 
-  let ctx =
-    ScriptContext { purpose: Mint(policy_id), transaction: placeholder() }
-
-  !oracle_nft(mock_utxo_ref(0, 0), redeemer, ctx)
+  !oracle_nft.oracle_nft.mint(
+    mock_utxo_ref(0, 0),
+    redeemer,
+    policy_id,
+    placeholder,
+  )
 }
 
 test success_burn() {
@@ -49,8 +49,7 @@ test success_burn() {
       |> mint(True, -1, policy_id, "")
       |> complete()
 
-  let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
-  oracle_nft(mock_utxo_ref(0, 0), redeemer, ctx)
+  oracle_nft.oracle_nft.mint(mock_utxo_ref(0, 0), redeemer, policy_id, tx)
 }
 
 test success_burn_with_other_minting() {
@@ -62,8 +61,7 @@ test success_burn_with_other_minting() {
       |> mint(True, -1, policy_id, "")
       |> mint(True, -1, mock_policy_id(1), "")
       |> complete()
-  let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
-  oracle_nft(mock_utxo_ref(0, 0), redeemer, ctx)
+  oracle_nft.oracle_nft.mint(mock_utxo_ref(0, 0), redeemer, policy_id, tx)
 }
 
 test fail_burn_with_mint() {
@@ -75,8 +73,7 @@ test fail_burn_with_mint() {
       |> mint(True, 1, policy_id, "")
       |> complete()
 
-  let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
-  !oracle_nft(mock_utxo_ref(0, 0), redeemer, ctx)
+  !oracle_nft.oracle_nft.mint(mock_utxo_ref(0, 0), redeemer, policy_id, tx)
 }
 
 test fail_burn_with_mix() {
@@ -89,6 +86,5 @@ test fail_burn_with_mix() {
       |> mint(True, 1, policy_id, "1")
       |> complete()
 
-  let ctx = ScriptContext { purpose: Mint(policy_id), transaction: tx }
-  !oracle_nft(mock_utxo_ref(0, 0), redeemer, ctx)
+  !oracle_nft.oracle_nft.mint(mock_utxo_ref(0, 0), redeemer, policy_id, tx)
 }

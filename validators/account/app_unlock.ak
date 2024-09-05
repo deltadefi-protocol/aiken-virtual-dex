@@ -1,18 +1,19 @@
-use aiken/list
-use aiken/transaction.{ScriptContext, Transaction}
-use aiken/transaction/value.{PolicyId, merge, zero}
+use aiken/collection/list
 use aiken_virtual_dex/types.{AccountOracleDatum}
+use cardano/address.{Credential}
+use cardano/assets.{PolicyId, merge, zero}
+use cardano/transaction.{Transaction}
 use vodka_address.{address_script_hash}
 use vodka_extra_signatories.{key_signed}
 use vodka_inputs.{only_input_datum_with}
 use vodka_value.{get_all_value_to, value_geq} as sidan_value
 
-validator(oracle_nft: PolicyId) {
-  pub fn account_app_unlock(_redeemer: Data, context: ScriptContext) -> Bool {
-    let transaction = context.transaction
-    let Transaction { inputs, outputs, extra_signatories, .. } = transaction
+validator account_app_unlock(oracle_nft: PolicyId) {
+  withdraw(_redeemer: Data, _credential: Credential, tx: Transaction) {
+    let Transaction { inputs, outputs, extra_signatories, reference_inputs, .. } =
+      tx
     expect AccountOracleDatum { operation_key, .. }: AccountOracleDatum =
-      only_input_datum_with(transaction.reference_inputs, oracle_nft, "")
+      only_input_datum_with(reference_inputs, oracle_nft, "")
 
     let (
       is_only_single_script_address,
@@ -21,7 +22,7 @@ validator(oracle_nft: PolicyId) {
     ) =
       list.foldr(
         inputs,
-        (True, None, zero()),
+        (True, None, zero),
         fn(input, acc) {
           when address_script_hash(input.output.address) is {
             None -> acc
@@ -50,5 +51,9 @@ validator(oracle_nft: PolicyId) {
       }
       None -> False
     }
+  }
+
+  else(_) {
+    fail
   }
 }

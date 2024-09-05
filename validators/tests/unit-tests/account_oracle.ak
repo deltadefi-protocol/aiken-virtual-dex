@@ -1,11 +1,11 @@
-use account_oracle.{account_oracle}
-use aiken/list
-use aiken/transaction.{Input, ScriptContext, Spend, Transaction, placeholder}
+use account_oracle
+use aiken/collection/list
 use aiken_virtual_dex/placeholder.{
   mock_account_oracle_datum, mock_account_oracle_output, mock_stop_key,
-}
+} as dex_placeholder
 use aiken_virtual_dex/types.{AccountOracleDatum, RotateKey}
-use mocktail/virgin_key_hex.{mock_pub_key_hash}
+use cardano/transaction.{Input, Transaction, placeholder}
+use mocktail/virgin_key_hash.{mock_pub_key_hash}
 use mocktail/virgin_output_reference.{mock_utxo_ref}
 
 type RotateTestCase {
@@ -65,7 +65,7 @@ fn mock_rotate_test_case(test_case: RotateTestCase) {
     }
   let output = mock_account_oracle_output(new_datum)
   Transaction {
-    ..placeholder(),
+    ..placeholder,
     inputs: [input],
     outputs: [output],
     extra_signatories: extra_signatories,
@@ -81,9 +81,13 @@ test t3_1_success_rotate_key() {
   let input_utxo = mock_utxo_ref(0, 0)
 
   let tx = mock_rotate_test_case(base_rotate_test_case())
-  let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
 
-  account_oracle(mock_account_oracle_datum(), redeemer, ctx)
+  account_oracle.account_oracle.spend(
+    Some(mock_account_oracle_datum()),
+    redeemer,
+    input_utxo,
+    tx,
+  )
 }
 
 test t3_1_fail_rotate_key_without_old_stop_signature() {
@@ -101,9 +105,13 @@ test t3_1_fail_rotate_key_without_old_stop_signature() {
         is_old_stop_key_signed: False,
       },
     )
-  let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
 
-  !account_oracle(mock_account_oracle_datum(), redeemer, ctx)
+  !account_oracle.account_oracle.spend(
+    Some(mock_account_oracle_datum()),
+    redeemer,
+    input_utxo,
+    tx,
+  )
 }
 
 test t3_1_fail_rotate_key_without_new_stop_signature() {
@@ -121,7 +129,11 @@ test t3_1_fail_rotate_key_without_new_stop_signature() {
         is_new_stop_key_signed: False,
       },
     )
-  let ctx = ScriptContext { purpose: Spend(input_utxo), transaction: tx }
 
-  !account_oracle(mock_account_oracle_datum(), redeemer, ctx)
+  !account_oracle.account_oracle.spend(
+    Some(mock_account_oracle_datum()),
+    redeemer,
+    input_utxo,
+    tx,
+  )
 }

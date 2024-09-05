@@ -1,19 +1,35 @@
-use account/app_unlock.{account_app_unlock}
-use aiken/transaction.{ScriptContext, WithdrawFrom}
-use aiken/transaction/credential.{Inline, ScriptCredential}
-use aiken/transaction/value.{from_lovelace}
+use account/account
+use account/app_unlock
 use aiken_virtual_dex/placeholder.{
   mock_account_address, mock_account_oracle_policy_id,
   mock_account_oracle_ref_input, mock_another_account_address,
-  mock_operation_key, script_hash_4_2,
+  mock_emergency_token, mock_operation_key, mock_user_vkey_hex, script_hash_4_1,
+  script_hash_4_2,
 }
-use aiken_virtual_dex/types.{AccountAppUnlock, AccountDatum}
+use aiken_virtual_dex/types.{AccountAppUnlock, AccountDatum, AccountRedeemer}
+use cardano/address.{Script}
+use cardano/assets.{from_lovelace}
+use cardano/transaction.{Transaction}
 use mocktail.{
   MocktailTx, add_reference_input, complete, mocktail_tx, required_signer_hash,
   script_withdrawal, tx_in, tx_in_inline_datum, tx_out, tx_out_inline_datum,
 }
-use mocktail/virgin_output_reference.{mock_tx_hash}
-use tests/unit_tests/account/account.{account_process} as taccount
+use mocktail/virgin_output_reference.{mock_tx_hash, mock_utxo_ref}
+
+fn account_process(index: Int, tx: Transaction, redeemer: AccountRedeemer) {
+  let input = mock_utxo_ref(0, index)
+  account.account.spend(
+    mock_user_vkey_hex(),
+    script_hash_4_1(),
+    script_hash_4_1(),
+    script_hash_4_2(),
+    mock_emergency_token(),
+    Some(AccountDatum),
+    redeemer,
+    input,
+    tx,
+  )
+}
 
 type TestCase42 {
   is_operation_key_signed: Bool,
@@ -92,15 +108,11 @@ fn mock_test_case_4_2(number_of_inputs: Int, test_case: TestCase42) {
 
 test t4_2_success() {
   let tx = mock_test_case_4_2(10, base_test_case_4_2())
-  let withdrawal_ctx =
-    ScriptContext {
-      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_2()))),
-      transaction: tx,
-    }
-  account_process(0, tx, AccountAppUnlock) && account_app_unlock(
+  account_process(0, tx, AccountAppUnlock) && app_unlock.account_app_unlock.withdraw(
     mock_account_oracle_policy_id(),
     Void,
-    withdrawal_ctx,
+    Script(script_hash_4_2()),
+    tx,
   )
 }
 
@@ -110,15 +122,11 @@ test t4_2_failed_without_operation_key_signed() {
       10,
       TestCase42 { ..base_test_case_4_2(), is_operation_key_signed: False },
     )
-  let withdrawal_ctx =
-    ScriptContext {
-      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_2()))),
-      transaction: tx,
-    }
-  account_process(0, tx, AccountAppUnlock) && !account_app_unlock(
+  account_process(0, tx, AccountAppUnlock) && !app_unlock.account_app_unlock.withdraw(
     mock_account_oracle_policy_id(),
     Void,
-    withdrawal_ctx,
+    Script(script_hash_4_2()),
+    tx,
   )
 }
 
@@ -131,15 +139,11 @@ test t4_2_failed_without_value_resepnt_into_account() {
         is_value_resepnt_into_account: False,
       },
     )
-  let withdrawal_ctx =
-    ScriptContext {
-      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_2()))),
-      transaction: tx,
-    }
-  account_process(0, tx, AccountAppUnlock) && !account_app_unlock(
+  account_process(0, tx, AccountAppUnlock) && !app_unlock.account_app_unlock.withdraw(
     mock_account_oracle_policy_id(),
     Void,
-    withdrawal_ctx,
+    Script(script_hash_4_2()),
+    tx,
   )
 }
 
@@ -149,15 +153,11 @@ test t4_2_failed_with_other_account_unlock_attempt() {
       10,
       TestCase42 { ..base_test_case_4_2(), is_only_single_account: False },
     )
-  let withdrawal_ctx =
-    ScriptContext {
-      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_2()))),
-      transaction: tx,
-    }
-  account_process(0, tx, AccountAppUnlock) && !account_app_unlock(
+  account_process(0, tx, AccountAppUnlock) && !app_unlock.account_app_unlock.withdraw(
     mock_account_oracle_policy_id(),
     Void,
-    withdrawal_ctx,
+    Script(script_hash_4_2()),
+    tx,
   )
 }
 
@@ -167,14 +167,10 @@ test t4_2_failed_without_withdrawal_script_present() {
       10,
       TestCase42 { ..base_test_case_4_2(), is_withdrawal_script_present: False },
     )
-  let withdrawal_ctx =
-    ScriptContext {
-      purpose: WithdrawFrom(Inline(ScriptCredential(script_hash_4_2()))),
-      transaction: tx,
-    }
-  !account_process(0, tx, AccountAppUnlock) && account_app_unlock(
+  !account_process(0, tx, AccountAppUnlock) && app_unlock.account_app_unlock.withdraw(
     mock_account_oracle_policy_id(),
     Void,
-    withdrawal_ctx,
+    Script(script_hash_4_2()),
+    tx,
   )
 }

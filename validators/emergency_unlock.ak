@@ -1,18 +1,19 @@
-use aiken/transaction.{ScriptContext, Transaction}
-use aiken/transaction/value.{PolicyId}
 use aiken_virtual_dex/types.{AccountOracleDatum, EmergencyUnlockDatum}
+use cardano/assets.{PolicyId}
+use cardano/transaction.{OutputReference, Transaction}
 use vodka_extra_signatories.{key_signed}
 use vodka_inputs.{inputs_with, only_input_datum_with}
 use vodka_mints.{only_minted_token}
 use vodka_outputs.{output_inline_datum}
 use vodka_validity_range.{valid_after}
 
-validator(oracle_nft: PolicyId) {
-  pub fn emergency_unlock(
-    _datum: Data,
+validator emergency_unlock(oracle_nft: PolicyId) {
+  spend(
+    _datum: Option<Data>,
     _redeemer: Data,
-    context: ScriptContext,
-  ) -> Bool {
+    _input: OutputReference,
+    tx: Transaction,
+  ) {
     let Transaction {
       reference_inputs,
       inputs,
@@ -20,7 +21,7 @@ validator(oracle_nft: PolicyId) {
       validity_range,
       mint,
       ..
-    } = context.transaction
+    } = tx
     expect AccountOracleDatum { emergency_token, operation_key, .. }: AccountOracleDatum =
       only_input_datum_with(reference_inputs, oracle_nft, "")
     let emergency_inputs = inputs_with(inputs, emergency_token, #"")
@@ -45,5 +46,9 @@ validator(oracle_nft: PolicyId) {
       }
       _ -> key_signed(extra_signatories, operation_key)
     }
+  }
+
+  else(_) {
+    fail
   }
 }
