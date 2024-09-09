@@ -15,7 +15,7 @@ use aiken_virtual_dex/types.{
 }
 use cardano/address.{Script}
 use cardano/assets.{from_asset}
-use cardano/script_context.{ScriptContext, Withdrawing}
+// use cardano/script_context.{ScriptContext, Withdrawing}
 use cardano/transaction.{Transaction}
 use mocktail.{
   add_input, add_output, add_reference_input, complete, mocktail_tx,
@@ -175,13 +175,13 @@ test integration_test_mass_take_orders() {
       owner: mock_user_vkey_hex(),
     }
   let tx = take_order_test(number_of_orders)
-  let ctx =
-    ScriptContext {
-      transaction: tx,
-      redeemer: Void,
-      info: Withdrawing(Script(script_hash_5_1())),
-    }
 
+  // let ctx =
+  //   ScriptContext {
+  //     transaction: tx,
+  //     redeemer: Void,
+  //     info: Withdrawing(Script(script_hash_5_1())),
+  //   }
   mass_account_utxo_processing(number_of_orders, tx) && mass_virtual_dex_processing(
     number_of_orders,
     tx,
@@ -193,9 +193,11 @@ test integration_test_mass_take_orders() {
     Void,
     Script(script_hash_6_1()),
     tx,
-  ) && user_unlock.account_user_unlock.else(
+  ) && user_unlock.account_user_unlock.withdraw(
     mock_account_oracle_policy_id(),
     mock_user_vkey_hex(),
-    ctx,
+    Void,
+    Script(script_hash_5_1()),
+    tx,
   )
 }
