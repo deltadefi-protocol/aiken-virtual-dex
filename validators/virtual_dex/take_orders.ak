@@ -4,6 +4,7 @@ use aiken_virtual_dex/types.{DexOracleDatum, VirtualDexDatum}
 use cardano/address.{Address, Credential}
 use cardano/assets.{AssetName,
   PolicyId, Value, from_asset, from_lovelace, merge}
+use cardano/certificate.{Certificate}
 use cardano/transaction.{Input, Output, Transaction}
 use vodka_address.{address_script_hash}
 use vodka_extra_signatories.{key_signed}
@@ -52,7 +53,7 @@ validator virtual_dex_take_orders(
     is_operation_key_signed && is_token_paid_to_makers
   }
 
-  publish(_redeemer: Data, _credential: Credential, tx: Transaction) {
+  publish(_redeemer: Data, _credential: Certificate, tx: Transaction) {
     let Transaction { reference_inputs, .. } = tx
     expect DexOracleDatum { operation_key, .. }: DexOracleDatum =
       only_input_datum_with(reference_inputs, oracle_nft, "")
