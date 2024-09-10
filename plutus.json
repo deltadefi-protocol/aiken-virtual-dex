@@ -176,7 +176,7 @@
     {
       "title": "account/user_unlock.account_user_unlock.publish",
       "redeemer": {
-        "title": "redeemer",
+        "title": "_redeemer",
         "schema": {
           "$ref": "#/definitions/Data"
         }

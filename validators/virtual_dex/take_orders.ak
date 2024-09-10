@@ -53,7 +53,7 @@ validator virtual_dex_take_orders(
     is_operation_key_signed && is_token_paid_to_makers
   }
 
-  publish(_redeemer: Data, _credential: Certificate, tx: Transaction) {
+  publish(_redeemer: Data, _certificate: Certificate, tx: Transaction) {
     let Transaction { reference_inputs, .. } = tx
     expect DexOracleDatum { operation_key, .. }: DexOracleDatum =
       only_input_datum_with(reference_inputs, oracle_nft, "")
