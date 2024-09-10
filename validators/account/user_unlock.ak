@@ -8,9 +8,10 @@ use vodka_inputs.{only_input_datum_with}
 
 validator account_user_unlock(oracle_nft: PolicyId, owner: ByteArray) {
   withdraw(_redeemer: Data, _credential: Credential, tx: Transaction) {
+    let Transaction { reference_inputs, extra_signatories, .. } = tx
     expect AccountOracleDatum { operation_key, .. }: AccountOracleDatum =
-      only_input_datum_with(tx.reference_inputs, oracle_nft, "")
-    all_key_signed(tx.extra_signatories, [owner, operation_key])
+      only_input_datum_with(reference_inputs, oracle_nft, "")
+    all_key_signed(extra_signatories, [owner, operation_key])
   }
 
   publish(redeemer: Data, certificate: Certificate, tx: Transaction) {
@@ -21,4 +22,13 @@ validator account_user_unlock(oracle_nft: PolicyId, owner: ByteArray) {
   else(_) {
     fail
   }
+
+  // Below doesnt work
+  // else(ctx: ScriptContext) {
+  //   let Transaction { reference_inputs, extra_signatories, .. } =
+  //     ctx.transaction
+  //   expect AccountOracleDatum { operation_key, .. }: AccountOracleDatum =
+  //     only_input_datum_with(reference_inputs, oracle_nft, "")
+  //   all_key_signed(extra_signatories, [owner, operation_key])
+  // }
 }

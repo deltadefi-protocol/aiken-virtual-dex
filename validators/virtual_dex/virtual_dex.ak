@@ -4,7 +4,6 @@ use aiken_virtual_dex/types.{
   CancelOrder, DexOracleDatum, EmergencyCancel, TakeOrders, VirtualDexDatum,
   VirtualDexRedeemer,
 }
-use aiken_virtual_dex/utils.{get_emergency_token_name}
 use cardano/address.{Script}
 use cardano/assets.{PolicyId}
 use cardano/transaction.{Input,
@@ -51,15 +50,11 @@ validator virtual_dex(
       EmergencyCancel -> {
         let Transaction { mint, .. } = tx
         expect Some(datum) = datum_opt
-        let VirtualDexDatum { account_address, .. } = datum
+        let VirtualDexDatum { owner, .. } = datum
         let is_emergency_token_burnt =
-          only_minted_token(
-            mint,
-            emergency_token,
-            get_emergency_token_name(account_address),
-            -1,
-          )
-        is_emergency_token_burnt
+          only_minted_token(mint, emergency_token, owner, -1)
+        let is_owner_signed = key_signed(tx.extra_signatories, owner)
+        is_emergency_token_burnt? && is_owner_signed?
       }
     }
   }

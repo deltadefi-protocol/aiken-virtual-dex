@@ -1,14 +1,14 @@
 use aiken_virtual_dex/placeholder.{
-  mock_account_address, mock_another_account_address, mock_buy_ada_order_input,
-  mock_dex_oracle_policy_id, mock_dex_oracle_ref_input, mock_emergency_token,
-  mock_operation_key, mock_post_trade_account_output, script_hash_5_1,
+  mock_account_address, mock_buy_ada_order_input, mock_dex_oracle_policy_id,
+  mock_dex_oracle_ref_input, mock_emergency_token, mock_operation_key,
+  mock_post_trade_account_output, mock_user_vkey_hex, script_hash_5_1,
 } as dex_placeholder
 use aiken_virtual_dex/types.{
   CancelOrder, EmergencyCancel, VirtualDexDatum, VirtualDexRedeemer,
 }
-use aiken_virtual_dex/utils.{get_emergency_token_name}
-use cardano/assets.{add, from_asset}
+use cardano/assets.{add}
 use cardano/transaction.{Input, Output, Transaction, placeholder}
+use mocktail.{complete, mint, mocktail_tx, required_signer_hash}
 use mocktail/virgin_output_reference.{mock_utxo_ref}
 use virtual_dex/virtual_dex
 
@@ -80,6 +80,7 @@ test t7_2_success_cancel_order() {
       list_price_times_1mil: 60000,
       lot_size: 310_000_000,
       extra_lovelace: 0,
+      owner: mock_user_vkey_hex(),
     }
   let red = CancelOrder
   let tx = cancel_order_test(cancel_order_base_case())
@@ -94,6 +95,7 @@ test t7_2_fail_cancel_order_without_value_returned() {
       list_price_times_1mil: 60000,
       lot_size: 310_000_000,
       extra_lovelace: 0,
+      owner: mock_user_vkey_hex(),
     }
   let red = CancelOrder
   let tx =
@@ -111,6 +113,7 @@ test t7_2_fail_cancel_order_without_operation_key_signed() {
       list_price_times_1mil: 60000,
       lot_size: 310_000_000,
       extra_lovelace: 0,
+      owner: mock_user_vkey_hex(),
     }
   let red = CancelOrder
   let tx =
@@ -120,11 +123,7 @@ test t7_2_fail_cancel_order_without_operation_key_signed() {
   !virtual_dex_process(1, tx, dat, red)
 }
 
-// type EmergencyCancelTestCase {
-//   is_emergency_token_burnt: Bool,
-// }
-
-test t6_3_success_emergency_cancel() {
+test t7_3_success_emergency_cancel() {
   let dat =
     VirtualDexDatum {
       account_address: mock_account_address(),
@@ -132,22 +131,19 @@ test t6_3_success_emergency_cancel() {
       list_price_times_1mil: 60000,
       lot_size: 310_000_000,
       extra_lovelace: 0,
+      owner: mock_user_vkey_hex(),
     }
 
   let red = EmergencyCancel
   let tx =
-    Transaction {
-      ..placeholder,
-      mint: from_asset(
-        mock_emergency_token(),
-        get_emergency_token_name(mock_account_address()),
-        -1,
-      ),
-    }
+    mocktail_tx()
+      |> mint(True, -1, mock_emergency_token(), mock_user_vkey_hex())
+      |> required_signer_hash(True, mock_user_vkey_hex())
+      |> complete()
   virtual_dex_process(1, tx, dat, red)
 }
 
-test t6_3_fail_emergency_cancel_without_emergency_token_burnt() {
+test t7_3_fail_emergency_cancel_without_emergency_token_burnt() {
   let dat =
     VirtualDexDatum {
       account_address: mock_account_address(),
@@ -155,17 +151,32 @@ test t6_3_fail_emergency_cancel_without_emergency_token_burnt() {
       list_price_times_1mil: 60000,
       lot_size: 310_000_000,
       extra_lovelace: 0,
+      owner: mock_user_vkey_hex(),
     }
 
   let red = EmergencyCancel
   let tx =
-    Transaction {
-      ..placeholder,
-      mint: from_asset(
-        mock_emergency_token(),
-        get_emergency_token_name(mock_another_account_address()),
-        -1,
-      ),
+    mocktail_tx()
+      |> required_signer_hash(True, mock_user_vkey_hex())
+      |> complete()
+  !virtual_dex_process(1, tx, dat, red)
+}
+
+test t7_3_fail_emergency_cancel_without_owner_signature() {
+  let dat =
+    VirtualDexDatum {
+      account_address: mock_account_address(),
+      is_long: True,
+      list_price_times_1mil: 60000,
+      lot_size: 310_000_000,
+      extra_lovelace: 0,
+      owner: mock_user_vkey_hex(),
     }
+
+  let red = EmergencyCancel
+  let tx =
+    mocktail_tx()
+      |> mint(True, -1, mock_emergency_token(), mock_user_vkey_hex())
+      |> complete()
   !virtual_dex_process(1, tx, dat, red)
 }

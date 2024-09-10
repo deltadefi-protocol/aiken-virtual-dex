@@ -13,6 +13,7 @@
 - `list_price_times_10k`: Order exchange in a rate of `list_price` \* `lot_size` = quantity of `param_short_token`
 - `lot_size`: Quantity of `sell token` in this order
 - `extra_lovelace`: The extra lovelace provided in the utxo, to be returned to `Account`
+- `owner`: The pub key hash of owner of the order
 
 ## User Action
 
@@ -27,4 +28,5 @@
 
 3. Emergency operation - Redeemer `EmergencyCancel`
 
-   - `EmergencyToken` with token name hashing `trade_account_address` burnt in current transaction
+   - `EmergencyToken` with token name of owner burnt in current transaction
+   - `owner` signature is provided

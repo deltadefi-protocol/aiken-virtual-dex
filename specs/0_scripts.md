@@ -46,13 +46,13 @@ There are in total 6 scripts for the DeltaDeFi virtual dex to work. Below provid
 
    - 2.1 All account actions (param: `owner`, 1.1, 1.2)
    - 2.2 All dex actions (param: 1.1, 1.2)
-   - 2.3 `EmergencyUnlock` (param 1.2)
+   - 2.3 `EmergencyUnlock` (param: 1.2)
 
 3. Third layer
 
-   - 3.1 `EmergencyToken` (no param)
+   - 3.1 `EmergencyToken` (param: 2.3)
 
 4. Fourth layer
 
-   - 4.1 `Account` (param: 2.1, 3.1)
-   - 4.2 `VirtualDEX` (param: 2.2, 3.1)
+   - 4.1 `Account` (param: 2.1, 2.3, 3.1)
+   - 4.2 `VirtualDEX` (param: 2.2, 2.3, 3.1)

@@ -2,7 +2,7 @@ use aiken_virtual_dex/placeholder.{
   ada_asset_class, mock_account_address, mock_buy_ada_order_input,
   mock_dex_oracle_policy_id, mock_dex_oracle_ref_input, mock_emergency_token,
   mock_fee_output, mock_operation_key, mock_post_trade_account_output,
-  mock_token_asset_class, script_hash_5_1,
+  mock_token_asset_class, mock_user_vkey_hex, script_hash_5_1,
 }
 use aiken_virtual_dex/types.{TakeOrders, VirtualDexDatum, VirtualDexRedeemer}
 use cardano/address.{Script}
@@ -140,6 +140,7 @@ test t7_1_success_take_order() {
       list_price_times_1mil: 60000,
       lot_size: 500,
       extra_lovelace: 0,
+      owner: mock_user_vkey_hex(),
     }
   let tx = take_order_test(take_order_base_case())
   virtual_dex_process(1, tx, dat, TakeOrders) && take_orders.virtual_dex_take_orders.withdraw(
@@ -160,6 +161,7 @@ test t7_1_fail_take_order_without_extra_lovelace_returned() {
       list_price_times_1mil: 60000,
       lot_size: 500,
       extra_lovelace: 0,
+      owner: mock_user_vkey_hex(),
     }
   let tx =
     take_order_test(
@@ -183,6 +185,7 @@ test t7_1_fail_take_order_without_token_paid_to_maker() {
       list_price_times_1mil: 60000,
       lot_size: 500,
       extra_lovelace: 0,
+      owner: mock_user_vkey_hex(),
     }
   let tx =
     take_order_test(
@@ -206,6 +209,7 @@ test t7_1_fail_take_order_without_operation_key_signed() {
       list_price_times_1mil: 60000,
       lot_size: 500,
       extra_lovelace: 0,
+      owner: mock_user_vkey_hex(),
     }
   let tx =
     take_order_test(
@@ -229,6 +233,7 @@ test t7_1_failed_without_withdrawal_script_present() {
       list_price_times_1mil: 60000,
       lot_size: 500,
       extra_lovelace: 0,
+      owner: mock_user_vkey_hex(),
     }
   let tx =
     take_order_test(

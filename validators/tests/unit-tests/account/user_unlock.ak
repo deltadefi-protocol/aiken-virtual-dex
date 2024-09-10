@@ -7,12 +7,21 @@ use aiken_virtual_dex/placeholder.{
 }
 use aiken_virtual_dex/types.{AccountDatum, AccountRedeemer, AccountUserUnlock1}
 use cardano/address.{Script}
+// use cardano/script_context.{ScriptContext, Withdrawing}
 use cardano/transaction.{Transaction}
 use mocktail.{
   add_reference_input, complete, mocktail_tx, required_signer_hash,
   script_withdrawal,
 }
 use mocktail/virgin_output_reference.{mock_utxo_ref}
+
+// fn user_unlock_ctx(tx: Transaction) -> ScriptContext {
+//   ScriptContext {
+//     transaction: tx,
+//     redeemer: Void,
+//     info: Withdrawing(Script(script_hash_5_1())),
+//   }
+// }
 
 fn account_process(index: Int, tx: Transaction, redeemer: AccountRedeemer) {
   let input = mock_utxo_ref(0, index)
