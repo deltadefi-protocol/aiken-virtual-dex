@@ -4,7 +4,7 @@ use aiken_virtual_dex/types.{DexOracleDatum, VirtualDexDatum}
 use cardano/address.{Address, Credential}
 use cardano/assets.{AssetName,
   PolicyId, Value, from_asset, from_lovelace, merge}
-use cardano/certificate.{Certificate, Certificate}
+use cardano/certificate.{Certificate}
 use cardano/transaction.{Input, Output, Transaction}
 use vodka_address.{address_script_hash}
 use vodka_extra_signatories.{key_signed}
