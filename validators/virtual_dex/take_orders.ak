@@ -5,6 +5,7 @@ use cardano/address.{Address, Credential}
 use cardano/assets.{AssetName,
   PolicyId, Value, from_asset, from_lovelace, merge}
 use cardano/transaction.{Input, Output, Transaction}
+use cardano/certificate.{Certificate}
 use vodka_address.{address_script_hash}
 use vodka_extra_signatories.{key_signed}
 use vodka_inputs.{only_input_datum_with}
@@ -52,7 +53,7 @@ validator virtual_dex_take_orders(
     is_operation_key_signed && is_token_paid_to_makers
   }
 
-  publish(_redeemer: Data, _credential: Credential, tx: Transaction) {
+  publish(_redeemer: Data, _certificate: Certificate, tx: Transaction) {
     let Transaction { reference_inputs, .. } = tx
     expect DexOracleDatum { operation_key, .. }: DexOracleDatum =
       only_input_datum_with(reference_inputs, oracle_nft, "")
