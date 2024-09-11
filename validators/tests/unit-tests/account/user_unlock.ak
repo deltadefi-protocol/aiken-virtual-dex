@@ -7,7 +7,7 @@ use aiken_virtual_dex/placeholder.{
 }
 use aiken_virtual_dex/types.{AccountDatum, AccountRedeemer, AccountUserUnlock1}
 use cardano/address.{Script}
-// use cardano/script_context.{ScriptContext, Withdrawing}
+use cardano/script_context.{ScriptContext, Withdrawing}
 use cardano/transaction.{Transaction}
 use mocktail.{
   add_reference_input, complete, mocktail_tx, required_signer_hash,
@@ -15,13 +15,13 @@ use mocktail.{
 }
 use mocktail/virgin_output_reference.{mock_utxo_ref}
 
-// fn user_unlock_ctx(tx: Transaction) -> ScriptContext {
-//   ScriptContext {
-//     transaction: tx,
-//     redeemer: Void,
-//     info: Withdrawing(Script(script_hash_5_1())),
-//   }
-// }
+fn user_unlock_ctx(tx: Transaction) -> ScriptContext {
+  ScriptContext {
+    transaction: tx,
+    redeemer: Void,
+    info: Withdrawing(Script(script_hash_5_1())),
+  }
+}
 
 fn account_process(index: Int, tx: Transaction, redeemer: AccountRedeemer) {
   let input = mock_utxo_ref(0, index)
@@ -70,12 +70,10 @@ fn mock_test_case_5_1(test_case: TestCase51) {
 test t5_1_success() {
   let redeemer = AccountUserUnlock1
   let tx = mock_test_case_5_1(base_test_case_5_1())
-  account_process(1, tx, redeemer) && user_unlock.account_user_unlock.withdraw(
+  account_process(1, tx, redeemer) && user_unlock.account_user_unlock.else(
     mock_account_oracle_policy_id(),
     mock_user_vkey_hex(),
-    Void,
-    Script(script_hash_5_1()),
-    tx,
+    user_unlock_ctx(tx),
   )
 }
 
@@ -86,12 +84,10 @@ test t5_1_success_mass() {
 
   let unlock_process =
     fn(index: Int) { account_process(index, tx, redeemer) }
-  unlock_process(0) && unlock_process(1) && unlock_process(2) && user_unlock.account_user_unlock.withdraw(
+  unlock_process(0) && unlock_process(1) && unlock_process(2) && user_unlock.account_user_unlock.else(
     mock_account_oracle_policy_id(),
     mock_user_vkey_hex(),
-    Void,
-    Script(script_hash_5_1()),
-    tx,
+    user_unlock_ctx(tx),
   )
 }
 
@@ -101,12 +97,10 @@ test t5_1_fail_without_owner_signed() {
     mock_test_case_5_1(
       TestCase51 { ..base_test_case_5_1(), is_owner_signed: False },
     )
-  account_process(1, tx, redeemer) && !user_unlock.account_user_unlock.withdraw(
+  account_process(1, tx, redeemer) && !user_unlock.account_user_unlock.else(
     mock_account_oracle_policy_id(),
     mock_user_vkey_hex(),
-    Void,
-    Script(script_hash_5_1()),
-    tx,
+    user_unlock_ctx(tx),
   )
 }
 
@@ -116,12 +110,10 @@ test t5_1_fail_without_app_signed() {
     mock_test_case_5_1(
       TestCase51 { ..base_test_case_5_1(), is_operation_key_signed: False },
     )
-  account_process(1, tx, redeemer) && !user_unlock.account_user_unlock.withdraw(
+  account_process(1, tx, redeemer) && !user_unlock.account_user_unlock.else(
     mock_account_oracle_policy_id(),
     mock_user_vkey_hex(),
-    Void,
-    Script(script_hash_5_1()),
-    tx,
+    user_unlock_ctx(tx),
   )
 }
 
@@ -131,11 +123,9 @@ test t5_1_fail_without_withdrawal_script_present() {
     mock_test_case_5_1(
       TestCase51 { ..base_test_case_5_1(), is_withdrawal_script_present: False },
     )
-  !account_process(1, tx, redeemer) && user_unlock.account_user_unlock.withdraw(
+  !account_process(1, tx, redeemer) && user_unlock.account_user_unlock.else(
     mock_account_oracle_policy_id(),
     mock_user_vkey_hex(),
-    Void,
-    Script(script_hash_5_1()),
-    tx,
+    user_unlock_ctx(tx),
   )
 }

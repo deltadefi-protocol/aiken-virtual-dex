@@ -7,6 +7,7 @@ use aiken_virtual_dex/placeholder.{
 use aiken_virtual_dex/types.{TakeOrders, VirtualDexDatum, VirtualDexRedeemer}
 use cardano/address.{Script}
 use cardano/assets.{from_asset}
+use cardano/script_context.{ScriptContext, Withdrawing}
 use cardano/transaction.{Transaction}
 use mocktail.{
   add_input, add_output, add_reference_input, complete, mocktail_tx,
@@ -15,6 +16,14 @@ use mocktail.{
 use mocktail/virgin_output_reference.{mock_utxo_ref}
 use virtual_dex/take_orders
 use virtual_dex/virtual_dex
+
+fn take_orders_ctx(tx: Transaction) -> ScriptContext {
+  ScriptContext {
+    transaction: tx,
+    redeemer: Void,
+    info: Withdrawing(Script(script_hash_5_1())),
+  }
+}
 
 fn virtual_dex_process(
   index: Int,
@@ -143,13 +152,11 @@ test t7_1_success_take_order() {
       owner: mock_user_vkey_hex(),
     }
   let tx = take_order_test(take_order_base_case())
-  virtual_dex_process(1, tx, dat, TakeOrders) && take_orders.virtual_dex_take_orders.withdraw(
+  virtual_dex_process(1, tx, dat, TakeOrders) && take_orders.virtual_dex_take_orders.else(
     mock_dex_oracle_policy_id(),
     ada_asset_class(),
     mock_token_asset_class(),
-    Void,
-    Script(script_hash_5_1()),
-    tx,
+    take_orders_ctx(tx),
   )
 }
 
@@ -167,13 +174,11 @@ test t7_1_fail_take_order_without_extra_lovelace_returned() {
     take_order_test(
       TestCase71 { ..take_order_base_case(), is_extra_lovelace_returned: False },
     )
-  virtual_dex_process(1, tx, dat, TakeOrders) && !take_orders.virtual_dex_take_orders.withdraw(
+  virtual_dex_process(1, tx, dat, TakeOrders) && !take_orders.virtual_dex_take_orders.else(
     mock_dex_oracle_policy_id(),
     ada_asset_class(),
     mock_token_asset_class(),
-    Void,
-    Script(script_hash_5_1()),
-    tx,
+    take_orders_ctx(tx),
   )
 }
 
@@ -191,13 +196,11 @@ test t7_1_fail_take_order_without_token_paid_to_maker() {
     take_order_test(
       TestCase71 { ..take_order_base_case(), is_token_paid_to_maker: False },
     )
-  virtual_dex_process(1, tx, dat, TakeOrders) && !take_orders.virtual_dex_take_orders.withdraw(
+  virtual_dex_process(1, tx, dat, TakeOrders) && !take_orders.virtual_dex_take_orders.else(
     mock_dex_oracle_policy_id(),
     ada_asset_class(),
     mock_token_asset_class(),
-    Void,
-    Script(script_hash_5_1()),
-    tx,
+    take_orders_ctx(tx),
   )
 }
 
@@ -215,13 +218,11 @@ test t7_1_fail_take_order_without_operation_key_signed() {
     take_order_test(
       TestCase71 { ..take_order_base_case(), is_operation_key_signed: False },
     )
-  virtual_dex_process(1, tx, dat, TakeOrders) && !take_orders.virtual_dex_take_orders.withdraw(
+  virtual_dex_process(1, tx, dat, TakeOrders) && !take_orders.virtual_dex_take_orders.else(
     mock_dex_oracle_policy_id(),
     ada_asset_class(),
     mock_token_asset_class(),
-    Void,
-    Script(script_hash_5_1()),
-    tx,
+    take_orders_ctx(tx),
   )
 }
 
@@ -242,12 +243,10 @@ test t7_1_failed_without_withdrawal_script_present() {
         is_withdrawal_script_present: False,
       },
     )
-  !virtual_dex_process(1, tx, dat, TakeOrders) && take_orders.virtual_dex_take_orders.withdraw(
+  !virtual_dex_process(1, tx, dat, TakeOrders) && take_orders.virtual_dex_take_orders.else(
     mock_dex_oracle_policy_id(),
     ada_asset_class(),
     mock_token_asset_class(),
-    Void,
-    Script(script_hash_5_1()),
-    tx,
+    take_orders_ctx(tx),
   )
 }

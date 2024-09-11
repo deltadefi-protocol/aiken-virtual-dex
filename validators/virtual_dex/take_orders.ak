@@ -1,10 +1,11 @@
 use aiken/collection/list
 use aiken/collection/pairs
 use aiken_virtual_dex/types.{DexOracleDatum, VirtualDexDatum}
-use cardano/address.{Address, Credential}
+use cardano/address.{Address}
 use cardano/assets.{AssetName,
   PolicyId, Value, from_asset, from_lovelace, merge}
-use cardano/certificate.{Certificate}
+// use cardano/certificate.{Certificate}
+use cardano/script_context.{Publishing, ScriptContext, Withdrawing}
 use cardano/transaction.{Input, Output, Transaction}
 use vodka_address.{address_script_hash}
 use vodka_extra_signatories.{key_signed}
@@ -17,51 +18,95 @@ validator virtual_dex_take_orders(
   param_long_token: (PolicyId, AssetName),
   param_short_token: (PolicyId, AssetName),
 ) {
-  withdraw(_redeemer: Data, _credential: Credential, tx: Transaction) {
-    let Transaction { reference_inputs, inputs, outputs, .. } = tx
-    expect DexOracleDatum { operation_key, dex_address, .. }: DexOracleDatum =
-      only_input_datum_with(reference_inputs, oracle_nft, "")
-    let (trade_payment_map, _long_token_quantity) =
-      accumulate_all_to_return_value(
-        param_long_token,
-        param_short_token,
-        inputs,
-        dex_address,
-      )
-    let payment_values = accumuate_all_payment_value(outputs)
-    let is_operation_key_signed =
-      key_signed(tx.extra_signatories, operation_key)
-    // - Accumulate proceeds supposed send to order creators, check output value to them
-    // 1. Look throught all inputs ->
-    //       if from same address -> get (account_address, change_account_address, receive_value)
-    // 2. Merge all results above with same account_address
-    // 3. Check each unique account_address, if outputs to trade_account + change_account >= to_receive
-    let is_token_paid_to_inidividual_maker =
-      fn(payment_item) {
-        let Pair(account_address, to_receive_value) = payment_item
-        let maybe_account_received_value =
-          pairs.get_first(payment_values, account_address)
-        when maybe_account_received_value is {
-          Some(account_received_value) ->
-            value_geq(account_received_value, to_receive_value)
-          None -> False
-        }
+  // withdraw(_redeemer: Data, _credential: Credential, tx: Transaction) {
+  //   let Transaction { reference_inputs, inputs, outputs, .. } = tx
+  //   expect DexOracleDatum { operation_key, dex_address, .. }: DexOracleDatum =
+  //     only_input_datum_with(reference_inputs, oracle_nft, "")
+  //   let (trade_payment_map, _long_token_quantity) =
+  //     accumulate_all_to_return_value(
+  //       param_long_token,
+  //       param_short_token,
+  //       inputs,
+  //       dex_address,
+  //     )
+  //   let payment_values = accumuate_all_payment_value(outputs)
+  //   let is_operation_key_signed =
+  //     key_signed(tx.extra_signatories, operation_key)
+  //   // - Accumulate proceeds supposed send to order creators, check output value to them
+  //   // 1. Look throught all inputs ->
+  //   //       if from same address -> get (account_address, change_account_address, receive_value)
+  //   // 2. Merge all results above with same account_address
+  //   // 3. Check each unique account_address, if outputs to trade_account + change_account >= to_receive
+  //   let is_token_paid_to_inidividual_maker =
+  //     fn(payment_item) {
+  //       let Pair(account_address, to_receive_value) = payment_item
+  //       let maybe_account_received_value =
+  //         pairs.get_first(payment_values, account_address)
+  //       when maybe_account_received_value is {
+  //         Some(account_received_value) ->
+  //           value_geq(account_received_value, to_receive_value)
+  //         None -> False
+  //       }
+  //     }
+  //   let is_token_paid_to_makers =
+  //     trade_payment_map
+  //       |> list.all(is_token_paid_to_inidividual_maker)
+  //   is_operation_key_signed && is_token_paid_to_makers
+  // }
+
+  // publish(_redeemer: Data, _certificate: Certificate, tx: Transaction) {
+  //   let Transaction { reference_inputs, .. } = tx
+  //   expect DexOracleDatum { operation_key, .. }: DexOracleDatum =
+  //     only_input_datum_with(reference_inputs, oracle_nft, "")
+  //   key_signed(tx.extra_signatories, operation_key)
+  // }
+
+  else(ctx: ScriptContext) {
+    let ScriptContext { transaction, info, .. } = ctx
+    when info is {
+      Withdrawing(_) -> {
+        let Transaction { reference_inputs, inputs, outputs, .. } = transaction
+        expect DexOracleDatum { operation_key, dex_address, .. }: DexOracleDatum =
+          only_input_datum_with(reference_inputs, oracle_nft, "")
+        let (trade_payment_map, _long_token_quantity) =
+          accumulate_all_to_return_value(
+            param_long_token,
+            param_short_token,
+            inputs,
+            dex_address,
+          )
+        let payment_values = accumuate_all_payment_value(outputs)
+        let is_operation_key_signed =
+          key_signed(transaction.extra_signatories, operation_key)
+        // - Accumulate proceeds supposed send to order creators, check output value to them
+        // 1. Look throught all inputs ->
+        //       if from same address -> get (account_address, change_account_address, receive_value)
+        // 2. Merge all results above with same account_address
+        // 3. Check each unique account_address, if outputs to trade_account + change_account >= to_receive
+        let is_token_paid_to_inidividual_maker =
+          fn(payment_item) {
+            let Pair(account_address, to_receive_value) = payment_item
+            let maybe_account_received_value =
+              pairs.get_first(payment_values, account_address)
+            when maybe_account_received_value is {
+              Some(account_received_value) ->
+                value_geq(account_received_value, to_receive_value)
+              None -> False
+            }
+          }
+        let is_token_paid_to_makers =
+          trade_payment_map
+            |> list.all(is_token_paid_to_inidividual_maker)
+        is_operation_key_signed && is_token_paid_to_makers
       }
-    let is_token_paid_to_makers =
-      trade_payment_map
-        |> list.all(is_token_paid_to_inidividual_maker)
-    is_operation_key_signed && is_token_paid_to_makers
-  }
-
-  publish(_redeemer: Data, _certificate: Certificate, tx: Transaction) {
-    let Transaction { reference_inputs, .. } = tx
-    expect DexOracleDatum { operation_key, .. }: DexOracleDatum =
-      only_input_datum_with(reference_inputs, oracle_nft, "")
-    key_signed(tx.extra_signatories, operation_key)
-  }
-
-  else(_) {
-    fail
+      Publishing { .. } -> {
+        let Transaction { reference_inputs, .. } = transaction
+        expect DexOracleDatum { operation_key, .. }: DexOracleDatum =
+          only_input_datum_with(reference_inputs, oracle_nft, "")
+        key_signed(transaction.extra_signatories, operation_key)
+      }
+      _ -> False
+    }
   }
 }
 
