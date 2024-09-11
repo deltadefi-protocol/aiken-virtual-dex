@@ -1,7 +1,5 @@
 use aiken_virtual_dex/types.{AccountOracleDatum}
-use cardano/address.{Credential}
 use cardano/assets.{PolicyId}
-use cardano/certificate.{Certificate}
 use cardano/script_context.{ScriptContext}
 use cardano/transaction.{Transaction}
 use vodka_extra_signatories.{all_key_signed}
