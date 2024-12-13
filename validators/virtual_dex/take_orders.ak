@@ -4,6 +4,7 @@ use aiken_virtual_dex/types.{DexOracleDatum, VirtualDexDatum}
 use cardano/address.{Address}
 use cardano/assets.{AssetName,
   PolicyId, Value, from_asset, from_lovelace, merge}
+use cardano/certificate.{RegisterCredential}
 // use cardano/certificate.{Certificate}
 use cardano/script_context.{Publishing, ScriptContext, Withdrawing}
 use cardano/transaction.{Input, Output, Transaction}
@@ -99,12 +100,16 @@ validator virtual_dex_take_orders(
             |> list.all(is_token_paid_to_inidividual_maker)
         is_operation_key_signed && is_token_paid_to_makers
       }
-      Publishing { .. } -> {
-        let Transaction { reference_inputs, .. } = transaction
-        expect DexOracleDatum { operation_key, .. }: DexOracleDatum =
-          only_input_datum_with(reference_inputs, oracle_nft, "")
-        key_signed(transaction.extra_signatories, operation_key)
-      }
+      Publishing(_at, cert) ->
+        when cert is {
+          RegisterCredential(..) -> {
+            let Transaction { reference_inputs, .. } = transaction
+            expect DexOracleDatum { operation_key, .. }: DexOracleDatum =
+              only_input_datum_with(reference_inputs, oracle_nft, "")
+            key_signed(transaction.extra_signatories, operation_key)
+          }
+          _ -> fail
+        }
       _ -> False
     }
   }
